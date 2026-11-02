@@ -94,25 +94,38 @@ export default function AboutPage({ initialTab = 'about' }: Props) {
           </section>
 
           {/* Timeline */}
-          <section className="py-16 bg-slate-50">
-            <div className="max-w-4xl mx-auto px-4">
-              <h2 className="text-2xl font-bold text-slate-900 font-display mb-10 text-center">Notre parcours</h2>
-              <div className="relative">
-                <div className="absolute left-16 top-0 bottom-0 w-px bg-slate-200" aria-hidden="true" />
-                <div className="space-y-6">
-                  {timeline.map(item => (
-                    <div key={item.year} className="flex gap-6 items-start">
-                      <div className="w-16 flex-shrink-0 text-right">
-                        <span className="font-bold text-blue-600 font-display text-sm">{item.year}</span>
-                      </div>
-                      <div className="w-3 h-3 rounded-full bg-blue-600 flex-shrink-0 mt-0.5 relative z-10" aria-hidden="true" />
-                      <p className="text-slate-600 text-sm leading-relaxed pt-0">{item.event}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
+         <section className="py-16 bg-slate-50">
+  <div className="max-w-4xl mx-auto px-4">
+    <h2 className="text-2xl font-bold text-slate-900 font-display mb-10 text-center">Notre parcours</h2>
+
+    <ol>
+  {timeline.map((item, i) => (
+    <li
+      key={item.year}
+      className="grid grid-cols-[5rem_2rem_1fr] gap-x-5 pb-5 last:pb-0"
+    >
+      {/* Année */}
+      <span className="text-right font-bold text-blue-600 font-display text-sm leading-6">
+        {item.year}
+      </span>
+
+      {/* Point + trait */}
+      <div className="relative flex justify-center" aria-hidden="true">
+        {i < timeline.length - 1 && (
+          <span className="absolute left-1/2 -translate-x-1/2 -bottom-3 w-px bg-slate-300" />
+        )}
+        <span className="relative z-10 mt-1.5 w-3 h-3 rounded-full bg-blue-600" />
+      </div>
+
+      {/* Événement */}
+      <p className="text-slate-600 text-sm leading-6">
+        {item.event}
+      </p>
+    </li>
+  ))}
+</ol>
+  </div>
+</section>
           <section className="py-16 bg-white" aria-labelledby="specialized-title">
             <div className="max-w-7xl mx-auto px-4">
               <div className="max-w-2xl mb-8">

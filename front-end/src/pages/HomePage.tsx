@@ -141,11 +141,11 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <button
                 key={item.page + item.label}
                 onClick={() => navigate(item.page)}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white/6 hover:bg-white/12 border border-white/8 transition-all text-left group"
+                className="flex items-center gap-4 p-4 rounded-xl bg-black/6 hover:bg-white/8 border border-white/8 transition-all text-left group"
               >
                 <span className="text-2xl w-9 text-center flex-shrink-0" aria-hidden="true">{item.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-white text-sm font-display">{item.label}</div>
+                  <div className="font-semibold text-white text-lg font-display">{item.label}</div>
                   <div className="text-white/90 text-xs font-medium truncate mt-0.5">{item.sub}</div>
                 </div>
                 <svg className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -367,15 +367,6 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
                       </div>
                     </div>
                   ))}
-                </div>
-                <div className="mt-8 pt-6 border-t border-white/10">
-                  <p className="text-slate-400 text-xs leading-relaxed">
-                    Premier échange gratuit et confidentiel.<br />
-                    Réponse sous 48h ouvrables.
-                  </p>
-                  <a href="mailto:caphci2011@gmail.com" className="mt-2 inline-flex items-center gap-1.5 text-blue-300 text-xs hover:text-white transition-colors font-medium">
-                    <span>✉</span> caphci2011@gmail.com
-                  </a>
                 </div>
               </div>
             </div>

@@ -136,3 +136,10 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Le mot de passe est obligatoire.'),
 });
 export type LoginValues = z.infer<typeof loginSchema>;
+export const trackingSchema = z.object({
+  
+  reference: z.string().trim().min(1, 'La référence de la demande est obligatoire.')
+    .transform(v => v.toUpperCase())
+    .pipe(z.string().regex(/^CAPH-PAR-\d{4}-\d{4}$/, 'Format attendu : CAPH-PAR-2026-1234.')),
+});
+export type TrackingValues = z.output<typeof trackingSchema>;

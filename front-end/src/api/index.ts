@@ -1,7 +1,7 @@
 import { apiGet, apiPost } from './client';
 import type {
   AgendaEvent, AuthSession, Delegation, Domain, FormReceipt, HomeData, MediaItem, NewsItem, OPH,
-  Opportunity, Paginated, Project, Resource, SiteSettings, Testimonial,
+  Opportunity, Paginated, Project, Resource, SiteSettings, Testimonial,PartnershipStatus
 } from '../types';
 import type {
   ContactValues, DonationValues, FundingValues, LoginValues, MembershipValues, PartnershipValues, QuoteValues,
@@ -30,6 +30,7 @@ export const api = {
   resources: () => apiGet<Resource[]>('/resources'),
   resource: (id: string) => apiGet<Resource>(`/resources/${id}`),
   testimonials: () => apiGet<Testimonial[]>('/testimonials'),
+trackPartnership: (reference: string) => apiGet<PartnershipStatus>(`/forms/partnership/status/${encodeURIComponent(reference)}`),
 
   submitContact: (v: ContactValues) => apiPost<FormReceipt>('/forms/contact', v),
   submitMembership: (v: MembershipValues) => apiPost<FormReceipt>('/forms/membership', v),

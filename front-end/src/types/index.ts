@@ -73,16 +73,15 @@ export type Delegation = {
   isProvisional?: boolean;
   id: string;
   name: string;
-  region: string;
-  city: string;
-  responsible: string;
-  phone: string;
-  email: string;
-  members: number;
-  projects: number;
-  activities: string[];
-  x: number;
-  y: number;
+  level: 'régionale' | 'communale';
+  /** District administratif (découpage de 2011). */
+  district: string;
+  chefLieu: string;
+  /** Identifiant de la région de la carte contenant le repère (voir src/assets/ci-regions.json). */
+  zoneId: string;
+  lat: number;
+  lng: number;
+  // Volontairement absents : responsable, téléphone, email, effectifs — jamais inventés.
 };
 
 export type Opportunity = {
@@ -192,3 +191,14 @@ export type FormReceipt = {
 };
 
 export type AuthSession = { authenticated: boolean; prototype: true; displayName: string };
+export type PartnershipStatusCode = 'recue' | 'en_analyse' | 'complement' | 'traitee';
+
+export type PartnershipStatus = {
+  reference: string;
+  status: PartnershipStatusCode;
+  label: string;
+  message: string;
+  updatedAt: string;
+  /** Toujours vrai : statut fictif, aucune demande réelle n'est consultée. */
+  simulated: true;
+};

@@ -269,7 +269,24 @@ export const newsItems: NewsItem[] = [
 ];
 
 // L'annuaire détaillé sera intégré après validation officielle des délégations.
-export const delegations: Delegation[] = [];
+// Repères PROVISOIRES : un point par chef-lieu de district, uniquement géographique.
+// Aucun responsable, téléphone, email ni effectif : la liste officielle (45 délégations) reste à valider.
+export const delegations: Delegation[] = [
+  { id: "d-abidjan", name: "Délégation d’Abidjan", level: "régionale", district: "Abidjan", chefLieu: "Abidjan", zoneId: "lagunes", lat: 5.36, lng: -4.01, isProvisional: true },
+  { id: "d-yamoussoukro", name: "Délégation de Yamoussoukro", level: "régionale", district: "Yamoussoukro", chefLieu: "Yamoussoukro", zoneId: "lacs", lat: 6.82, lng: -5.28, isProvisional: true },
+  { id: "d-bas-sassandra", name: "Délégation du Bas-Sassandra", level: "régionale", district: "Bas-Sassandra", chefLieu: "San-Pédro", zoneId: "bas-sassandra", lat: 4.75, lng: -6.64, isProvisional: true },
+  { id: "d-comoe", name: "Délégation du Comoé", level: "régionale", district: "Comoé", chefLieu: "Abengourou", zoneId: "comoe", lat: 6.73, lng: -3.49, isProvisional: true },
+  { id: "d-denguele", name: "Délégation du Denguélé", level: "régionale", district: "Denguélé", chefLieu: "Odienné", zoneId: "denguele", lat: 9.51, lng: -7.56, isProvisional: true },
+  { id: "d-goh-djiboua", name: "Délégation du Gôh-Djiboua", level: "régionale", district: "Gôh-Djiboua", chefLieu: "Gagnoa", zoneId: "goh", lat: 6.13, lng: -5.95, isProvisional: true },
+  { id: "d-lacs", name: "Délégation des Lacs", level: "régionale", district: "Lacs", chefLieu: "Dimbokro", zoneId: "n-zi-comoe", lat: 6.65, lng: -4.71, isProvisional: true },
+  { id: "d-lagunes", name: "Délégation des Lagunes", level: "régionale", district: "Lagunes", chefLieu: "Dabou", zoneId: "lagunes", lat: 5.33, lng: -4.38, isProvisional: true },
+  { id: "d-montagnes", name: "Délégation des Montagnes", level: "régionale", district: "Montagnes", chefLieu: "Man", zoneId: "dix-huit-montagnes", lat: 7.41, lng: -7.55, isProvisional: true },
+  { id: "d-sassandra-marahoue", name: "Délégation du Sassandra-Marahoué", level: "régionale", district: "Sassandra-Marahoué", chefLieu: "Daloa", zoneId: "haut-sassandra", lat: 6.88, lng: -6.45, isProvisional: true },
+  { id: "d-savanes", name: "Délégation des Savanes", level: "régionale", district: "Savanes", chefLieu: "Korhogo", zoneId: "savanes", lat: 9.46, lng: -5.63, isProvisional: true },
+  { id: "d-vallee-du-bandama", name: "Délégation de la Vallée du Bandama", level: "régionale", district: "Vallée du Bandama", chefLieu: "Bouaké", zoneId: "vallee-du-bandama", lat: 7.69, lng: -5.03, isProvisional: true },
+  { id: "d-woroba", name: "Délégation du Woroba", level: "régionale", district: "Woroba", chefLieu: "Séguéla", zoneId: "worodougou", lat: 7.96, lng: -6.67, isProvisional: true },
+  { id: "d-zanzan", name: "Délégation du Zanzan", level: "régionale", district: "Zanzan", chefLieu: "Bondoukou", zoneId: "zanzan", lat: 8.04, lng: -2.8, isProvisional: true },
+];
 
 export const opportunities: Opportunity[] = [
   {

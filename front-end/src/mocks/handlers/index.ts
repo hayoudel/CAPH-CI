@@ -6,7 +6,7 @@ import { flagProvisional } from '../data/provisional';
 import {
   contactSchema, donationSchema, fundingSchema, loginSchema, membershipSchema, partnershipSchema, quoteSchema,
 } from '../../schemas/forms';
-import type { FormKind, FormReceipt, Paginated } from '../../types';
+import type { FormKind, FormReceipt, Paginated, PartnershipStatus, PartnershipStatusCode } from '../../types';
 
 const BASE = '/api';
 const LATENCY = import.meta.env.MODE === 'test' ? 0 : 250;
@@ -75,6 +75,19 @@ function formHandler(path: string, kind: FormKind, schema: { safeParse: (v: unkn
     return HttpResponse.json(receipt(kind), { status: 201 });
   });
 }
+const STATUS_TEXT: Record<PartnershipStatusCode, { label: string; message: string }> = {
+  recue: { label: 'Demande reçue', message: 'Votre demande a bien été enregistrée. Elle n’a pas encore été examinée.' },
+  en_analyse: { label: 'En cours d’analyse', message: 'Votre demande est en cours d’analyse par l’équipe de la CAPH-CI.' },
+  complement: { label: 'Complément demandé', message: 'Des informations complémentaires sont nécessaires. L’équipe vous contactera.' },
+  traitee: { label: 'Demande traitée', message: 'Votre demande a été traitée. L’équipe de la CAPH-CI vous a répondu.' },
+};
+
+/** Statut FICTIF déduit du dernier chiffre de la référence (le mock ne stocke aucune demande). */
+function simulatedStatus(reference: string): PartnershipStatus {
+  const digit = Number(reference.slice(-1));
+  const status: PartnershipStatusCode = digit <= 2 ? 'recue' : digit <= 5 ? 'en_analyse' : digit <= 7 ? 'complement' : 'traitee';
+  return { reference, status, ...STATUS_TEXT[status], updatedAt: new Date().toISOString(), simulated: true };
+}
 
 export const handlers = [
   http.get(`${BASE}/settings`, async () => {
@@ -117,6 +130,14 @@ export const handlers = [
   ...list('resources', data.resources),
   // Aucun témoignage réel n'est disponible : la liste reste vide (jamais de témoignage inventé).
   http.get(`${BASE}/testimonials`, async () => { await delay(LATENCY); return HttpResponse.json([]); }),
+http.get(`${BASE}/forms/partnership/status/:reference`, async ({ params }) => {
+  await delay(LATENCY);
+  const reference = String(params.reference).toUpperCase();
+  if (!/^CAPH-PAR-\d{4}-\d{4}$/.test(reference)) {
+    return HttpResponse.json({ message: 'Aucune demande ne correspond à cette référence.' }, { status: 404 });
+  }
+  return HttpResponse.json(simulatedStatus(reference));
+}),
 
   formHandler('contact', 'contact', contactSchema),
   formHandler('membership', 'membership', membershipSchema),

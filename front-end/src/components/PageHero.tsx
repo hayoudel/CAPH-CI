@@ -14,7 +14,7 @@ export default function PageHero({ title, subtitle, breadcrumbs, compact, childr
   const { navigate, goBack } = useNavigation();
 
   return (
-    <section className={`bg-blue-800 text-white ${compact ? 'py-10' : 'py-14'}`}>
+    <section className={`bg-blue-800 text-white ${compact ? 'py-6' : 'py-8'} sticky top-[var(--header-h,96px)] z-40 shadow-md`}>
       <div className="max-w-7xl mx-auto px-4">
         {/* Breadcrumb */}
         {breadcrumbs && (
