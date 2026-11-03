@@ -1,0 +1,52 @@
+/* Charte graphique et d'accessibilité numérique CAPH-CI : couleurs, polices, tailles. */
+:root {
+  color-scheme: light;
+
+  /* Couleurs de la charte */
+  --orange: #f56600;        /* identité : accents, jamais pour du texte courant (contraste < 4,5:1 sur blanc) */
+  --green: #008b3d;         /* repères graphiques */
+  --green-ui: #006b35;      /* boutons, liens, titres (6,66:1 avec du blanc) */
+  --green-deep: #004d29;    /* en-têtes et fonds foncés */
+  --yellow: #ffd600;        /* détails graphiques, focus sur fond foncé */
+  --ink: #1a1a1a;           /* texte principal */
+  --paper: #ffffff;
+  --paper-2: #f5f7f6;       /* fonds secondaires */
+
+  /* Couleurs de service (contrastes vérifiés ≥ 4,5:1) */
+  --ink-2: #4a524d;         /* texte secondaire */
+  --line: #cdd5d0;          /* filets et bordures de composants (≥ 3:1 sur blanc pour les champs : voir --field-line) */
+  --field-line: #6b7570;    /* bordure des champs : 4,7:1 */
+  --danger: #b42318;
+  --danger-bg: #fdeeec;
+  --success: #0b6b3a;
+  --success-bg: #e8f5ed;
+  --info-bg: #eef3f1;
+  --focus: #004d29;
+  --focus-on-dark: #ffd600;
+
+  /* Typographie */
+  --font-title: 'Montserrat', Arial, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', Arial, sans-serif;
+  --font-ui: Arial, Helvetica, sans-serif;   /* menus et boutons : Arial Bold */
+
+  --text-base: 1.125rem;    /* 18 px */
+  --text-small: 1rem;       /* 16 px : légendes */
+  --text-ui: 1.0625rem;     /* 17 px : menus et boutons */
+  --h1: clamp(2rem, 1.4rem + 2vw, 2.75rem);   /* 32 → 44 px */
+  --h2: clamp(1.5rem, 1.2rem + 1vw, 2rem);    /* 24 → 32 px */
+  --h3: 1.375rem;                              /* 22 px */
+  --leading: 1.5;
+
+  /* Espacements et formes */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --radius: 6px;
+  --target: 2.75rem;        /* 44 px minimum pour toute zone cliquable */
+  --measure: 68ch;          /* longueur de ligne confortable */
+}

@@ -1,0 +1,793 @@
+// ============================================================================
+// CAPH-CI — Module OPH — Schéma de données (PostgreSQL)
+// Conventions : clés uuid, createdAt/updatedAt, archivage logique (archivedAt).
+// Les dossiers d'adhésion, décisions et journaux ne sont JAMAIS supprimés.
+// Les e-mails sont stockés en minuscules (normalisation faite par les services).
+// ============================================================================
+
+generator client {
+  provider   = "prisma-client-js"
+  // Client « sans moteur Rust » : requêtes exécutées par l'adaptateur PostgreSQL (@prisma/adapter-pg).
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── ENUMS ────────────────────────────────────
+
+enum UserStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+enum ContactPreference {
+  EMAIL
+  PHONE
+}
+
+enum RoleScope {
+  GLOBAL // personnel CAPH-CI
+  ORGANIZATION // rôle au sein d'une OPH
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum OneTimeTokenType {
+  INVITATION
+  PASSWORD_RESET
+}
+
+enum MembershipRequestType {
+  FIRST
+  RENEWAL
+}
+
+enum MembershipStatus {
+  DRAFT
+  SUBMITTED
+  TO_COMPLETE
+  UNDER_REVIEW
+  ADMITTED_PAYMENT_PENDING
+  ADJOURNED
+  REJECTED
+  REGISTERED
+  WITHDRAWN
+}
+
+enum DocumentReviewStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum DecisionOutcome {
+  ADMITTED
+  ADJOURNED
+  REJECTED
+}
+
+enum DecisionBody {
+  BOARD // Conseil d'Administration
+  GENERAL_ASSEMBLY // Assemblée Générale (membres honoraires)
+}
+
+enum ActorType {
+  APPLICANT
+  STAFF
+  SYSTEM
+}
+
+enum PaymentMethod {
+  CASH
+  MOBILE_MONEY
+  BANK_TRANSFER
+  OTHER
+}
+
+enum FeePeriodicity {
+  ONE_TIME
+  MONTHLY
+  YEARLY
+}
+
+enum InternalDocumentCategory {
+  GUIDE
+  FORM
+  MEETING_MINUTES
+  REFERENCE
+  OTHER
+}
+
+enum DocumentAccessLevel {
+  MEMBERS // tous les membres d'une OPH
+  CONTRIBUTORS // Président et Contributeurs uniquement
+}
+
+enum OpportunityType {
+  CALL_FOR_PROJECTS
+  TRAINING
+  CONSULTATION
+  JOB
+  INTERNSHIP
+  GRANT
+  OTHER
+}
+
+enum OpportunityStatus {
+  OPEN
+  CLOSED
+  ENDED
+}
+
+enum Visibility {
+  PUBLIC
+  MEMBERS
+}
+
+enum CommunicationKind {
+  INTERNAL
+  EXTERNAL
+}
+
+enum EventType {
+  MEETING
+  TRAINING
+  GENERAL_ASSEMBLY
+  CONFERENCE
+  FORUM
+  CAMPAIGN
+  CEREMONY
+}
+
+enum EventMode {
+  ONLINE
+  ONSITE
+  HYBRID
+}
+
+enum EventStatus {
+  PLANNED
+  OPEN
+  REGISTRATION
+  CLOSED
+  CANCELLED
+}
+
+enum ReportType {
+  ACTIVITY
+  FINANCIAL
+  OTHER
+}
+
+enum ReportStatus {
+  RECEIVED
+  IN_PROCESS
+  PROCESSED
+  CORRECTION_REQUESTED
+}
+
+enum NewsStatus {
+  SUBMITTED
+  CORRECTION
+  APPROVED
+  REJECTED
+  PUBLISHED
+}
+
+// ───────────────────────────── RÉFÉRENTIELS ───────────────────────────────
+
+model Region {
+  id            String         @id @default(uuid()) @db.Uuid
+  code          String         @unique
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  delegations   Delegation[]
+  organizations Organization[]
+  events        Event[]
+
+  @@map("regions")
+}
+
+model Delegation {
+  id                 String              @id @default(uuid()) @db.Uuid
+  name               String              @unique
+  regionId           String?             @db.Uuid
+  region             Region?             @relation(fields: [regionId], references: [id])
+  commune            String?
+  email              String?
+  phone              String?
+  archivedAt         DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  organizations      Organization[]
+  userRoles          UserRole[]
+  membershipRequests MembershipRequest[]
+  communications     Communication[]
+
+  @@index([regionId])
+  @@map("delegations")
+}
+
+model InterventionDomain {
+  id            String         @id @default(uuid()) @db.Uuid
+  code          String         @unique
+  label         String
+  sortOrder     Int            @default(0)
+  organizations Organization[]
+
+  @@map("intervention_domains")
+}
+
+model DisabilityType {
+  id            String         @id @default(uuid()) @db.Uuid
+  code          String         @unique
+  label         String
+  sortOrder     Int            @default(0)
+  organizations Organization[]
+
+  @@map("disability_types")
+}
+
+model NewsCategory {
+  id            String         @id @default(uuid()) @db.Uuid
+  code          String         @unique
+  label         String
+  sortOrder     Int            @default(0)
+  newsProposals NewsProposal[]
+
+  @@map("news_categories")
+}
+
+// ─────────────────────────── COMPTES ET ACCÈS ─────────────────────────────
+
+model User {
+  id                String            @id @default(uuid()) @db.Uuid
+  email             String            @unique
+  passwordHash      String? // null tant que l'invitation n'est pas acceptée
+  firstName         String
+  lastName          String
+  phone             String?
+  jobTitle          String?
+  avatarKey         String?
+  status            UserStatus        @default(INVITED)
+  contactPreference ContactPreference @default(EMAIL)
+  failedLoginCount  Int               @default(0)
+  lockedUntil       DateTime?
+  passwordChangedAt DateTime?
+  lastLoginAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  roles              UserRole[]
+  membership         OrganizationMember?
+  refreshTokens      RefreshToken[]
+  oneTimeTokens      OneTimeToken[]
+  communicationReads CommunicationRead[]
+  auditLogs          AuditLog[]
+  decisionsRecorded  MembershipDecision[] @relation("DecisionRecorder")
+  paymentsRecorded   PaymentRecord[]      @relation("PaymentRecorder")
+  documentsReviewed  MembershipDocument[] @relation("DocumentReviewer")
+  reportsAuthored    Report[]             @relation("ReportAuthor")
+  reportsReviewed    Report[]             @relation("ReportReviewer")
+  newsAuthored       NewsProposal[]       @relation("NewsAuthor")
+  newsReviewed       NewsProposal[]       @relation("NewsReviewer")
+
+  @@index([status])
+  @@map("users")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id          String               @id @default(uuid()) @db.Uuid
+  code        String               @unique
+  label       String
+  scope       RoleScope
+  permissions RolePermission[]
+  userRoles   UserRole[]
+  members     OrganizationMember[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// Rôles du personnel CAPH-CI. delegationId limite le rôle à une délégation.
+model UserRole {
+  id           String      @id @default(uuid()) @db.Uuid
+  userId       String      @db.Uuid
+  roleId       String      @db.Uuid
+  delegationId String?     @db.Uuid
+  createdAt    DateTime    @default(now())
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role        @relation(fields: [roleId], references: [id])
+  delegation   Delegation? @relation(fields: [delegationId], references: [id])
+
+  @@index([userId])
+  @@map("user_roles")
+}
+
+// Appartenance d'un utilisateur à UNE seule OPH (userId unique).
+model OrganizationMember {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @unique @db.Uuid
+  organizationId String       @db.Uuid
+  roleId         String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  role           Role         @relation(fields: [roleId], references: [id])
+
+  @@index([organizationId])
+  @@map("organization_members")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ip        String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// Jetons à usage unique (invitation, réinitialisation). Seul le hash est stocké.
+model OneTimeToken {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      OneTimeTokenType
+  tokenHash String           @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("one_time_tokens")
+}
+
+// ───────────────────────────── ORGANISATIONS ──────────────────────────────
+
+model Organization {
+  id                   String             @id @default(uuid()) @db.Uuid
+  name                 String             @unique
+  acronym              String?
+  legalReference       String? // n° de récépissé / référence légale
+  status               OrganizationStatus @default(ACTIVE)
+  memberNumber         String?            @unique
+  registeredAt         DateTime?
+  delegationId         String?            @db.Uuid
+  regionId             String?            @db.Uuid
+  commune              String?
+  address              String?
+  postalAddress        String?
+  phone                String?
+  email                String? // e-mail de l'organisation (privé : connexion et notifications)
+  website              String?
+  interventionZone     String?
+  // Annuaire : l'OPH n'apparaît que si isListed ET consentement enregistré.
+  isListed             Boolean            @default(false)
+  publicationConsentAt DateTime?
+  // Visibilité champ par champ. Liste blanche : publicEmail, publicPhone, postalAddress, website
+  fieldVisibility      Json               @default("{}")
+  publicEmail          String?
+  publicPhone          String?
+  archivedAt           DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  delegation        Delegation?          @relation(fields: [delegationId], references: [id])
+  region            Region?              @relation(fields: [regionId], references: [id])
+  domains           InterventionDomain[]
+  disabilityTypes   DisabilityType[]
+  members           OrganizationMember[]
+  membershipRequest MembershipRequest?
+  reports           Report[]
+  newsProposals     NewsProposal[]
+  communications    Communication[]
+
+  @@index([delegationId])
+  @@index([regionId])
+  @@index([isListed, status])
+  @@map("organizations")
+}
+
+// ──────────────────────────────── ADHÉSION ────────────────────────────────
+
+model MembershipCategory {
+  id                String              @id @default(uuid()) @db.Uuid
+  code              String              @unique
+  label             String
+  description       String?
+  isActive          Boolean             @default(false)
+  // [{ type, label, requirement: REQUIRED|RECOMMENDED|OPTIONAL|AFTER_ADMISSION }]
+  requiredDocuments Json                @default("[]")
+  sortOrder         Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  requests          MembershipRequest[]
+
+  @@map("membership_categories")
+}
+
+// Barème des droits et cotisations (RI 2026, transitoire : modifiable).
+model FeeSchedule {
+  id          String         @id @default(uuid()) @db.Uuid
+  code        String         @unique
+  label       String
+  amountFcfa  Int
+  periodicity FeePeriodicity
+  validFrom   DateTime       @default(now())
+  validTo     DateTime?
+  isActive    Boolean        @default(true)
+  updatedAt   DateTime       @updatedAt
+
+  @@map("fee_schedules")
+}
+
+// Compteur annuel pour générer CAPH-AAAA-NNNNNN sans doublon.
+model ReferenceCounter {
+  year Int @id
+  last Int @default(0)
+
+  @@map("reference_counters")
+}
+
+model FileAsset {
+  id           String    @id @default(uuid()) @db.Uuid
+  storageKey   String    @unique // nom aléatoire sur disque, jamais le nom d'origine
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  sha256       String
+  encrypted    Boolean   @default(false)
+  uploadedById String?   @db.Uuid
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
+
+  membershipDocuments MembershipDocument[]
+  reportAttachments   ReportAttachment[]
+  newsAttachments     NewsAttachment[]
+  internalDocuments   InternalDocument[]
+  opportunities       Opportunity[]
+
+  @@map("file_assets")
+}
+
+model MembershipRequest {
+  id                       String                @id @default(uuid()) @db.Uuid
+  reference                String?               @unique // générée à la soumission
+  categoryId               String                @db.Uuid
+  requestType              MembershipRequestType @default(FIRST)
+  existingMemberNumber     String?
+  status                   MembershipStatus      @default(DRAFT)
+  applicantName            String
+  applicantEmail           String
+  applicantPhone           String?
+  trackingTokenHash        String
+  data                     Json                  @default("{}") // champs propres à la catégorie
+  dataVersion              Int                   @default(1)
+  delegationId             String?               @db.Uuid
+  delegationOverrideReason String?
+  declarationsAcceptedAt   DateTime?
+  declarationIp            String?
+  signerName               String?
+  publicationConsent       Boolean               @default(false)
+  submittedAt              DateTime?
+  lastActionAt             DateTime              @default(now())
+  organizationId           String?               @unique @db.Uuid // renseigné à l'enregistrement
+  memberCardNumber         String?
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+
+  category     MembershipCategory   @relation(fields: [categoryId], references: [id])
+  delegation   Delegation?          @relation(fields: [delegationId], references: [id])
+  organization Organization?        @relation(fields: [organizationId], references: [id])
+  documents    MembershipDocument[]
+  events       MembershipEvent[]
+  decisions    MembershipDecision[]
+  payments     PaymentRecord[]
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([applicantEmail])
+  @@index([delegationId])
+  @@index([submittedAt])
+  @@map("membership_requests")
+}
+
+model MembershipDocument {
+  id           String               @id @default(uuid()) @db.Uuid
+  requestId    String               @db.Uuid
+  type         String // ex. LEGAL_REGISTRATION, STATUTES, REPRESENTATIVE_ID
+  fileId       String               @db.Uuid
+  status       DocumentReviewStatus @default(PENDING)
+  reviewNote   String?
+  reviewedById String?              @db.Uuid
+  reviewedAt   DateTime?
+  createdAt    DateTime             @default(now())
+  deletedAt    DateTime?
+  request      MembershipRequest    @relation(fields: [requestId], references: [id])
+  file         FileAsset            @relation(fields: [fileId], references: [id])
+  reviewedBy   User?                @relation("DocumentReviewer", fields: [reviewedById], references: [id])
+
+  @@index([requestId])
+  @@map("membership_documents")
+}
+
+// Historique append-only : on n'édite ni ne supprime jamais une ligne.
+model MembershipEvent {
+  id         String            @id @default(uuid()) @db.Uuid
+  requestId  String            @db.Uuid
+  actorType  ActorType
+  actorId    String?           @db.Uuid
+  action     String // SUBMIT, REQUEST_INFO, DECISION, PAYMENT, REGISTER…
+  fromStatus MembershipStatus?
+  toStatus   MembershipStatus?
+  comment    String?
+  createdAt  DateTime          @default(now())
+  request    MembershipRequest @relation(fields: [requestId], references: [id])
+
+  @@index([requestId, createdAt])
+  @@map("membership_events")
+}
+
+model MembershipDecision {
+  id                String            @id @default(uuid()) @db.Uuid
+  requestId         String            @db.Uuid
+  outcome           DecisionOutcome
+  body              DecisionBody
+  decisionReference String
+  decidedAt         DateTime
+  motive            String? // obligatoire si ajourné ou refusé (contrôlé par le service)
+  recordedById      String            @db.Uuid
+  createdAt         DateTime          @default(now())
+  request           MembershipRequest @relation(fields: [requestId], references: [id])
+  recordedBy        User              @relation("DecisionRecorder", fields: [recordedById], references: [id])
+
+  @@index([requestId])
+  @@map("membership_decisions")
+}
+
+model PaymentRecord {
+  id            String            @id @default(uuid()) @db.Uuid
+  requestId     String            @db.Uuid
+  lines         Json // [{ feeCode, label, amountFcfa }]
+  totalFcfa     Int
+  method        PaymentMethod
+  receiptNumber String            @unique
+  paidAt        DateTime
+  recordedById  String            @db.Uuid
+  createdAt     DateTime          @default(now())
+  request       MembershipRequest @relation(fields: [requestId], references: [id])
+  recordedBy    User              @relation("PaymentRecorder", fields: [recordedById], references: [id])
+
+  @@index([requestId])
+  @@map("payment_records")
+}
+
+// ─────────────────────────────── ESPACE MEMBRE ────────────────────────────
+
+model InternalDocument {
+  id          String                   @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  category    InternalDocumentCategory
+  accessLevel DocumentAccessLevel      @default(MEMBERS)
+  fileId      String                   @db.Uuid
+  isFeatured  Boolean                  @default(false)
+  publishedAt DateTime                 @default(now())
+  archivedAt  DateTime?
+  createdById String?                  @db.Uuid
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  file        FileAsset                @relation(fields: [fileId], references: [id])
+
+  @@index([category, publishedAt])
+  @@map("internal_documents")
+}
+
+model Opportunity {
+  id          String            @id @default(uuid()) @db.Uuid
+  reference   String            @unique // OP-AAAA-NN
+  title       String
+  summary     String
+  body        String?
+  type        OpportunityType
+  status      OpportunityStatus @default(OPEN)
+  deadline    DateTime?
+  audience    String? // public concerné
+  modality    String? // ex. dépôt en ligne
+  visibility  Visibility        @default(MEMBERS)
+  sheetFileId String?           @db.Uuid // fiche à télécharger
+  archivedAt  DateTime?
+  createdById String?           @db.Uuid
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  sheetFile   FileAsset?        @relation(fields: [sheetFileId], references: [id])
+
+  @@index([status, deadline])
+  @@index([visibility])
+  @@map("opportunities")
+}
+
+model Communication {
+  id            String              @id @default(uuid()) @db.Uuid
+  kind          CommunicationKind   @default(INTERNAL)
+  category      String?
+  title         String
+  body          String
+  senderLabel   String              @default("Équipe CAPH-CI")
+  audienceAll   Boolean             @default(true)
+  delegations   Delegation[]
+  organizations Organization[]
+  publishedAt   DateTime            @default(now())
+  archivedAt    DateTime?
+  createdById   String?             @db.Uuid
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  reads         CommunicationRead[]
+
+  @@index([kind, publishedAt])
+  @@map("communications")
+}
+
+model CommunicationRead {
+  communicationId String        @db.Uuid
+  userId          String        @db.Uuid
+  readAt          DateTime      @default(now())
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([communicationId, userId])
+  @@map("communication_reads")
+}
+
+model Event {
+  id          String      @id @default(uuid()) @db.Uuid
+  type        EventType
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  mode        EventMode   @default(ONSITE)
+  location    String?
+  regionId    String?     @db.Uuid
+  status      EventStatus @default(PLANNED)
+  archivedAt  DateTime?
+  createdById String?     @db.Uuid
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  region      Region?     @relation(fields: [regionId], references: [id])
+
+  @@index([startsAt])
+  @@index([type])
+  @@map("events")
+}
+
+model Report {
+  id                   String             @id @default(uuid()) @db.Uuid
+  organizationId       String             @db.Uuid
+  authorId             String             @db.Uuid
+  type                 ReportType
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  title                String
+  summary              String // 600 caractères maximum (contrôlé par le DTO)
+  status               ReportStatus       @default(RECEIVED)
+  certifiedAuthorityAt DateTime // attestation d'habilitation à transmettre
+  reviewerNote         String?
+  reviewedById         String?            @db.Uuid
+  submittedAt          DateTime           @default(now())
+  processedAt          DateTime?
+  updatedAt            DateTime           @updatedAt
+  organization         Organization       @relation(fields: [organizationId], references: [id])
+  author               User               @relation("ReportAuthor", fields: [authorId], references: [id])
+  reviewedBy           User?              @relation("ReportReviewer", fields: [reviewedById], references: [id])
+  attachments          ReportAttachment[]
+
+  @@index([organizationId, submittedAt])
+  @@index([status])
+  @@map("reports")
+}
+
+model ReportAttachment {
+  id        String    @id @default(uuid()) @db.Uuid
+  reportId  String    @db.Uuid
+  fileId    String    @db.Uuid
+  createdAt DateTime  @default(now())
+  report    Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  file      FileAsset @relation(fields: [fileId], references: [id])
+
+  @@index([reportId])
+  @@map("report_attachments")
+}
+
+model NewsProposal {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  authorId       String           @db.Uuid
+  categoryId     String?          @db.Uuid
+  title          String
+  description    String
+  status         NewsStatus       @default(SUBMITTED)
+  reviewerNote   String?
+  reviewedById   String?          @db.Uuid
+  submittedAt    DateTime         @default(now())
+  reviewedAt     DateTime?
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  category       NewsCategory?    @relation(fields: [categoryId], references: [id])
+  author         User             @relation("NewsAuthor", fields: [authorId], references: [id])
+  reviewedBy     User?            @relation("NewsReviewer", fields: [reviewedById], references: [id])
+  attachments    NewsAttachment[]
+
+  @@index([organizationId, submittedAt])
+  @@index([status])
+  @@map("news_proposals")
+}
+
+model NewsAttachment {
+  id         String       @id @default(uuid()) @db.Uuid
+  proposalId String       @db.Uuid
+  fileId     String       @db.Uuid
+  createdAt  DateTime     @default(now())
+  proposal   NewsProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  file       FileAsset    @relation(fields: [fileId], references: [id])
+
+  @@index([proposalId])
+  @@map("news_attachments")
+}
+
+// ─────────────────────────────────── AUDIT ────────────────────────────────
+
+// Append-only. Aucune donnée sensible (mot de passe, contenu de pièce) dans metadata.
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @db.Uuid
+  actorLabel String? // e-mail ou "anonyme" (ex. échec de connexion)
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  actor      User?    @relation(fields: [actorId], references: [id])
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
