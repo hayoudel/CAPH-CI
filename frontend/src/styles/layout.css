@@ -79,3 +79,4 @@
   .brand__text small { display: none; }
   .container { padding: var(--space-5) var(--space-4); }
 }
+.container--wide { max-width: 54rem; }

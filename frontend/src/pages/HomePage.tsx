@@ -33,7 +33,7 @@ export function HomePage() {
           <section className="panel choice" aria-labelledby="c-adhesion">
             <h3 id="c-adhesion">Demander l’adhésion</h3>
             <p>Pour les associations qui souhaitent rejoindre la Coordination : conditions, pièces à fournir et dépôt du dossier.</p>
-            <LinkButton to="/adhesion" variant="secondary">Voir comment adhérer</LinkButton>
+            <div className="row"><LinkButton to="/adhesion" variant="secondary">Voir comment adhérer</LinkButton><LinkButton to="/adhesion/suivi" variant="secondary">Suivre mon dossier</LinkButton></div>
           </section>
           <section className="panel choice" aria-labelledby="c-annuaire">
             <h3 id="c-annuaire">Trouver une organisation</h3>

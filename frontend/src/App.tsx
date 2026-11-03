@@ -7,7 +7,11 @@ import { DirectoryDetailPage, DirectoryPage } from './pages/DirectoryPage';
 import { OrganizationPage } from './pages/org/OrganizationPage';
 import { TeamPage } from './pages/org/TeamPage';
 import { VisibilityPage } from './pages/org/VisibilityPage';
-import { ComingSoonPage, NotFoundPage } from './pages/ComingSoonPage';
+import { AdhesionInfoPage } from './pages/adhesion/AdhesionInfoPage';
+import { ResumePage } from './pages/adhesion/ResumePage';
+import { TrackPage } from './pages/adhesion/TrackPage';
+import { WizardPage } from './pages/adhesion/WizardPage';
+import { NotFoundPage } from './pages/ComingSoonPage';
 import { MemberDashboardPage, StaffDashboardPage } from './pages/Dashboards';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { HomePage } from './pages/HomePage';
@@ -19,7 +23,10 @@ export function App() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
-        <Route path="adhesion" element={<ComingSoonPage title="Adhérer à la CAPH-CI" />} />
+        <Route path="adhesion" element={<AdhesionInfoPage />} />
+        <Route path="adhesion/demande" element={<WizardPage />} />
+        <Route path="adhesion/reprendre" element={<ResumePage />} />
+        <Route path="adhesion/suivi" element={<TrackPage />} />
         <Route path="annuaire" element={<DirectoryPage />} />
         <Route path="annuaire/:id" element={<DirectoryDetailPage />} />
         <Route path="*" element={<NotFoundPage />} />

@@ -83,20 +83,46 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectProps>(function S
 });
 
 /** Groupe de cases à cocher : un <fieldset> avec légende, lu comme un groupe par les lecteurs d'écran. */
-export function CheckGroup({ legend, hint, items, selected, onChange, disabled }: {
-  legend: string; hint?: ReactNode; items: { id: string; label: string }[]; selected: string[];
-  onChange: (ids: string[]) => void; disabled?: boolean;
+export function CheckGroup({ legend, hint, error, items, selected, onChange, disabled, required }: {
+  legend: string; hint?: ReactNode; error?: string; items: { id: string; label: string }[]; selected: string[];
+  onChange: (ids: string[]) => void; disabled?: boolean; required?: boolean;
 }) {
+  const id = useId();
   return (
-    <fieldset className="fieldset">
-      <legend className="field__label">{legend}</legend>
+    <fieldset className="fieldset" aria-describedby={error ? `${id}-err` : undefined}>
+      <legend className="field__label">
+        {legend}{required && <span className="field__req" aria-hidden="true"> *</span>}
+        {required && <span className="sr-only"> (obligatoire)</span>}
+      </legend>
       {hint && <div className="field__hint">{hint}</div>}
       <div className="check-grid">
-        {items.map((i) => (
-          <Checkbox key={i.id} label={i.label} disabled={disabled} checked={selected.includes(i.id)}
+        {items.map((i, n) => (
+          <Checkbox key={i.id} label={i.label} disabled={disabled} checked={selected.includes(i.id)} aria-invalid={error && n === 0 ? true : undefined}
             onChange={(e) => onChange(e.target.checked ? [...selected, i.id] : selected.filter((x) => x !== i.id))} />
         ))}
       </div>
+      {error && <p className="field__error" id={`${id}-err`}>{error}</p>}
+    </fieldset>
+  );
+}
+
+/** Choix unique : boutons radio dans un <fieldset> avec légende. */
+export function RadioGroup({ legend, options, value, onChange, error }: {
+  legend: string; options: { value: string; label: string; hint?: string }[]; value: string; onChange: (v: string) => void; error?: string;
+}) {
+  const name = useId();
+  return (
+    <fieldset className="fieldset">
+      <legend className="field__label">{legend}</legend>
+      <div className="radio-list">
+        {options.map((o) => (
+          <label key={o.value} className="check">
+            <input type="radio" name={name} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} />
+            <span>{o.label}{o.hint && <small className="field__hint" style={{ display: 'block' }}>{o.hint}</small>}</span>
+          </label>
+        ))}
+      </div>
+      {error && <p className="field__error">{error}</p>}
     </fieldset>
   );
 }

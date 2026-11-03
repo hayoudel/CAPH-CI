@@ -31,9 +31,13 @@ Mot de passe : `Demo-Passw0rd!2026`
 ## Principes
 Jeton d'accès gardé en mémoire (jamais dans le navigateur), session renouvelée par cookie httpOnly, polices hébergées localement, navigation au clavier, texte 18 px, cibles 44 px.
 
-## Pages disponibles (F1 + F2)
+## Pages disponibles (F1 à F3)
 | Adresse | Qui | Contenu |
 |---|---|---|
+| `/adhesion` | tout le monde | conditions, pièces à fournir, droits d'adhésion |
+| `/adhesion/demande` | tout le monde | formulaire en 7 étapes (brouillon enregistré à chaque étape) |
+| `/adhesion/reprendre` | tout le monde | lien reçu par e-mail pour reprendre un brouillon |
+| `/adhesion/suivi` | tout le monde | suivi d'un dossier déposé (référence + e-mail + code) |
 | `/annuaire`, `/annuaire/:id` | tout le monde | recherche et fiches publiques des organisations |
 | `/connexion` | tout le monde | connexion, mot de passe oublié |
 | `/espace` | organisations | tableau de bord |

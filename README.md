@@ -178,7 +178,7 @@ backend/
     health/                 Route /health
 ```
 
-## Frontend (lots F1 et F2)
+## Frontend (lots F1 à F3)
 Voir `frontend/README.md`. Lancer l'API (`backend`, `npm run start:dev`) puis, dans `frontend`, `npm install --legacy-peer-deps` et `npm run dev` → http://localhost:5173
 
 ## Rôles dans une organisation (OPH)

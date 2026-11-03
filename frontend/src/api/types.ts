@@ -83,3 +83,46 @@ export interface MyProfile {
   contactPreference: 'EMAIL' | 'PHONE'; status: string; lastLoginAt: string | null;
   organization: { id: string; name: string; role: { code: string; label: string } | null } | null;
 }
+
+// ── Lot F3 : adhésion ──
+export interface FieldSpec { label: string; type: 'text' | 'email' | 'phone' | 'url' | 'uuid' | 'uuidList'; required: boolean; max?: number }
+export type FieldSpecs = Record<string, Record<string, FieldSpec>>;
+export interface DocSpec { type: string; label: string; requirement: 'REQUIRED' | 'RECOMMENDED' | 'OPTIONAL' | 'AFTER_ADMISSION' }
+export interface MembershipRequirements {
+  category: { code: string; label: string; description: string | null; isOpen: boolean };
+  eligibility: { intro: string; criteria: string[] };
+  conditions: string[];
+  procedure: string[];
+  documents: DocSpec[];
+  fees: { code: string; label: string; amountFcfa: number; periodicity: string }[];
+  feesNotice: string;
+  declarations: { acceptAccuracy: string; acceptStatutes: string; acceptDataProcessing: string };
+  fields: FieldSpecs | null;
+  options: {
+    regions: { id: string; name: string }[];
+    delegations: { id: string; name: string; regionId: string | null }[];
+    domains: RefItem[]; disabilityTypes: RefItem[];
+  };
+}
+export interface MembershipCategory { code: string; label: string; description: string | null; isOpen: boolean }
+export interface MembershipDocument {
+  id: string; type: string; label: string; originalName: string; sizeBytes: number; mimeType: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; reviewNote: string | null;
+}
+export interface MembershipRequestView {
+  id: string; reference: string | null; status: string; statusLabel: string; canEdit: boolean;
+  category: { code: string; label: string }; requestType: 'FIRST' | 'RENEWAL'; existingMemberNumber: string | null;
+  applicant: { name: string; email: string; phone: string | null };
+  delegationId: string | null; delegationOverrideReason: string | null;
+  data: Record<string, Record<string, unknown>>;
+  documents: MembershipDocument[]; documentSpecs: DocSpec[];
+  completeness: { missingFields: { field: string; message: string }[]; missingDocuments: { type: string; label: string }[]; complete: boolean };
+  submittedAt: string | null; updatedAt: string;
+}
+export interface TrackResult {
+  reference: string; category: string; status: string; statusLabel: string; canEdit: boolean;
+  submittedAt: string | null; lastActionAt: string | null;
+  timeline: { date: string; label: string }[]; messages: { date: string; text: string }[];
+  documents: { label: string; status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; note: string | null }[];
+  decision: { outcome: string; outcomeLabel: string; decidedAt: string; motive: string | null } | null;
+}
