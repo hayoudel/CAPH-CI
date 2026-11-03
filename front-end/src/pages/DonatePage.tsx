@@ -78,7 +78,7 @@ export default function DonatePage({ confirmed }: Props) {
   const steps = ['Don', 'Montant', 'Paiement', 'Infos', 'Confirmation'];
 
   const paymentComplete = () => {
-    if (payMethod === 'carte') return card.numero.replace(/\s/g,'').length === 16 && card.expiry.length === 5 && card.cvv.length >= 3 && card.titulaire.trim().length > 2;
+    if (payMethod === 'carte') return card.numero.replace(/\s/g, '').length === 16 && card.expiry.length === 5 && card.cvv.length >= 3 && card.titulaire.trim().length > 2;
     if (payMethod === 'virement') return bank.titulaire.trim().length > 2;
     if (payMethod === 'mobile-money') return mobile.telephone.trim().length >= 8;
     return true;
@@ -127,9 +127,8 @@ export default function DonatePage({ confirmed }: Props) {
               {steps.map((s, i) => (
                 <li key={s} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                      step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'
-                    }`} aria-current={step === i + 1 ? 'step' : undefined}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'
+                      }`} aria-current={step === i + 1 ? 'step' : undefined}>
                       {step > i + 1 ? '✓' : i + 1}
                     </div>
                     <span className={`text-xs mt-1 whitespace-nowrap ${step === i + 1 ? 'text-blue-600 font-semibold' : 'text-slate-400'}`}>{s}</span>
@@ -210,231 +209,233 @@ export default function DonatePage({ confirmed }: Props) {
           )}
 
           {/* Step 3: Payment */}
-           
-{/* Step 3: Payment */}
-{step === 3 && (
-  <div>
-    <h2 className="text-xl font-bold text-slate-900 font-display mb-6">
-      Mode de paiement
-    </h2>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* Step 3: Payment */}
+          {step === 3 && (
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 font-display mb-6">
+                Mode de paiement
+              </h2>
 
-      {/* COLONNE GAUCHE : Modes de paiement */}
-      <div className="space-y-3">
-        {paymentMethods.map(pm => (
-          <button
-            key={pm.id}
-            type="button"
-            onClick={() => setPayMethod(pm.id)}
-            className={`w-full flex gap-4 p-4 rounded-xl border-2 text-left transition-colors ${
-              payMethod === pm.id
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-slate-200 hover:border-blue-300'
-            }`}
-          >
-            <span className="text-2xl flex-shrink-0" aria-hidden="true">
-              {pm.icon}
-            </span>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-            <div className="flex-1">
-              <div className="font-semibold text-slate-900 text-sm">
-                {pm.label}
+                {/* COLONNE GAUCHE : Modes de paiement */}
+                <div className="space-y-3">
+                  {paymentMethods.map(pm => (
+                    <button
+                      key={pm.id}
+                      type="button"
+                      onClick={() => setPayMethod(pm.id)}
+                      className={`w-full flex gap-4 p-4 rounded-xl border-2 text-left transition-colors ${payMethod === pm.id
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-slate-200 hover:border-blue-300'
+                        }`}
+                    >
+                      <span className="text-2xl flex-shrink-0" aria-hidden="true">
+                        {pm.icon}
+                      </span>
+
+                      <div className="flex-1">
+                        <div className="font-semibold text-slate-900 text-sm">
+                          {pm.label}
+                        </div>
+                        <div className="text-slate-500 text-xs">
+                          {pm.description}
+                        </div>
+                      </div>
+
+                      {payMethod === pm.id && (
+                        <span className="ml-auto text-blue-600 font-bold" aria-hidden="true">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* COLONNE DROITE : Informations du paiement */}
+                <div className="min-w-0 w-full">
+
+                  {/* Mobile Money */}
+                  {payMethod === 'mobile-money' && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4 ">
+                      <h3 className="font-bold text-slate-900 font-display text-sm">
+                        Informations Mobile Money
+                      </h3>
+
+                      <div>
+                        <label htmlFor="operateur" className="block text-xs font-medium text-slate-700 mb-1">
+                          Opérateur *
+                        </label>
+                        <select
+                          id="operateur"
+                          value={mobile.operateur}
+                          onChange={e => setMobile(p => ({ ...p, operateur: e.target.value }))}
+                          className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none bg-white"
+                        >
+                          <option value="">Sélectionner un opérateur</option>
+                          <option value="moov">Moov Money</option>
+                          <option value="orange">Orange Money</option>
+                          <option value="wave">Wave</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="tel-mm" className="block text-xs font-medium text-slate-700 mb-1">
+                          Numéro de téléphone *
+                        </label>
+                        <input
+                          id="tel-mm"
+                          type="tel"
+                          placeholder="+225 07 00 00 00 00"
+                          value={mobile.telephone}
+                          onChange={e => setMobile(p => ({ ...p, telephone: e.target.value }))}
+                          className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Carte bancaire */}
+                  {payMethod === 'carte' && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4 w-full">
+                      <h3 className="font-bold text-slate-900 font-display text-sm flex items-center gap-2">
+                        <span>💳</span> Informations de carte bancaire
+                      </h3>
+
+                      <div>
+                        <label htmlFor="card-titulaire" className="block text-xs font-medium text-slate-700 mb-1">
+                          Nom du titulaire *
+                        </label>
+                        <input
+                          id="card-titulaire"
+                          type="text"
+                          placeholder="NOM Prénom"
+                          value={card.titulaire}
+                          onChange={e => setCard(p => ({ ...p, titulaire: e.target.value.toUpperCase() }))}
+                          className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="card-numero" className="block text-xs font-medium text-slate-700 mb-1">
+                          Numéro de carte *
+                        </label>
+                        <input
+                          id="card-numero"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0000 0000 0000 0000"
+                          value={card.numero}
+                          onChange={e => setCard(p => ({ ...p, numero: formatCardNumber(e.target.value) }))}
+                          maxLength={19}
+                          className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono tracking-widest"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="card-expiry" className="block text-xs font-medium text-slate-700 mb-1">
+                            Date d'expiration *
+                          </label>
+                          <input
+                            id="card-expiry"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="MM/AA"
+                            value={card.expiry}
+                            onChange={e => setCard(p => ({ ...p, expiry: formatExpiry(e.target.value) }))}
+                            maxLength={5}
+                            className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="card-cvv" className="block text-xs font-medium text-slate-700 mb-1">
+                            CVV *
+                          </label>
+                          <input
+                            id="card-cvv"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="•••"
+                            value={card.cvv}
+                            onChange={e => setCard(p => ({ ...p, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+                            maxLength={4}
+                            className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Virement bancaire */}
+                  {payMethod === 'virement' && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4 w-full">
+                      <h3 className="font-bold text-slate-900 font-display text-sm flex items-center gap-2">
+                        <span>🏦</span> Virement bancaire
+                      </h3>
+
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-sm text-slate-700">
+                        Les coordonnées bancaires ne sont pas affichées publiquement. Elles pourront être communiquées par la CAPH-CI lorsque ce moyen de paiement aura été officiellement validé.
+                      </div>
+
+                      <p className="text-slate-600 text-xs">
+                        Indiquez votre nom pour poursuivre la simulation :
+                      </p>
+
+                      <div>
+                        <label htmlFor="bank-titulaire" className="block text-xs font-medium text-slate-700 mb-1">
+                          Nom du donateur *
+                        </label>
+                        <input
+                          id="bank-titulaire"
+                          type="text"
+                          placeholder="Votre nom complet"
+                          value={bank.titulaire}
+                          onChange={e => setBank(p => ({ ...p, titulaire: e.target.value }))}
+                          className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Paiement international */}
+                  {payMethod === 'international' && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-sm space-y-3 w-full">
+                      <h3 className="font-bold text-slate-900 font-display text-sm">
+                        Paiement international
+                      </h3>
+                      <p className="text-slate-600 text-xs">
+                        Les solutions de paiement international seront présentées uniquement après validation officielle par la CAPH-CI.
+                      </p>
+                    </div>
+                  )}
+
+                </div>
               </div>
-              <div className="text-slate-500 text-xs">
-                {pm.description}
+
+              {/* Boutons de navigation */}
+              <div className="flex gap-3 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="flex-1 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+                >
+                  ← Retour
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStep(4)}
+                  disabled={!paymentComplete()}
+                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Continuer →
+                </button>
               </div>
             </div>
-
-            {payMethod === pm.id && (
-              <span className="ml-auto text-blue-600 font-bold" aria-hidden="true">
-                ✓
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* COLONNE DROITE : Informations du paiement */}
-      <div className="min-w-0">
-
-        {/* Mobile Money */}
-        {payMethod === 'mobile-money' && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
-            <h3 className="font-bold text-slate-900 font-display text-sm">
-              Informations Mobile Money
-            </h3>
-
-            <div>
-              <label htmlFor="operateur" className="block text-xs font-medium text-slate-700 mb-1">
-                Opérateur *
-              </label>
-              <select
-                id="operateur"
-                value={mobile.operateur}
-                onChange={e => setMobile(p => ({ ...p, operateur: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none bg-white"
-              >
-                <option value="">Opérateur à confirmer</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="tel-mm" className="block text-xs font-medium text-slate-700 mb-1">
-                Numéro de téléphone *
-              </label>
-              <input
-                id="tel-mm"
-                type="tel"
-                placeholder="+225 07 00 00 00 00"
-                value={mobile.telephone}
-                onChange={e => setMobile(p => ({ ...p, telephone: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Carte bancaire */}
-        {payMethod === 'carte' && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
-            <h3 className="font-bold text-slate-900 font-display text-sm flex items-center gap-2">
-              <span>💳</span> Informations de carte bancaire
-            </h3>
-
-            <div>
-              <label htmlFor="card-titulaire" className="block text-xs font-medium text-slate-700 mb-1">
-                Nom du titulaire *
-              </label>
-              <input
-                id="card-titulaire"
-                type="text"
-                placeholder="NOM Prénom"
-                value={card.titulaire}
-                onChange={e => setCard(p => ({ ...p, titulaire: e.target.value.toUpperCase() }))}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="card-numero" className="block text-xs font-medium text-slate-700 mb-1">
-                Numéro de carte *
-              </label>
-              <input
-                id="card-numero"
-                type="text"
-                inputMode="numeric"
-                placeholder="0000 0000 0000 0000"
-                value={card.numero}
-                onChange={e => setCard(p => ({ ...p, numero: formatCardNumber(e.target.value) }))}
-                maxLength={19}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono tracking-widest"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="card-expiry" className="block text-xs font-medium text-slate-700 mb-1">
-                  Date d'expiration *
-                </label>
-                <input
-                  id="card-expiry"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="MM/AA"
-                  value={card.expiry}
-                  onChange={e => setCard(p => ({ ...p, expiry: formatExpiry(e.target.value) }))}
-                  maxLength={5}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="card-cvv" className="block text-xs font-medium text-slate-700 mb-1">
-                  CVV *
-                </label>
-                <input
-                  id="card-cvv"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="•••"
-                  value={card.cvv}
-                  onChange={e => setCard(p => ({ ...p, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-                  maxLength={4}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none font-mono"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Virement bancaire */}
-        {payMethod === 'virement' && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
-            <h3 className="font-bold text-slate-900 font-display text-sm flex items-center gap-2">
-              <span>🏦</span> Virement bancaire
-            </h3>
-
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-sm text-slate-700">
-              Les coordonnées bancaires ne sont pas affichées publiquement. Elles pourront être communiquées par la CAPH-CI lorsque ce moyen de paiement aura été officiellement validé.
-            </div>
-
-            <p className="text-slate-600 text-xs">
-              Indiquez votre nom pour poursuivre la simulation :
-            </p>
-
-            <div>
-              <label htmlFor="bank-titulaire" className="block text-xs font-medium text-slate-700 mb-1">
-                Nom du donateur *
-              </label>
-              <input
-                id="bank-titulaire"
-                type="text"
-                placeholder="Votre nom complet"
-                value={bank.titulaire}
-                onChange={e => setBank(p => ({ ...p, titulaire: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Paiement international */}
-        {payMethod === 'international' && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-sm space-y-3">
-            <h3 className="font-bold text-slate-900 font-display text-sm">
-              Paiement international
-            </h3>
-            <p className="text-slate-600 text-xs">
-              Les solutions de paiement international seront présentées uniquement après validation officielle par la CAPH-CI.
-            </p>
-          </div>
-        )}
-
-      </div>
-    </div>
-
-    {/* Boutons de navigation */}
-    <div className="flex gap-3 mt-8">
-      <button
-        type="button"
-        onClick={() => setStep(2)}
-        className="flex-1 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors"
-      >
-        ← Retour
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setStep(4)}
-        disabled={!paymentComplete()}
-        className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        Continuer →
-      </button>
-    </div>
-  </div>
-)}
+          )}
 
           {/* Step 4: Info */}
           {step === 4 && (
