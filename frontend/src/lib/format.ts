@@ -25,3 +25,10 @@ export const NEWS_STATUSES: Record<string, string> = {
 export const DOCUMENT_CATEGORIES: Record<string, string> = {
   GUIDE: 'Guide', FORM: 'Formulaire', MEETING_MINUTES: 'Compte rendu', REFERENCE: 'Référence', OTHER: 'Autre',
 };
+
+export const formatSize = (bytes: number) =>
+  bytes < 1024 ? `${bytes} octets` : bytes < 1_048_576 ? `${Math.round(bytes / 1024)} Ko` : `${(bytes / 1_048_576).toFixed(1).replace('.', ',')} Mo`;
+export const EVENT_STATUSES: Record<string, string> = {
+  PLANNED: 'Prévu', OPEN: 'Ouvert', REGISTRATION: 'Inscriptions ouvertes', CLOSED: 'Terminé', CANCELLED: 'Annulé',
+};
+export const OPPORTUNITY_STATUSES: Record<string, string> = { OPEN: 'Ouverte', CLOSED: 'Fermée', ENDED: 'Terminée' };

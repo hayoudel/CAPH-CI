@@ -89,3 +89,23 @@ export async function api<T = void>(
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
+
+/** Télécharge un fichier protégé (il faut le jeton d'accès, donc on ne peut pas utiliser un simple lien) puis l'enregistre sur l'appareil. */
+export async function downloadFile(path: string, fallbackName: string): Promise<void> {
+  let res = await request(path);
+  if (res.status === 401) {
+    try { await refreshSession(); res = await request(path); } catch { setAccessToken(null); listener?.(null); }
+  }
+  if (!res.ok) throw await toError(res);
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const star = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  const plain = /filename="?([^";]+)"?/i.exec(disposition);
+  let name = fallbackName;
+  try { name = star ? decodeURIComponent(star[1]) : plain ? plain[1] : fallbackName; } catch { /* nom par défaut */ }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import type { Dashboard, EventItem, MemberDashboard, OpportunityItem, StaffDashboard } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
@@ -13,12 +14,13 @@ function useDashboard() {
   return useQuery({ queryKey: ['dashboard'], queryFn: () => api<Dashboard>('/dashboard') });
 }
 
-function Panel({ title, children }: { title: string; children: ReactNode }) {
+function Panel({ title, children, more }: { title: string; children: ReactNode; more?: { to: string; label: string } }) {
   const id = `p-${title.replace(/\W+/g, '-').toLowerCase()}`;
   return (
     <section className="panel" aria-labelledby={id}>
       <h2 id={id} className="panel__title">{title}</h2>
       {children}
+      {more && <p style={{ margin: 'var(--space-3) 0 0' }}><Link to={more.to}>{more.label}</Link></p>}
     </section>
   );
 }
@@ -99,11 +101,11 @@ function MemberView({ d, firstName }: { d: MemberDashboard; firstName: string })
       <div className="stack">
         {unread > 0 && (
           <Alert kind="info" title={unread === 1 ? 'Vous avez 1 communication non lue' : `Vous avez ${unread} communications non lues`}>
-            La CAPH-CI vous a écrit. Consultez ses messages dès qu’ils seront disponibles dans votre espace.
+            <Link to="/espace/communications">Lire les communications</Link>
           </Alert>
         )}
         <div className="grid-2">
-          <Panel title="Dernières communications">
+          <Panel title="Dernières communications" more={{ to: '/espace/communications', label: 'Toutes les communications' }}>
             {d.latestCommunications.length === 0 ? <p className="empty">Aucune communication pour le moment.</p> : (
               <ul className="plain-list">
                 {d.latestCommunications.map((c) => (
@@ -115,9 +117,9 @@ function MemberView({ d, firstName }: { d: MemberDashboard; firstName: string })
               </ul>
             )}
           </Panel>
-          <Panel title="Prochains événements"><Events items={d.upcomingEvents} /></Panel>
-          <Panel title="Opportunités ouvertes"><Opportunities items={d.openOpportunities} /></Panel>
-          <Panel title="Documents récents">
+          <Panel title="Prochains événements" more={{ to: '/espace/agenda', label: 'Voir l’agenda' }}><Events items={d.upcomingEvents} /></Panel>
+          <Panel title="Opportunités ouvertes" more={{ to: '/espace/opportunites', label: 'Toutes les opportunités' }}><Opportunities items={d.openOpportunities} /></Panel>
+          <Panel title="Documents récents" more={{ to: '/espace/documents', label: 'Tous les documents' }}>
             {d.latestDocuments.length === 0 ? <p className="empty">Aucun document pour le moment.</p> : (
               <ul className="plain-list">{d.latestDocuments.map((x) => <li key={x.id}><span className="item__title">{x.title}</span><span className="item__meta">{formatDate(x.publishedAt)}</span></li>)}</ul>
             )}

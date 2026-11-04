@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { useFocusOnNavigate } from '../lib/useFocusOnNavigate';
 import { Button } from '../ui/Button';
 
-interface NavItem { to: string; label: string; end?: boolean }
+interface NavItem { to: string; label: string; end?: boolean; permission?: string; unread?: boolean }
 
 /** Espace connecté. Le menu s'enrichira à chaque lot : ici seules les pages existantes sont listées. */
 function navFor(area: 'member' | 'staff'): NavItem[] {
@@ -13,6 +15,10 @@ function navFor(area: 'member' | 'staff'): NavItem[] {
         { to: '/espace', label: 'Tableau de bord', end: true },
         { to: '/espace/organisation', label: 'Mon organisation' },
         { to: '/espace/equipe', label: 'Mon équipe' },
+        { to: '/espace/communications', label: 'Communications', permission: 'communication.read', unread: true },
+        { to: '/espace/documents', label: 'Documents', permission: 'document.read' },
+        { to: '/espace/opportunites', label: 'Opportunités', permission: 'opportunity.read' },
+        { to: '/espace/agenda', label: 'Agenda', permission: 'event.read' },
         { to: '/espace/annuaire', label: 'Annuaire public' },
       ]
     : [
@@ -21,7 +27,12 @@ function navFor(area: 'member' | 'staff'): NavItem[] {
 }
 
 export function AppShell({ area }: { area: 'member' | 'staff' }) {
-  const { user, logout } = useAuth();
+  const { user, logout, can } = useAuth();
+  const unread = useQuery({
+    queryKey: ['dashboard', 'unread'], enabled: area === 'member' && can('communication.read'),
+    queryFn: () => api<{ unread: number }>('/communications/unread-count'), refetchOnWindowFocus: true,
+  });
+  const unreadCount = unread.data?.unread ?? 0;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
@@ -63,8 +74,13 @@ export function AppShell({ area }: { area: 'member' | 'staff' }) {
         <span className="tricolor" aria-hidden="true" />
         <nav aria-label="Navigation principale">
           <ul className="nav">
-            {navFor(area).map((i) => (
-              <li key={i.to}><NavLink to={i.to} end={i.end}>{i.label}</NavLink></li>
+            {navFor(area).filter((i) => !i.permission || can(i.permission)).map((i) => (
+              <li key={i.to}>
+                <NavLink to={i.to} end={i.end}>
+                  {i.label}
+                  {i.unread && unreadCount > 0 && <span className="nav__count"> ({unreadCount} non {unreadCount > 1 ? 'lues' : 'lue'})</span>}
+                </NavLink>
+              </li>
             ))}
           </ul>
         </nav>

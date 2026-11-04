@@ -4,6 +4,10 @@ import { AppShell } from './layouts/AppShell';
 import { AuthLayout } from './layouts/AuthLayout';
 import { PublicLayout } from './layouts/PublicLayout';
 import { DirectoryDetailPage, DirectoryPage } from './pages/DirectoryPage';
+import { AgendaPage } from './pages/content/AgendaPage';
+import { CommunicationDetailPage, CommunicationsPage } from './pages/content/CommunicationsPage';
+import { DocumentsPage } from './pages/content/DocumentsPage';
+import { OpportunitiesPage, OpportunityDetailPage } from './pages/content/OpportunitiesPage';
 import { OrganizationPage } from './pages/org/OrganizationPage';
 import { TeamPage } from './pages/org/TeamPage';
 import { VisibilityPage } from './pages/org/VisibilityPage';
@@ -45,6 +49,12 @@ export function App() {
           <Route path="espace/organisation" element={<OrganizationPage />} />
           <Route path="espace/equipe" element={<TeamPage />} />
           <Route path="espace/annuaire" element={<VisibilityPage />} />
+          <Route path="espace/communications" element={<CommunicationsPage />} />
+          <Route path="espace/communications/:id" element={<CommunicationDetailPage />} />
+          <Route path="espace/documents" element={<DocumentsPage />} />
+          <Route path="espace/opportunites" element={<OpportunitiesPage />} />
+          <Route path="espace/opportunites/:id" element={<OpportunityDetailPage />} />
+          <Route path="espace/agenda" element={<AgendaPage />} />
         </Route>
       </Route>
 

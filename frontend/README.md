@@ -44,3 +44,7 @@ Jeton d'accès gardé en mémoire (jamais dans le navigateur), session renouvel�
 | `/espace/organisation` | organisations | profil (modifiable par le Président) |
 | `/espace/equipe` | organisations | équipe : inviter, changer le rôle, retirer |
 | `/espace/annuaire` | organisations | consentement et visibilité dans l'annuaire |
+| `/espace/communications`, `/espace/communications/:id` | organisations | messages de la CAPH-CI (ouvrir un message le marque comme lu) |
+| `/espace/documents` | organisations | bibliothèque : recherche, filtre par catégorie, téléchargement |
+| `/espace/opportunites`, `/espace/opportunites/:id` | organisations | appels à projets, formations… + fiche à télécharger |
+| `/espace/agenda` | organisations | événements à venir ou passés |

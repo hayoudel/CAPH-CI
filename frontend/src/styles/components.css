@@ -138,3 +138,9 @@
 .linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--green-ui); text-decoration: underline; cursor: pointer; min-height: 1.75rem; }
 .linklike:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .alert ul { margin: var(--space-2) 0 0; padding-left: 1.25rem; }
+
+/* Lot F5a : listes de contenus */
+.stack-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-4); }
+.prose { white-space: pre-line; max-width: 65ch; margin: 0; }
+.nav__count { font-size: var(--text-small); }
+.panel__title a { color: inherit; }

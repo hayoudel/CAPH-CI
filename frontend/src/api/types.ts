@@ -126,3 +126,23 @@ export interface TrackResult {
   documents: { label: string; status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; note: string | null }[];
   decision: { outcome: string; outcomeLabel: string; decidedAt: string; motive: string | null } | null;
 }
+
+// ── Lot F5a : contenus en lecture (documents, opportunités, communications, agenda) ──
+export interface FileInfo { originalName: string; mimeType: string; sizeBytes: number }
+export interface LibraryDocument {
+  id: string; title: string; description: string | null; category: string; accessLevel: string;
+  isFeatured: boolean; publishedAt: string; file: FileInfo;
+}
+export interface Opportunity {
+  id: string; reference: string; title: string; summary: string; body: string | null; type: string;
+  status: string; effectiveStatus: 'OPEN' | 'CLOSED' | 'ENDED'; deadline: string | null; audience: string | null;
+  modality: string | null; hasSheet: boolean; sheet: FileInfo | null; createdAt: string;
+}
+export interface Communication {
+  id: string; kind: 'INTERNAL' | 'EXTERNAL'; category: string | null; title: string; excerpt?: string; body?: string;
+  senderLabel: string; publishedAt: string; isRead: boolean;
+}
+export interface AgendaEvent {
+  id: string; type: string; title: string; description: string | null; startsAt: string; endsAt: string | null;
+  mode: string; location: string | null; status: string; region: { id: string; name: string } | null;
+}
