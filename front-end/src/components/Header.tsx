@@ -13,6 +13,8 @@ export type HeaderProps = {
   highContrast: boolean;
   onToggleContrast: () => void;
 };
+const NAV_ACTIVE = 'text-white bg-blue-600 font-semibold';
+const NAV_IDLE = 'text-slate-900 hover:text-blue-600 hover:bg-slate-50';
 
 type DropdownItem = {
   icon: string;
@@ -109,8 +111,8 @@ function Dropdown({
     return (
       <button
         onClick={() => { navigate(group.page!); onClose(); }}
-        className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-bold min-h-11 transition-colors whitespace-nowrap ${
-          isGroupActive ? 'text-blue-600 bg-blue-50 font-semibold' : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+        className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-bold min-h-11 transition-colors whitespace-nowrap cursor-pointer ${
+          isGroupActive ? NAV_ACTIVE : NAV_IDLE
         }`}
         aria-current={isGroupActive ? 'page' : undefined}
       >
@@ -183,7 +185,7 @@ function OphDropdown({ isOpen, onOpen, onClose }: { isOpen: boolean; onOpen: () 
         onClick={isOpen ? onClose : onOpen}
         aria-haspopup="true"
         aria-expanded={isOpen}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-bold min-h-11 bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors border border-slate-200 whitespace-nowrap"
+        className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-bold min-h-11 bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors border border-slate-200 whitespace-nowrap cursor-pointer"
       >
         <span aria-hidden="true">🔑</span>
         Espace membres
@@ -198,7 +200,7 @@ function OphDropdown({ isOpen, onOpen, onClose }: { isOpen: boolean; onOpen: () 
               key={item.label}
               onClick={() => { navigate(item.page); onClose(); }}
               role="menuitem"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <span aria-hidden="true">{item.icon}</span>
               {item.label}

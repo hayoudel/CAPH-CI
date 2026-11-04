@@ -208,12 +208,11 @@ export const projects: Project[] = [
 export const newsItems: NewsItem[] = [
   {
     id: 'n1',
-    title: '[Prototype — à valider] La CAPH-CI signe un accord de partenariat stratégique avec le Ministère de la Solidarité',
+    title: ' La CAPH-CI signe un accord de partenariat stratégique avec le Ministère de la Solidarité',
     category: 'Partenariats',
     date: '15 septembre 2026',
     summary: 'Cet accord vise à renforcer la politique nationale en matière de handicap et à accélérer la mise en œuvre de la Convention des Nations Unies relative aux droits des personnes handicapées.',
     image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=500&fit=crop&auto=format',
-    author: 'Service Communication CAPH-CI',
     content: '',
   },
   {
@@ -223,7 +222,6 @@ export const newsItems: NewsItem[] = [
     date: '3 septembre 2026',
     summary: 'La première édition du Forum national sur l\'emploi inclusif a réuni entreprises, institutions et organisations de personnes handicapées pour construire une Côte d\'Ivoire du travail pour tous.',
     image: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=500&fit=crop&auto=format',
-    author: 'Service Communication CAPH-CI',
     content: '',
   },
   {
@@ -233,7 +231,6 @@ export const newsItems: NewsItem[] = [
     date: '22 août 2026',
     summary: 'La CAPH-CI, en partenariat avec la Fondation pour l\'Éducation en Afrique, ouvre 150 bourses pour des étudiants en situation de handicap dans les universités ivoiriennes.',
     image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=500&fit=crop&auto=format',
-    author: 'Service Communication CAPH-CI',
     content: '',
   },
   {
@@ -243,7 +240,6 @@ export const newsItems: NewsItem[] = [
     date: '10 août 2026',
     summary: 'Les délégations de Man et Daloa ont co-organisé une session de formation à l\'intention des agents communautaires, élus locaux et associations de base sur les droits des personnes handicapées.',
     image: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=500&fit=crop&auto=format',
-    author: 'Délégation de Man',
     content: '',
   },
   {
@@ -253,7 +249,6 @@ export const newsItems: NewsItem[] = [
     date: '28 juillet 2026',
     summary: 'La CAPH-CI a adressé un mémorandum aux 14 mairies des grandes villes ivoiriennes pour exiger la mise en accessibilité des espaces publics avant fin 2027.',
     image: 'https://images.unsplash.com/photo-1499540633125-484965b60031?w=800&h=500&fit=crop&auto=format',
-    author: 'Service Communication CAPH-CI',
     content: '',
   },
   {
@@ -263,7 +258,6 @@ export const newsItems: NewsItem[] = [
     date: '15 juillet 2026',
     summary: 'À l\'issue du vote du budget national 2026, la CAPH-CI se félicite de l\'inscription d\'une ligne budgétaire spécifique de 4,5 milliards FCFA dédiée à l\'inclusion des personnes handicapées.',
     image: 'https://images.unsplash.com/photo-1569025691351-55e47b083bf2?w=800&h=500&fit=crop&auto=format',
-    author: 'Présidence CAPH-CI',
     content: '',
   },
 ];

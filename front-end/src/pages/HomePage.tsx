@@ -70,11 +70,6 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
         <div className="relative max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center w-full">
           {/* Left — copy */}
           <div>
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-blue-600/15 border border-blue-500/25 rounded-full px-4 py-1.5 mb-8">
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse flex-shrink-0" aria-hidden="true" />
-              <span className="text-white text-sm font-bold">Portail national du handicap · Côte d'Ivoire</span>
-            </div>
 
             {/* Heading */}
             <h1 className="text-4xl font-bold text-white font-display leading-tight mb-6">
@@ -91,31 +86,31 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
             <div className="flex flex-wrap gap-3 mb-10">
               <button
                 onClick={() => navigate('about')}
-                className="px-5 py-2.5 bg-white text-slate-900 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-colors"
+                className="px-5 py-2.5 bg-white text-slate-900 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Découvrir la CAPH-CI
               </button>
               <button
                 onClick={() => navigate('actions')}
-                className="px-5 py-2.5 border border-white/25 text-white rounded-lg font-semibold text-sm hover:bg-white/10 transition-colors"
+                className="px-5 py-2.5 border border-white/25 text-white rounded-lg font-semibold text-sm hover:bg-white/10 transition-colors cursor-pointer"
               >
                 Nos actions
               </button>
               <button
                 onClick={() => navigate('adhesion')}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 Adhérer
               </button>
               <button
                 onClick={() => navigate('partner')}
-                className="px-5 py-2.5 border border-white/40 text-white rounded-lg font-semibold text-sm hover:bg-white/10 transition-colors"
+                className="px-5 py-2.5 border border-white/40 text-white rounded-lg font-semibold text-sm hover:bg-white/10 transition-colors cursor-pointer"
               >
                 Devenir partenaire
               </button>
               <button
                 onClick={() => navigate('donate')}
-                className="px-5 py-2.5 bg-blue-600/80 border border-blue-400 text-white rounded-lg font-semibold text-sm hover:bg-blue-600 transition-colors"
+                className="px-5 py-2.5 bg-blue-600/80 border border-blue-400 text-white rounded-lg font-semibold text-sm hover:bg-blue-600 transition-colors cursor-pointer"
               >
                 Faire un don
               </button>
@@ -141,7 +136,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <button
                 key={item.page + item.label}
                 onClick={() => navigate(item.page)}
-                className="flex items-center gap-4 p-4 rounded-xl bg-black/6 hover:bg-white/8 border border-white/8 transition-all text-left group"
+                className="flex items-center gap-4 p-4 rounded-xl bg-black/30 hover:bg-white/8 border border-white/8 transition-all text-left group cursor-pointer"
               >
                 <span className="text-2xl w-9 text-center flex-shrink-0" aria-hidden="true">{item.icon}</span>
                 <div className="flex-1 min-w-0">
@@ -197,8 +192,8 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               </div>
             ))}
           </div>
-          <div className="mt-8">
-            <button onClick={() => navigate('transparency')} className="min-h-11 px-6 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-800 transition-colors">Découvrir notre impact</button>
+          <div className="mt-8 ">
+            <button onClick={() => navigate('transparency')} className="min-h-11 px-6 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-800 transition-colors cursor-pointer">Découvrir notre impact</button>
           </div>
         </div>
       </section>
@@ -221,10 +216,10 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
                 Nous travaillons en partenariat avec les pouvoirs publics, les organisations internationales et le secteur privé pour faire du handicap une priorité nationale et transformer concrètement les conditions de vie des personnes handicapées en Côte d'Ivoire.
               </p>
               <div className="flex flex-wrap gap-3">
-                <button onClick={() => navigate('about')} className="px-5 py-2.5 bg-[#006B35] text-white rounded-lg font-semibold hover:bg-[#004D29] transition-colors text-sm">
+                <button onClick={() => navigate('about')} className="px-5 py-2.5 bg-[#006B35] text-white rounded-lg font-semibold hover:bg-[#004D29] transition-colors text-sm cursor-pointer">
                   En savoir plus
                 </button>
-                <button onClick={() => navigate('gouvernance')} className="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-medium hover:border-blue-400 hover:text-blue-600 transition-colors text-sm">
+                <button onClick={() => navigate('gouvernance')} className="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-medium hover:border-blue-400 hover:text-blue-600 transition-colors text-sm cursor-pointer">
                   Gouvernance & Équipe
                 </button>
               </div>
@@ -251,11 +246,11 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
       {/* ══════════════════════════════════════════
           DOMAINES D'INTERVENTION (8 cartes)
       ══════════════════════════════════════════ */}
-      <section className="py-20 bg-slate-50" aria-label="Nos domaines d'intervention">
+      <section className="py-10 bg-slate-50" aria-label="Nos domaines d'intervention">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <SectionLabel label="Nos actions" />
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 font-display mb-4">
+            <h2 className="text-3xl sm:text-2xl font-bold text-slate-900 font-display mb-4">
               8 domaines d'intervention
             </h2>
             <p className="text-slate-500 max-w-2xl mx-auto text-sm leading-relaxed">
@@ -268,7 +263,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <button
                 key={d.id}
                 onClick={() => navigate('action-detail', d.id)}
-                className="group text-left p-5 rounded-xl bg-white border border-slate-200 hover:border-[#006B35] hover:shadow-lg transition-all hover:-translate-y-0.5"
+                className="group text-left p-5 rounded-xl bg-white border border-slate-200 hover:border-[#006B35] hover:shadow-lg transition-all  cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-2xl group-hover:bg-blue-100 transition-colors" aria-hidden="true">
@@ -288,10 +283,10 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
             ))}
           </div>
 
-          <div className="text-center mt-10">
+          <div className="text-center mt-8">
             <button
               onClick={() => navigate('actions')}
-              className="px-7 py-3 border-2 border-[#006B35] text-[#006B35] rounded-lg font-semibold hover:bg-[#006B35] hover:text-white transition-colors text-sm"
+              className="px-5 py-2 border-2 border-[#006B35] text-[#006B35] rounded-lg font-semibold hover:bg-[#006B35] hover:text-white transition-colors text-sm cursor-pointer"
             >
               Voir toutes nos actions & programmes
             </button>
@@ -337,13 +332,13 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => navigate('cabinet')}
-                    className="px-6 py-3 bg-white text-[#004D29] rounded-xl font-bold hover:bg-blue-50 transition-colors text-sm"
+                    className="px-6 py-3 bg-white text-[#004D29] rounded-xl font-bold hover:bg-blue-50 transition-colors text-sm cursor-pointer"
                   >
                     Demander un devis
                   </button>
                   <button
                     onClick={() => navigate('cabinet')}
-                    className="px-6 py-3 border border-white/25 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors text-sm"
+                    className="px-6 py-3 border border-white/25 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors text-sm cursor-pointer"
                   >
                     Découvrir nos services
                   </button>
@@ -384,7 +379,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <SectionLabel label="Projets & Programmes" />
               <h2 className="text-3xl font-bold text-slate-900 font-display">Nos projets récents</h2>
             </div>
-            <button onClick={() => navigate('projects')} className="hidden sm:flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline">
+            <button onClick={() => navigate('projects')} className="hidden sm:flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline cursor-pointer">
               Voir tous les projets
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -396,7 +391,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <button
                 key={p.id}
                 onClick={() => navigate('project-detail', p.id)}
-                className="group text-left rounded-xl overflow-hidden border border-slate-200 bg-white hover:shadow-lg transition-all hover:-translate-y-0.5"
+                className="group text-left rounded-xl overflow-hidden border border-slate-200 bg-white hover:shadow-lg transition-all hover:-translate-y-0.5 cursor-pointer"
               >
                 <div className="relative h-44 bg-slate-100 overflow-hidden">
                   <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -426,44 +421,41 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
       {/* ══════════════════════════════════════════
           DÉLÉGATIONS
       ══════════════════════════════════════════ */}
-      <section className="py-20 bg-[#006B35] text-white" aria-label="Nos délégations régionales">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <SectionLabel label="Délégations régionales" />
-              <h2 className="text-3xl font-bold font-display mb-4">Un réseau de proximité sur le territoire national</h2>
-              <p className="text-blue-100 mb-6 leading-relaxed text-sm">
-                La CAPH-CI dispose de 45 délégations statutaires qui assurent la présence et l'action de l'organisation au plus près des personnes handicapées, sur l'ensemble du territoire.
-              </p>
-              <div className="flex items-end gap-3 mb-8">
-                <span className="text-6xl font-extrabold text-[#FFD600] font-display">45</span>
-                <span className="text-blue-100 font-semibold pb-2">délégations régionales et communales</span>
-              </div>
-              <button
-                onClick={() => navigate('delegations')}
-                className="px-5 py-2.5 bg-white text-[#006B35] rounded-lg font-semibold hover:bg-blue-50 transition-colors text-sm"
-              >
-                Voir toutes les délégations
-              </button>
-            </div>
+      
+<section className="py-12 bg-[#006B35] text-white" aria-label="Nos délégations régionales">
+  <div className="max-w-7xl mx-auto px-6">
+    <div  >
+      <div>
+        <SectionLabel label="Délégations régionales" />
 
-            {/* Stylized CI map */}
-            <div className="bg-blue-700/30 border border-blue-500/30 rounded-2xl p-6" aria-label="Carte de Côte d'Ivoire avec délégations">
-              <svg viewBox="0 0 100 110" className="w-full max-w-xs mx-auto" aria-hidden="true">
-                <path
-                  d="M20,10 L40,5 L60,8 L80,15 L88,30 L85,50 L78,65 L72,80 L65,90 L52,95 L42,93 L30,88 L20,78 L12,65 L10,48 L12,30 Z"
-                  fill="rgba(255,255,255,0.08)"
-                  stroke="rgba(255,255,255,0.35)"
-                  strokeWidth="1.2"
-                />
-                <circle cx="50" cy="50" r="4" fill="#FFD600" />
-                <circle cx="50" cy="50" r="1.5" fill="white" />
-              </svg>
-              <p className="mt-4 text-center text-xs text-blue-100">Localisations détaillées à intégrer après validation de l’annuaire officiel.</p>
-            </div>
-          </div>
+        <h2 className="text-2xl md:text-3xl font-bold font-display mb-3">
+          Un réseau de proximité sur le territoire national
+        </h2>
+
+        <p className="text-blue-100 mb-4 leading-relaxed text-sm">
+          La CAPH-CI dispose de 45 délégations statutaires qui assurent la présence et l'action de l'organisation au plus près des personnes handicapées, sur l'ensemble du territoire.
+        </p>
+
+        <div className="flex items-end gap-3 mb-5">
+          <span className="text-5xl font-extrabold text-[#FFD600] font-display">
+            45
+          </span>
+          <span className="text-blue-100 font-semibold pb-2 text-sm">
+            délégations régionales et communales
+          </span>
         </div>
-      </section>
+
+        <button
+          onClick={() => navigate('delegations')}
+          className="px-5 py-2.5 bg-white text-[#006B35] rounded-lg font-semibold hover:bg-blue-50 transition-colors text-sm cursor-pointer"
+        >
+          Voir toutes les délégations
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       {/* ══════════════════════════════════════════
           ACTUALITÉS
@@ -475,7 +467,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <SectionLabel label="Actualités" />
               <h2 className="text-3xl font-bold text-slate-900 font-display">Actualités & événements</h2>
             </div>
-            <button onClick={() => navigate('news')} className="hidden sm:flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline">
+            <button onClick={() => navigate('news')} className="hidden sm:flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline cursor-pointer">
               Toutes les actualités
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -487,7 +479,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <button
                 key={n.id}
                 onClick={() => navigate('news-detail', n.id)}
-                className="group text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-md transition-all hover:-translate-y-0.5"
+                className="group text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer"
               >
                 <div className="h-44 bg-slate-100 overflow-hidden">
                   <img src={n.image} alt={n.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -517,7 +509,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <SectionLabel label="Opportunités" />
               <h2 className="text-3xl font-bold text-slate-900 font-display">Emplois, Formations &amp; Financements</h2>
             </div>
-            <button onClick={() => navigate('opportunities')} className="hidden sm:flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline">
+            <button onClick={() => navigate('opportunities')} className="hidden sm:flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline cursor-pointer">
               Voir toutes
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -529,7 +521,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <button
                 key={o.id}
                 onClick={() => navigate('opportunity-detail', o.id)}
-                className="group text-left p-5 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
+                className="group text-left p-5 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">{o.category}</span>
@@ -551,12 +543,12 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
       {/* ══════════════════════════════════════════
           CTA FINAL
       ══════════════════════════════════════════ */}
-      <section className="py-20 bg-[#1A1A1A] text-white" aria-label="Rejoindre la CAPH-CI">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+      <section className="py-10 bg-[#1A1A1A] text-white" aria-label="Rejoindre la CAPH-CI">
+        <div className="max-w-4xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-blue-600/15 border border-blue-500/25 rounded-full px-4 py-1.5 mb-8">
             <span className="text-blue-400 text-xs font-semibold tracking-wide">ENSEMBLE POUR L'INCLUSION</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold font-display mb-5 leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold font-display mb-3 leading-tight">
             Rejoignez le mouvement pour<br />
             <span className="text-blue-400">l'inclusion et l'accessibilité</span>
           </h2>
@@ -566,19 +558,19 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={() => navigate('adhesion')}
-              className="px-7 py-3.5 bg-[#006B35] text-white rounded-xl font-bold hover:bg-[#004D29] transition-colors"
+              className="px-4 py-2 bg-[#006B35] text-white rounded-lg font-bold hover:bg-[#004D29] transition-colors cursor-pointer"
             >
               ➕ Adhérer à la CAPH-CI
             </button>
             <button
               onClick={() => navigate('partner')}
-              className="px-7 py-3.5 border border-white/25 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors"
+              className="px-4 py-2 border border-white/25 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors cursor-pointer"
             >
               🤝 Devenir partenaire
             </button>
             <button
               onClick={() => navigate('donate')}
-              className="px-7 py-3.5 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-100 transition-colors"
+              className="px-4 py-2 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-100 transition-colors cursor-pointer"
             >
               ❤️ Faire un don
             </button>

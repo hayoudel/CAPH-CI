@@ -47,7 +47,7 @@ export default function Modal({ open, onClose, title, children }: Props) {
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
       onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-xl font-bold text-slate-900 font-display">{title}</h2>
           <button onClick={onClose} aria-label="Fermer" className="min-w-11 min-h-11 -mt-2 -mr-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800">

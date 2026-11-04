@@ -98,7 +98,6 @@ function TransparencyPageContent({ resources }: { resources: Resource[] }) {
               <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">Suivi des résultats</p>
               <h2 id="indicators-title" className="text-2xl font-bold text-slate-900 font-display">Indicateurs d’impact</h2>
             </div>
-            <span className="text-xs font-medium text-slate-500">Source : « La CAPH-CI en chiffres »</span>
           </div>
 
           <div className="grid md:grid-cols-2 gap-5">
@@ -196,31 +195,6 @@ function TransparencyPageContent({ resources }: { resources: Resource[] }) {
           <p className="mt-5 text-xs text-slate-500">
             Contenus et identités présentés à titre illustratif pour la maquette. Les témoignages définitifs seront publiés avec l’accord des personnes concernées.
           </p>
-        </div>
-      </section>
-
-      <section className="py-14 bg-blue-50 border-y border-blue-100" aria-labelledby="finance-title">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid lg:grid-cols-5 gap-10 items-start">
-            <div className="lg:col-span-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">Redevabilité</p>
-              <h2 id="finance-title" className="text-2xl font-bold text-slate-900 font-display mb-4">Informations financières publiques</h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Les informations financières ne seront publiées qu’après validation par les instances habilitées de la CAPH-CI.
-              </p>
-            </div>
-            <div className="lg:col-span-3 rounded-2xl bg-white border border-blue-200 p-6">
-              <div className="flex gap-4">
-                <svg className="w-7 h-7 text-orange-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M10 3h4l7 18H3L10 3Z" />
-                </svg>
-                <div>
-                  <h3 className="font-bold text-slate-900 font-display">Informations en attente de validation</h3>
-                  <p className="text-sm text-slate-600 mt-2 leading-relaxed">Aucune ventilation financière n’est affichée dans la maquette tant que les données publiques officielles et leur période de référence ne sont pas confirmées.</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

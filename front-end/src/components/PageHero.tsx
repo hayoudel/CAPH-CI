@@ -14,11 +14,11 @@ export default function PageHero({ title, subtitle, breadcrumbs, compact, childr
   const { navigate, goBack } = useNavigation();
 
   return (
-    <section className={`bg-blue-800 text-white ${compact ? 'py-6' : 'py-8'} sticky top-[var(--header-h,96px)] z-40 shadow-md`}>
+    <section className={`bg-blue-800 text-white ${compact ? 'py-2' : 'py-3'} sticky top-[var(--header-h,96px)] z-40 shadow-md`}>
       <div className="max-w-7xl mx-auto px-4">
         {/* Breadcrumb */}
         {breadcrumbs && (
-          <nav aria-label="Fil d'Ariane" className="mb-4">
+          <nav aria-label="Fil d'Ariane" className="mb-2">
             <ol className="flex items-center gap-2 text-sm text-slate-400 flex-wrap">
               <li>
                 <button onClick={() => navigate('home')} className="hover:text-blue-400 transition-colors">Accueil</button>
@@ -39,16 +39,16 @@ export default function PageHero({ title, subtitle, breadcrumbs, compact, childr
         <div className="flex items-start gap-4">
           <button
             onClick={goBack}
-            className="mt-1 min-w-11 min-h-11 p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white flex-shrink-0"
+            className="mt-1 !w-6 !h-6 !min-w-0 !min-h-0 !p-0 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white flex-shrink-0 flex items-center justify-center"
             aria-label="Retour"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-display">{title}</h1>
-            {subtitle && <p className="text-slate-400 mt-2 text-base max-w-2xl">{subtitle}</p>}
+            <h1 className="text-2xl sm:text-3xl lg:text-lg font-bold font-display">{title}</h1>
+            {subtitle && <p className="text-slate-300 lg:text-xs mt-2 text-base max-w-2xl">{subtitle}</p>}
             {children}
           </div>
         </div>

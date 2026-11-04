@@ -78,7 +78,6 @@ export default function PartnershipTracker() {
                 );
               })}
             </ol>
-
         
             <button onClick={() => setOpen(false)} className="mt-5 w-full min-h-11 rounded-lg border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50">Fermer</button>
           </div>
