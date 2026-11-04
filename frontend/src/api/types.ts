@@ -146,3 +146,17 @@ export interface AgendaEvent {
   id: string; type: string; title: string; description: string | null; startsAt: string; endsAt: string | null;
   mode: string; location: string | null; status: string; region: { id: string; name: string } | null;
 }
+
+// ── Lot F5b : rapports et propositions d'actualités ──
+export interface Attachment { id: string; originalName: string; mimeType: string; sizeBytes: number }
+export interface Report {
+  id: string; organization: { id: string; name: string }; type: 'ACTIVITY' | 'FINANCIAL' | 'OTHER'; title: string; summary: string;
+  periodStart: string | null; periodEnd: string | null; status: string; statusLabel: string; reviewerNote: string | null;
+  submittedAt: string; processedAt: string | null; author: string; canEdit: boolean; attachments: Attachment[];
+}
+export interface NewsCategory { id: string; code: string; label: string }
+export interface NewsProposal {
+  id: string; organization: { id: string; name: string }; category: NewsCategory | null; title: string; description: string;
+  status: string; statusLabel: string; reviewerNote: string | null; submittedAt: string; reviewedAt: string | null;
+  author: string; canEdit: boolean; attachments: Attachment[];
+}

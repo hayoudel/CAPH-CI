@@ -1,4 +1,4 @@
-import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
 import type React from 'react';
 
 interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
@@ -126,3 +126,23 @@ export function RadioGroup({ legend, options, value, onChange, error }: {
     </fieldset>
   );
 }
+
+interface AreaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> { label: string; hint?: ReactNode; error?: string }
+
+/** Zone de texte : même libellé, aide et erreur reliés que les autres champs. */
+export const TextAreaField = forwardRef<HTMLTextAreaElement, AreaProps>(function TextAreaField({ label, hint, error, required, rows = 6, ...rest }, ref) {
+  const id = useId();
+  const hintId = `${id}-hint`, errId = `${id}-err`;
+  const describedBy = [hint ? hintId : '', error ? errId : ''].filter(Boolean).join(' ') || undefined;
+  return (
+    <div className="field">
+      <label className="field__label" htmlFor={id}>
+        {label}{required && <span className="field__req" aria-hidden="true"> *</span>}
+        {required && <span className="sr-only"> (obligatoire)</span>}
+      </label>
+      <textarea ref={ref} id={id} className="input textarea" rows={rows} required={required} aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...rest} />
+      {hint && <div className="field__hint" id={hintId}>{hint}</div>}
+      {error && <p className="field__error" id={errId}>{error}</p>}
+    </div>
+  );
+});

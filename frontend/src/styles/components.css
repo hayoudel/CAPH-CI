@@ -144,3 +144,6 @@
 .prose { white-space: pre-line; max-width: 65ch; margin: 0; }
 .nav__count { font-size: var(--text-small); }
 .panel__title a { color: inherit; }
+.textarea { min-height: 9rem; resize: vertical; line-height: 1.5; }
+.counter { font-size: var(--text-small); color: var(--ink-2); }
+.counter--over { color: var(--danger); font-weight: 700; }

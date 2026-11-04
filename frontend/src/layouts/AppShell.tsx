@@ -19,6 +19,8 @@ function navFor(area: 'member' | 'staff'): NavItem[] {
         { to: '/espace/documents', label: 'Documents', permission: 'document.read' },
         { to: '/espace/opportunites', label: 'Opportunités', permission: 'opportunity.read' },
         { to: '/espace/agenda', label: 'Agenda', permission: 'event.read' },
+        { to: '/espace/rapports', label: 'Rapports', permission: 'report.read' },
+        { to: '/espace/actualites', label: 'Mes actualités', permission: 'news.propose' },
         { to: '/espace/annuaire', label: 'Annuaire public' },
       ]
     : [

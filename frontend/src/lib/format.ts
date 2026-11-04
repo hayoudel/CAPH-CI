@@ -32,3 +32,5 @@ export const EVENT_STATUSES: Record<string, string> = {
   PLANNED: 'Prévu', OPEN: 'Ouvert', REGISTRATION: 'Inscriptions ouvertes', CLOSED: 'Terminé', CANCELLED: 'Annulé',
 };
 export const OPPORTUNITY_STATUSES: Record<string, string> = { OPEN: 'Ouverte', CLOSED: 'Fermée', ENDED: 'Terminée' };
+
+export const REPORT_TYPE_LABELS: Record<string, string> = { ACTIVITY: 'Rapport d’activité', FINANCIAL: 'Rapport financier', OTHER: 'Autre rapport' };

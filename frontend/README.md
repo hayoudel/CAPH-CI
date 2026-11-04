@@ -48,3 +48,5 @@ Jeton d'accès gardé en mémoire (jamais dans le navigateur), session renouvel�
 | `/espace/documents` | organisations | bibliothèque : recherche, filtre par catégorie, téléchargement |
 | `/espace/opportunites`, `/espace/opportunites/:id` | organisations | appels à projets, formations… + fiche à télécharger |
 | `/espace/agenda` | organisations | événements à venir ou passés |
+| `/espace/rapports`, `/espace/rapports/nouveau`, `/espace/rapports/:id` | organisations | transmettre un rapport, joindre des fichiers, suivre le traitement, corriger si demandé |
+| `/espace/actualites`, `/espace/actualites/nouvelle`, `/espace/actualites/:id` | organisations | proposer une actualité, la corriger si la CAPH-CI le demande |

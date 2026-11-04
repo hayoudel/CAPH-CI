@@ -7,6 +7,8 @@ import { DirectoryDetailPage, DirectoryPage } from './pages/DirectoryPage';
 import { AgendaPage } from './pages/content/AgendaPage';
 import { CommunicationDetailPage, CommunicationsPage } from './pages/content/CommunicationsPage';
 import { DocumentsPage } from './pages/content/DocumentsPage';
+import { NewsDetailPage, NewsListPage, NewsNewPage } from './pages/content/NewsPage';
+import { ReportDetailPage, ReportNewPage, ReportsPage } from './pages/content/ReportsPage';
 import { OpportunitiesPage, OpportunityDetailPage } from './pages/content/OpportunitiesPage';
 import { OrganizationPage } from './pages/org/OrganizationPage';
 import { TeamPage } from './pages/org/TeamPage';
@@ -55,6 +57,12 @@ export function App() {
           <Route path="espace/opportunites" element={<OpportunitiesPage />} />
           <Route path="espace/opportunites/:id" element={<OpportunityDetailPage />} />
           <Route path="espace/agenda" element={<AgendaPage />} />
+          <Route path="espace/rapports" element={<ReportsPage />} />
+          <Route path="espace/rapports/nouveau" element={<ReportNewPage />} />
+          <Route path="espace/rapports/:id" element={<ReportDetailPage />} />
+          <Route path="espace/actualites" element={<NewsListPage />} />
+          <Route path="espace/actualites/nouvelle" element={<NewsNewPage />} />
+          <Route path="espace/actualites/:id" element={<NewsDetailPage />} />
         </Route>
       </Route>
 

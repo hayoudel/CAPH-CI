@@ -124,8 +124,8 @@ function MemberView({ d, firstName }: { d: MemberDashboard; firstName: string })
               <ul className="plain-list">{d.latestDocuments.map((x) => <li key={x.id}><span className="item__title">{x.title}</span><span className="item__meta">{formatDate(x.publishedAt)}</span></li>)}</ul>
             )}
           </Panel>
-          {d.reports && <Panel title="Vos rapports"><Counts data={d.reports} labels={REPORT_STATUSES} empty="Vous n’avez pas encore transmis de rapport." /></Panel>}
-          {d.newsProposals && <Panel title="Vos propositions d’actualités"><Counts data={d.newsProposals} labels={NEWS_STATUSES} empty="Vous n’avez pas encore proposé d’actualité." /></Panel>}
+          {d.reports && <Panel title="Vos rapports" more={{ to: '/espace/rapports', label: 'Voir mes rapports' }}><Counts data={d.reports} labels={REPORT_STATUSES} empty="Vous n’avez pas encore transmis de rapport." /></Panel>}
+          {d.newsProposals && <Panel title="Vos propositions d’actualités" more={{ to: '/espace/actualites', label: 'Voir mes propositions' }}><Counts data={d.newsProposals} labels={NEWS_STATUSES} empty="Vous n’avez pas encore proposé d’actualité." /></Panel>}
         </div>
       </div>
     </>
