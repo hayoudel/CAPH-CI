@@ -95,7 +95,6 @@ export function OpportunityDetailPage() {
   const o = q.data;
   return (
     <div className="stack">
-      <p><Link to="/espace/opportunites">← Retour aux opportunités</Link></p>
       <header className="page-head">
         <h1>{o.title}</h1>
         <p>

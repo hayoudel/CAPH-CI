@@ -27,12 +27,12 @@
 /* ── Connexion : deux volets ───────────────────────────── */
 .auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
 .auth__aside { background: var(--green-deep); color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-6); gap: var(--space-6); }
-.auth__aside h1 { color: #fff; font-size: var(--h2); max-width: 20ch; }
+.auth__aside .auth__headline { color: #fff; font-family: var(--font-title); font-weight: 700; line-height: 1.15; font-size: var(--h2); max-width: 20ch; margin: 0 0 var(--space-3); }
 .auth__aside p { max-width: 34ch; }
 .auth__logo { width: min(100%, 20rem); margin: 0 auto; display: block; }
 .auth__main { display: flex; flex-direction: column; padding: var(--space-6) var(--space-5); }
 .auth__panel { width: 100%; max-width: 28rem; margin: auto; }
-.auth__back { align-self: flex-start; }
+.auth__back { align-self: flex-start; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); align-items: center; }
 .link-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-5); }
 
 /* ── Espace connecté : barre latérale + contenu ────────── */
@@ -64,7 +64,7 @@
   .hero__logo { grid-row: 1; width: min(60%, 14rem); }
   .auth { grid-template-columns: 1fr; }
   .auth__aside { flex-direction: row; align-items: center; padding: var(--space-4) var(--space-5); }
-  .auth__aside h1, .auth__aside p { display: none; }
+  .auth__aside .auth__headline, .auth__aside p { display: none; }
   .auth__logo { width: 6rem; margin: 0; }
   .shell { grid-template-columns: 1fr; grid-template-areas: 'top' 'main'; }
   .shell__top { display: flex; }
@@ -80,3 +80,6 @@
   .container { padding: var(--space-5) var(--space-4); }
 }
 .container--wide { max-width: 54rem; }
+
+.back-bar { max-width: 80rem; margin: 0 auto; padding: var(--space-3) var(--space-5) 0; }
+@media (max-width: 40rem) { .back-bar { padding: var(--space-2) var(--space-4) 0; } }

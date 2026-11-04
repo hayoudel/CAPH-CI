@@ -116,7 +116,6 @@ export function DirectoryDetailPage() {
   const hasContact = c.email || c.phone || c.website || c.postalAddress;
   return (
     <div className="container container--narrow stack">
-      <p><Link to="/annuaire">← Retour à l’annuaire</Link></p>
       <div className="page-head">
         <h1>{o.name}</h1>
         {o.acronym && <p>{o.acronym}</p>}

@@ -4,6 +4,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { useFocusOnNavigate } from '../lib/useFocusOnNavigate';
+import { BackLink } from '../ui/BackLink';
 import { Button } from '../ui/Button';
 
 interface NavItem { to: string; label: string; end?: boolean; permission?: string; unread?: boolean }
@@ -95,7 +96,10 @@ export function AppShell({ area }: { area: 'member' | 'staff' }) {
       </div>
 
       <main id="contenu" ref={main} tabIndex={-1} className="shell__main">
-        <div className="shell__content"><Outlet /></div>
+        <div className="shell__content">
+          <BackLink fallback={area === 'member' ? '/espace' : '/admin'} />
+          <Outlet />
+        </div>
       </main>
     </div>
   );

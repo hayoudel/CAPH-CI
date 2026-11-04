@@ -109,8 +109,10 @@ export class NewsService {
 
   async removeAttachment(u: AuthenticatedUser, id: string, attId: string) {
     const cur = await this.findOwnEditable(u, id);
-    if (!cur.attachments.some((a) => a.id === attId)) throw new NotFoundException({ code: 'ATTACHMENT_NOT_FOUND', message: 'Pièce jointe introuvable.' });
+    const att = cur.attachments.find((a) => a.id === attId);
+    if (!att) throw new NotFoundException({ code: 'ATTACHMENT_NOT_FOUND', message: 'Pièce jointe introuvable.' });
     await this.prisma.newsAttachment.delete({ where: { id: attId } });
+    await this.files.discard(att.file.id);
     return this.view(await this.findOwn(u, id));
   }
 

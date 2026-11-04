@@ -21,6 +21,8 @@ class EnvironmentVariables {
   JWT_REFRESH_SECRET: string;
   @IsString() JWT_ACCESS_TTL: string = '15m';
   @IsString() STORAGE_DIR: string = './storage';
+  /** Nombre de relais (nginx, hébergeur…) placés devant l'API. 0 = aucun. Indispensable en production pour que les limites par adresse IP visent le vrai visiteur. */
+  @IsOptional() @IsInt() @Min(0) @Max(5) TRUST_PROXY?: number;
   @IsOptional() @IsString() FILES_ENCRYPTION_KEY?: string;
   @IsOptional() @IsString() MAIL_HOST?: string;
   @IsOptional() @IsInt() MAIL_PORT?: number;

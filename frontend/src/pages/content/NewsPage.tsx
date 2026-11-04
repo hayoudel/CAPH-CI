@@ -131,7 +131,6 @@ export function NewsNewPage() {
   });
   return (
     <div className="stack">
-      <p><Link to="/espace/actualites">← Retour à mes actualités</Link></p>
       <header className="page-head">
         <h1>Proposer une actualité</h1>
         <p>Racontez ce qui s’est passé dans votre organisation. Vous pourrez joindre des photos ou documents juste après.</p>
@@ -181,7 +180,6 @@ export function NewsDetailPage() {
   const mayEdit = n.canEdit && can('news.propose');
   return (
     <div className="stack">
-      <p><Link to="/espace/actualites">← Retour à mes actualités</Link></p>
       <header className="page-head">
         <h1>{n.title}</h1>
         <p><span className={statusBadge(n.status)}>{n.statusLabel}</span>{n.category && <> <span className="badge badge--grey">{n.category.label}</span></>}</p>

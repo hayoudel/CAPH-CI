@@ -90,7 +90,6 @@ export function CommunicationDetailPage() {
   const c = q.data;
   return (
     <div className="stack">
-      <p><Link to="/espace/communications">← Retour aux communications</Link></p>
       <header className="page-head">
         <h1>{c.title}</h1>
         <p>{formatDateTime(c.publishedAt)} — {c.senderLabel}{c.category ? ` — ${c.category}` : ''}</p>

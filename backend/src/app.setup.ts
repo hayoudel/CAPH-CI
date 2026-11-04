@@ -5,6 +5,9 @@ import helmet from 'helmet';
 
 export function configureApp(app: INestApplication) {
   const config = app.get(ConfigService);
+  // Derrière un relais (nginx, hébergeur), l'adresse du visiteur vient de l'en-tête X-Forwarded-For.
+  const hops = Number(config.get('TRUST_PROXY') ?? 0);
+  if (hops > 0) app.getHttpAdapter().getInstance().set('trust proxy', hops);
   app.use(helmet());
   app.use(cookieParser());
   app.enableCors({

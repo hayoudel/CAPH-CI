@@ -4,6 +4,7 @@ import { homePathFor, useAuth } from '../auth/AuthContext';
 import { useFocusOnNavigate } from '../lib/useFocusOnNavigate';
 import { site } from '../lib/site';
 import { LinkButton } from '../ui/Button';
+import { BackLink } from '../ui/BackLink';
 import { Footer } from './Footer';
 
 export function PublicLayout() {
@@ -27,7 +28,10 @@ export function PublicLayout() {
         </div>
         <span className="tricolor" aria-hidden="true" />
       </header>
-      <main id="contenu" ref={main} tabIndex={-1} className="site-main"><Outlet /></main>
+      <main id="contenu" ref={main} tabIndex={-1} className="site-main">
+        <div className="back-bar"><BackLink fallback="/" /></div>
+        <Outlet />
+      </main>
       <Footer />
     </>
   );

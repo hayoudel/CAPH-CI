@@ -320,8 +320,14 @@ describe('Contenus et espace membre (B5)', () => {
       expect(Buffer.compare((await download(`/reports/${report.id}/attachments/${att.id}/file`, ADMIN)).body, PDF)).toBe(0);
       for (let i = 0; i < 4; i++) expect((await upload(`/reports/${report.id}/attachments`, AWA, {}, PDF)).status).toBe(201);
       expect((await upload(`/reports/${report.id}/attachments`, AWA, {}, PDF)).status).toBe(422); // 6e refusée
+      const orphans = () => prisma.fileAsset.count({
+        where: { reportAttachments: { none: {} }, newsAttachments: { none: {} }, membershipDocuments: { none: {} }, internalDocuments: { none: {} }, opportunities: { none: {} } },
+      });
+      const before = await orphans();
       const after = await del(`/reports/${report.id}/attachments/${att.id}`, AWA);
       expect(after.body.attachments).toHaveLength(4);
+      // le fichier lui-même est supprimé : aucun fichier orphelin ne reste sur le serveur
+      expect(await orphans()).toBe(before);
     });
     it('le personnel traite le rapport : correction (motif obligatoire) puis renvoi par l’organisation', async () => {
       expect((await post(`/reports/${report.id}/review`, AWA, { status: 'PROCESSED' })).status).toBe(403);

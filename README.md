@@ -178,8 +178,11 @@ backend/
     health/                 Route /health
 ```
 
-## Frontend (lots F1 à F3)
-Voir `frontend/README.md`. Lancer l'API (`backend`, `npm run start:dev`) puis, dans `frontend`, `npm install --legacy-peer-deps` et `npm run dev` → http://localhost:5173
+## Frontend (lots F1 à F3, F5a et F5b)
+Écrans publics (accueil, adhésion, annuaire, connexion) et espace des organisations membres (tableau de bord, organisation, équipe, communications, documents, opportunités, agenda, rapports, actualités). Les écrans du personnel de la CAPH-CI ne sont pas inclus : l'API correspondante est complète et testée. Voir `frontend/README.md`. Lancer l'API (`backend`, `npm run start:dev`) puis, dans `frontend`, `npm install --legacy-peer-deps` et `npm run dev` → http://localhost:5173
+
+## Mise en ligne
+Voir **`DEPLOYMENT.md`** : installation sur un serveur, HTTPS, sauvegardes, mises à jour, liste de contrôle avant ouverture.
 
 ## Rôles dans une organisation (OPH)
 | Rôle | Peut faire |

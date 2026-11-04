@@ -150,7 +150,6 @@ export function ReportNewPage() {
   });
   return (
     <div className="stack">
-      <p><Link to="/espace/rapports">← Retour aux rapports</Link></p>
       <header className="page-head">
         <h1>Transmettre un rapport</h1>
         <p>Remplissez les informations ci-dessous. Vous pourrez joindre des fichiers juste après.</p>
@@ -199,7 +198,6 @@ export function ReportDetailPage() {
   const initial: ReportValues = { type: r.type, title: r.title, summary: r.summary, periodStart: r.periodStart?.slice(0, 10) ?? '', periodEnd: r.periodEnd?.slice(0, 10) ?? '', certify: true };
   return (
     <div className="stack">
-      <p><Link to="/espace/rapports">← Retour aux rapports</Link></p>
       <header className="page-head">
         <h1>{r.title}</h1>
         <p><span className="badge badge--grey">{REPORT_TYPE_LABELS[r.type]}</span> <span className={statusBadge(r.status)}>{r.statusLabel}</span></p>
