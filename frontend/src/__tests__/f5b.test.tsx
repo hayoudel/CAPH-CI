@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as Auth from '../auth/AuthContext';
-import { validateNews } from '../pages/content/NewsPage';
+import { checkCover, validateNews } from '../pages/content/NewsPage';
 import { emptyReport, ReportsPage, validateReport } from '../pages/content/ReportsPage';
 import { checkFile } from '../ui/Attachments';
 
@@ -35,8 +35,19 @@ describe('rapport : validation', () => {
 
 describe('actualité : validation', () => {
   it('exige un titre et un texte assez longs', () => {
-    expect(Object.keys(validateNews({ categoryId: '', title: 'abc', description: 'court' })).sort()).toEqual(['description', 'title']);
-    expect(validateNews({ categoryId: '', title: 'Journée portes ouvertes', description: 'Nous avons organisé une journée portes ouvertes.' })).toEqual({});
+    const base = { categoryId: '', summary: '', newsDate: '' };
+    expect(Object.keys(validateNews({ ...base, title: 'abc', description: 'court' })).sort()).toEqual(['description', 'summary', 'title']);
+    expect(validateNews({ ...base, title: 'Journée portes ouvertes', summary: 'Une journée pour tous.', description: 'Nous avons organisé une journée portes ouvertes.' })).toEqual({});
+  });
+  it('un brouillon n’exige que le titre', () => {
+    const base = { categoryId: '', summary: '', newsDate: '', description: '' };
+    expect(validateNews({ ...base, title: 'Journée portes ouvertes' }, false)).toEqual({});
+    expect(Object.keys(validateNews({ ...base, title: 'abc' }, false))).toEqual(['title']);
+    expect(validateNews({ ...base, title: 'Journée portes ouvertes', summary: 'x'.repeat(301) }, false).summary).toMatch(/300/);
+  });
+  it('l’image de couverture doit être JPG ou PNG', () => {
+    expect(checkCover({ name: 'a.pdf', size: 10 })).toMatch(/JPG ou PNG/);
+    expect(checkCover({ name: 'a.jpg', size: 10 })).toBeNull();
   });
 });
 

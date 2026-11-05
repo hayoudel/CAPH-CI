@@ -8,6 +8,7 @@ import { AgendaPage } from './pages/content/AgendaPage';
 import { CommunicationDetailPage, CommunicationsPage } from './pages/content/CommunicationsPage';
 import { DocumentsPage } from './pages/content/DocumentsPage';
 import { NewsDetailPage, NewsListPage, NewsNewPage } from './pages/content/NewsPage';
+import { ProjectDetailPage, ProjectNewPage, ProjectsPage } from './pages/projects/ProjectsPage';
 import { ReportDetailPage, ReportNewPage, ReportsPage } from './pages/content/ReportsPage';
 import { OpportunitiesPage, OpportunityDetailPage } from './pages/content/OpportunitiesPage';
 import { OrganizationPage } from './pages/org/OrganizationPage';
@@ -60,6 +61,9 @@ export function App() {
           <Route path="espace/rapports" element={<ReportsPage />} />
           <Route path="espace/rapports/nouveau" element={<ReportNewPage />} />
           <Route path="espace/rapports/:id" element={<ReportDetailPage />} />
+          <Route path="espace/projets" element={<ProjectsPage />} />
+          <Route path="espace/projets/nouveau" element={<ProjectNewPage />} />
+          <Route path="espace/projets/:id" element={<ProjectDetailPage />} />
           <Route path="espace/actualites" element={<NewsListPage />} />
           <Route path="espace/actualites/nouvelle" element={<NewsNewPage />} />
           <Route path="espace/actualites/:id" element={<NewsDetailPage />} />
@@ -69,6 +73,10 @@ export function App() {
       <Route element={<RequireAuth area="staff" />}>
         <Route element={<AppShell area="staff" />}>
           <Route path="admin" element={<StaffDashboardPage />} />
+          <Route path="admin/documents" element={<DocumentsPage />} />
+          <Route path="admin/opportunites" element={<OpportunitiesPage />} />
+          <Route path="admin/opportunites/:id" element={<OpportunityDetailPage />} />
+          <Route path="admin/agenda" element={<AgendaPage />} />
         </Route>
       </Route>
     </Routes>

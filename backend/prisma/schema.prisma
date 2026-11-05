@@ -127,6 +127,13 @@ enum OpportunityStatus {
   ENDED
 }
 
+/// Validation par le personnel CAPH-CI des contenus proposés par une OPH (documents, opportunités, événements).
+enum ContentReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum Visibility {
   PUBLIC
   MEMBERS
@@ -175,7 +182,9 @@ enum ReportStatus {
 }
 
 enum NewsStatus {
+  DRAFT
   SUBMITTED
+  IN_REVIEW
   CORRECTION
   APPROVED
   REJECTED
@@ -416,6 +425,9 @@ model Organization {
   reports           Report[]
   newsProposals     NewsProposal[]
   communications    Communication[]
+  internalDocuments InternalDocument[]
+  opportunities     Opportunity[]
+  events            Event[]
 
   @@index([delegationId])
   @@index([regionId])
@@ -479,6 +491,7 @@ model FileAsset {
   membershipDocuments MembershipDocument[]
   reportAttachments   ReportAttachment[]
   newsAttachments     NewsAttachment[]
+  newsCovers          NewsProposal[]       @relation("NewsCover")
   internalDocuments   InternalDocument[]
   opportunities       Opportunity[]
 
@@ -613,8 +626,15 @@ model InternalDocument {
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
   file        FileAsset                @relation(fields: [fileId], references: [id])
+  organizationId String?             @db.Uuid // OPH auteur ; vide = publié par le personnel CAPH-CI
+  reviewStatus   ContentReviewStatus @default(APPROVED)
+  reviewedAt     DateTime?
+  reviewedById   String?             @db.Uuid
+  reviewNote     String? // motif en cas de refus
+  organization   Organization?       @relation(fields: [organizationId], references: [id])
 
   @@index([category, publishedAt])
+  @@index([organizationId, reviewStatus])
   @@map("internal_documents")
 }
 
@@ -636,7 +656,14 @@ model Opportunity {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   sheetFile   FileAsset?        @relation(fields: [sheetFileId], references: [id])
+  organizationId String?             @db.Uuid // OPH auteur ; vide = publié par le personnel CAPH-CI
+  reviewStatus   ContentReviewStatus @default(APPROVED)
+  reviewedAt     DateTime?
+  reviewedById   String?             @db.Uuid
+  reviewNote     String? // motif en cas de refus
+  organization   Organization?       @relation(fields: [organizationId], references: [id])
 
+  @@index([organizationId, reviewStatus])
   @@index([status, deadline])
   @@index([visibility])
   @@map("opportunities")
@@ -690,7 +717,14 @@ model Event {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   region      Region?     @relation(fields: [regionId], references: [id])
+  organizationId String?             @db.Uuid // OPH auteur ; vide = publié par le personnel CAPH-CI
+  reviewStatus   ContentReviewStatus @default(APPROVED)
+  reviewedAt     DateTime?
+  reviewedById   String?             @db.Uuid
+  reviewNote     String? // motif en cas de refus
+  organization   Organization?       @relation(fields: [organizationId], references: [id])
 
+  @@index([organizationId, reviewStatus])
   @@index([startsAt])
   @@index([type])
   @@map("events")
@@ -735,27 +769,48 @@ model ReportAttachment {
 }
 
 model NewsProposal {
-  id             String           @id @default(uuid()) @db.Uuid
-  organizationId String           @db.Uuid
-  authorId       String           @db.Uuid
-  categoryId     String?          @db.Uuid
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @db.Uuid
+  authorId       String              @db.Uuid
+  categoryId     String?             @db.Uuid
   title          String
-  description    String
-  status         NewsStatus       @default(SUBMITTED)
+  summary        String? // résumé court
+  description    String // contenu complet
+  newsDate       DateTime? // date de l'événement ou de l'actualité
+  coverFileId    String?             @db.Uuid
+  status         NewsStatus          @default(DRAFT)
   reviewerNote   String?
-  reviewedById   String?          @db.Uuid
-  submittedAt    DateTime         @default(now())
+  reviewedById   String?            @db.Uuid
+  createdAt      DateTime            @default(now())
+  submittedAt    DateTime? // renseignée à la soumission (null pour un brouillon)
   reviewedAt     DateTime?
-  updatedAt      DateTime         @updatedAt
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  category       NewsCategory?    @relation(fields: [categoryId], references: [id])
-  author         User             @relation("NewsAuthor", fields: [authorId], references: [id])
-  reviewedBy     User?            @relation("NewsReviewer", fields: [reviewedById], references: [id])
+  updatedAt      DateTime            @updatedAt
+  organization   Organization        @relation(fields: [organizationId], references: [id])
+  category       NewsCategory?       @relation(fields: [categoryId], references: [id])
+  author         User                @relation("NewsAuthor", fields: [authorId], references: [id])
+  reviewedBy     User?               @relation("NewsReviewer", fields: [reviewedById], references: [id])
+  cover          FileAsset?          @relation("NewsCover", fields: [coverFileId], references: [id])
   attachments    NewsAttachment[]
+  history        NewsStatusHistory[]
 
-  @@index([organizationId, submittedAt])
+  @@index([organizationId, updatedAt])
   @@index([status])
   @@map("news_proposals")
+}
+
+/// Historique des décisions : une ligne à chaque changement de statut (jamais modifiée).
+model NewsStatusHistory {
+  id         String       @id @default(uuid()) @db.Uuid
+  proposalId String       @db.Uuid
+  fromStatus NewsStatus?
+  toStatus   NewsStatus
+  note       String?
+  actorId    String?      @db.Uuid
+  createdAt  DateTime     @default(now())
+  proposal   NewsProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId, createdAt])
+  @@map("news_status_history")
 }
 
 model NewsAttachment {

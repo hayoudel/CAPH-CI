@@ -5,7 +5,7 @@ import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nes
 import type { Response } from 'express';
 import { PERMISSIONS as P } from '../common/constants/permissions';
 import { AuthenticatedUser, CurrentUser } from '../common/decorators/current-user.decorator';
-import { RequirePermissions } from '../common/decorators/permissions.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../common/decorators/permissions.decorator';
 import { fileBody, sendFile, uploadOne } from '../common/utils/files';
 import { CreateDocumentDto, ListDocumentsQueryDto, UpdateDocumentDto } from './dto/documents.dto';
 import { DocumentsService } from './documents.service';
@@ -29,13 +29,13 @@ export class DocumentsController {
     return sendFile(res, await this.svc.download(u, id));
   }
 
-  @Post() @RequirePermissions(P.DOCUMENT_MANAGE) @UseInterceptors(uploadOne()) @ApiConsumes('multipart/form-data')
+  @Post() @RequireAnyPermission(P.DOCUMENT_MANAGE, P.DOCUMENT_PROPOSE) @UseInterceptors(uploadOne()) @ApiConsumes('multipart/form-data')
   @ApiBody(fileBody({
     title: { type: 'string' }, description: { type: 'string' },
     category: { type: 'string', enum: ['GUIDE', 'FORM', 'MEETING_MINUTES', 'REFERENCE', 'OTHER'] },
     accessLevel: { type: 'string', enum: ['MEMBERS', 'CONTRIBUTORS'] }, isFeatured: { type: 'boolean' },
   }))
-  @ApiOperation({ summary: 'Publier un document (PDF, JPG ou PNG, 10 Mo max)' })
+  @ApiOperation({ summary: 'Publier un document (PDF, JPG ou PNG, 10 Mo max)', description: 'Document interne : publié tout de suite, par le personnel comme par le Président / Suppléant d’une OPH (aucune validation).' })
   create(@CurrentUser() u: AuthenticatedUser, @Body() dto: CreateDocumentDto, @UploadedFile() file: Express.Multer.File) {
     return this.svc.create(u, dto, file);
   }

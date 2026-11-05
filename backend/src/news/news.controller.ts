@@ -35,6 +35,24 @@ export class NewsController {
   @ApiOperation({ summary: 'Modifier une proposition (une correction la soumet de nouveau)' })
   update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateNewsDto) { return this.svc.update(u, id, dto); }
 
+  @Post(':id/submit') @HttpCode(HttpStatus.OK) @RequirePermissions(P.NEWS_PROPOSE)
+  @ApiOperation({ summary: 'Soumettre un brouillon (ou une proposition à corriger) à la validation' })
+  submit(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.submit(u, id); }
+
+  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT) @RequirePermissions(P.NEWS_PROPOSE)
+  @ApiOperation({ summary: 'Supprimer un brouillon' })
+  async remove(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { await this.svc.removeDraft(u, id); }
+
+  @Post(':id/cover') @RequirePermissions(P.NEWS_PROPOSE) @UseInterceptors(uploadOne()) @ApiConsumes('multipart/form-data') @ApiBody(fileBody({}))
+  @ApiOperation({ summary: 'Définir l’image de couverture (JPG ou PNG)' })
+  setCover(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @UploadedFile() file: Express.Multer.File) { return this.svc.setCover(u, id, file); }
+
+  @Delete(':id/cover') @RequirePermissions(P.NEWS_PROPOSE)
+  removeCover(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.removeCover(u, id); }
+
+  @Get(':id/cover') @RequirePermissions(P.NEWS_PROPOSE)
+  async cover(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Res({ passthrough: true }) res: Response) { return sendFile(res, await this.svc.coverOwn(u, id)); }
+
   @Post(':id/attachments') @RequirePermissions(P.NEWS_PROPOSE) @UseInterceptors(uploadOne()) @ApiConsumes('multipart/form-data') @ApiBody(fileBody({}))
   @ApiOperation({ summary: 'Joindre un fichier (PDF, JPG ou PNG ; 5 maximum)' })
   attach(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @UploadedFile() file: Express.Multer.File) { return this.svc.addAttachment(u, id, file); }
@@ -62,6 +80,9 @@ export class AdminNewsController {
   @Get(':id') @RequirePermissions(P.NEWS_REVIEW)
   get(@Param('id', ParseUUIDPipe) id: string) { return this.svc.getAny(id); }
 
+  @Get(':id/cover') @RequirePermissions(P.NEWS_REVIEW)
+  async cover(@Param('id', ParseUUIDPipe) id: string, @Res({ passthrough: true }) res: Response) { return sendFile(res, await this.svc.coverAny(id)); }
+
   @Get(':id/attachments/:attId/file') @RequirePermissions(P.NEWS_REVIEW)
   async file(
     @CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Param('attId', ParseUUIDPipe) attId: string,
@@ -81,4 +102,7 @@ export class PublicNewsController {
 
   @Get() @ApiOperation({ summary: 'Actualités publiées' })
   list(@Query() q: ListNewsQueryDto) { return this.svc.listPublic(q); }
+
+  @Get(':id/cover') @ApiOperation({ summary: 'Image de couverture d’une actualité publiée' })
+  async cover(@Param('id', ParseUUIDPipe) id: string, @Res({ passthrough: true }) res: Response) { return sendFile(res, await this.svc.coverPublic(id)); }
 }

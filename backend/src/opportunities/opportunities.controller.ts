@@ -6,7 +6,8 @@ import type { Response } from 'express';
 import { PERMISSIONS as P } from '../common/constants/permissions';
 import { AuthenticatedUser, CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
-import { RequirePermissions } from '../common/decorators/permissions.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../common/decorators/permissions.decorator';
+import { RejectContentDto } from '../common/utils/review';
 import { fileBody, sendFile, uploadOne } from '../common/utils/files';
 import { CreateOpportunityDto, ListOpportunitiesQueryDto, UpdateOpportunityDto } from './dto/opportunities.dto';
 import { OpportunitiesService } from './opportunities.service';
@@ -30,9 +31,17 @@ export class OpportunitiesController {
     return sendFile(res, await this.svc.sheet(u, id));
   }
 
-  @Post() @RequirePermissions(P.OPPORTUNITY_MANAGE)
-  @ApiOperation({ summary: 'Publier une opportunité (référence OP-AAAA-NN générée automatiquement)' })
+  @Post() @RequireAnyPermission(P.OPPORTUNITY_MANAGE, P.OPPORTUNITY_PROPOSE)
+  @ApiOperation({ summary: 'Publier une opportunité (référence OP-AAAA-NN générée automatiquement)', description: 'Personnel : publiée tout de suite. Président / Suppléant d’une OPH : envoyée « en attente de validation ».' })
   create(@CurrentUser() u: AuthenticatedUser, @Body() dto: CreateOpportunityDto) { return this.svc.create(u, dto); }
+
+  @Post(':id/approve') @HttpCode(HttpStatus.OK) @RequirePermissions(P.OPPORTUNITY_MANAGE)
+  @ApiOperation({ summary: 'Valider une opportunité proposée par une OPH' })
+  approve(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.review(u, id, 'APPROVED'); }
+
+  @Post(':id/reject') @HttpCode(HttpStatus.OK) @RequirePermissions(P.OPPORTUNITY_MANAGE)
+  @ApiOperation({ summary: 'Refuser une opportunité proposée par une OPH (motif obligatoire)' })
+  reject(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectContentDto) { return this.svc.review(u, id, 'REJECTED', dto.note); }
 
   @Patch(':id') @RequirePermissions(P.OPPORTUNITY_MANAGE)
   update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateOpportunityDto) { return this.svc.update(u, id, dto); }

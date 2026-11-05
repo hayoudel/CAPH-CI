@@ -3,12 +3,17 @@ import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsDate, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 import { asBool, trimmed } from '../../common/utils/files';
+import { REVIEW_STATUSES } from '../../common/utils/review';
 
 export const OPP_TYPES = ['CALL_FOR_PROJECTS', 'TRAINING', 'CONSULTATION', 'JOB', 'INTERNSHIP', 'GRANT', 'OTHER'] as const;
 export const OPP_STATUSES = ['OPEN', 'CLOSED', 'ENDED'] as const;
 type OppType = (typeof OPP_TYPES)[number];
 
 export class ListOpportunitiesQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ enum: REVIEW_STATUSES, description: 'Validation par le personnel : PENDING = en attente, APPROVED = validé, REJECTED = refusé' })
+  @IsOptional() @IsIn(REVIEW_STATUSES as unknown as string[])
+  review?: (typeof REVIEW_STATUSES)[number];
+
   @ApiPropertyOptional({ enum: OPP_TYPES }) @IsOptional() @IsIn(OPP_TYPES as unknown as string[]) type?: OppType;
   @ApiPropertyOptional({ enum: OPP_STATUSES, description: 'ENDED = clôturée OU date limite dépassée' })
   @IsOptional() @IsIn(OPP_STATUSES as unknown as string[]) status?: (typeof OPP_STATUSES)[number];

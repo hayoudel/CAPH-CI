@@ -10,17 +10,23 @@ import { CreateNewsDto, ListNewsQueryDto, ReviewNewsDto, UpdateNewsDto } from '.
 
 const NOT_FOUND = { code: 'NEWS_NOT_FOUND', message: 'Proposition d’actualité introuvable.' };
 const MAX_ATTACHMENTS = 5;
-const EDITABLE: NewsStatus[] = ['SUBMITTED', 'CORRECTION'];
+const EDITABLE: NewsStatus[] = ['DRAFT', 'SUBMITTED', 'CORRECTION'];
+const IMAGE_TYPES = ['image/jpeg', 'image/png'];
 const LABELS: Record<NewsStatus, string> = {
-  SUBMITTED: 'Soumise', CORRECTION: 'Correction demandée', APPROVED: 'Approuvée', REJECTED: 'Refusée', PUBLISHED: 'Publiée',
+  DRAFT: 'Brouillon', SUBMITTED: 'Soumise', IN_REVIEW: 'En cours de validation', CORRECTION: 'À corriger',
+  APPROVED: 'Validée', REJECTED: 'Refusée', PUBLISHED: 'Publiée',
 };
 const include = {
   organization: { select: { id: true, name: true } },
   category: { select: { id: true, code: true, label: true } },
   author: { select: { firstName: true, lastName: true, email: true } },
   attachments: { include: { file: true }, orderBy: { createdAt: 'asc' } },
+  cover: { select: { id: true, mimeType: true, originalName: true, storageKey: true, encrypted: true } },
+  history: { orderBy: { createdAt: 'asc' } },
 } satisfies Prisma.NewsProposalInclude;
 type Row = Prisma.NewsProposalGetPayload<{ include: typeof include }>;
+/** Référence du dossier, déduite de l'identifiant : ACT-2026-A1B2C3. */
+const reference = (n: { id: string; createdAt: Date }) => `ACT-${n.createdAt.getFullYear()}-${n.id.slice(0, 6).toUpperCase()}`;
 
 /** Les organisations proposent des actualités ; l'équipe communication les valide puis les publie. */
 @Injectable()
@@ -32,8 +38,10 @@ export class NewsService {
 
   private view(n: Row) {
     return {
-      id: n.id, organization: n.organization, category: n.category, title: n.title, description: n.description,
-      status: n.status, statusLabel: LABELS[n.status], reviewerNote: n.reviewerNote, submittedAt: n.submittedAt, reviewedAt: n.reviewedAt,
+      id: n.id, reference: reference(n), organization: n.organization, category: n.category, title: n.title, summary: n.summary, description: n.description,
+      newsDate: n.newsDate, hasCover: !!n.coverFileId,
+      status: n.status, statusLabel: LABELS[n.status], reviewerNote: n.reviewerNote, createdAt: n.createdAt, submittedAt: n.submittedAt, reviewedAt: n.reviewedAt, updatedAt: n.updatedAt,
+      history: n.history.map((h) => ({ id: h.id, status: h.toStatus, statusLabel: LABELS[h.toStatus], note: h.note, date: h.createdAt })),
       author: `${n.author.firstName} ${n.author.lastName}`, canEdit: EDITABLE.includes(n.status),
       attachments: n.attachments.map((a) => ({ id: a.id, originalName: a.file.originalName, mimeType: a.file.mimeType, sizeBytes: a.file.sizeBytes })),
     };
@@ -73,28 +81,110 @@ export class NewsService {
     };
     const [total, rows] = await Promise.all([
       this.prisma.newsProposal.count({ where }),
-      this.prisma.newsProposal.findMany({ where, include, orderBy: { submittedAt: 'desc' }, ...pageArgs(q) }),
+      this.prisma.newsProposal.findMany({ where, include, orderBy: { updatedAt: 'desc' }, ...pageArgs(q) }),
     ]);
     return paginated(rows.map((r) => this.view(r)), total, q);
   }
   async getOwn(u: AuthenticatedUser, id: string) { return this.view(await this.findOwn(u, id)); }
 
-  async create(u: AuthenticatedUser, dto: CreateNewsDto) {
-    await this.checkCategory(dto.categoryId);
-    const n = await this.prisma.newsProposal.create({ data: { ...dto, organizationId: this.orgId(u), authorId: u.id }, include });
-    await this.audit.log({ action: 'news.proposed', actorId: u.id, actorLabel: u.email, entityType: 'NewsProposal', entityId: n.id });
-    return this.view(n);
+  /** Une proposition doit être complète pour être soumise ; un brouillon peut être partiel. */
+  private assertComplete(n: { title: string; description: string }) {
+    if (n.title.trim().length < 5 || n.description.trim().length < 20) {
+      throw new UnprocessableEntityException({ code: 'INCOMPLETE_NEWS', message: 'Pour soumettre, le titre (5 caractères minimum) et le contenu complet (20 caractères minimum) sont obligatoires.' });
+    }
+  }
+  private async record(id: string, from: NewsStatus | null, to: NewsStatus, actorId: string, note?: string | null) {
+    await this.prisma.newsStatusHistory.create({ data: { proposalId: id, fromStatus: from, toStatus: to, note: note ?? null, actorId } });
+  }
+  private data(dto: { categoryId?: string; summary?: string; description?: string; newsDate?: string; title?: string }) {
+    const { newsDate, ...rest } = dto;
+    return { ...rest, ...(newsDate ? { newsDate: new Date(newsDate) } : {}) };
   }
 
-  /** Corriger une proposition « correction demandée » la soumet de nouveau. */
+  /** `submit` (vrai par défaut) soumet à la validation ; faux enregistre un brouillon. */
+  async create(u: AuthenticatedUser, dto: CreateNewsDto) {
+    const { submit = true, ...fields } = dto;
+    await this.checkCategory(dto.categoryId);
+    if (submit) this.assertComplete({ title: dto.title, description: dto.description ?? '' });
+    const status: NewsStatus = submit ? 'SUBMITTED' : 'DRAFT';
+    const n = await this.prisma.newsProposal.create({
+      data: { ...this.data(fields), title: dto.title, description: dto.description ?? '', status, submittedAt: submit ? new Date() : null, organizationId: this.orgId(u), authorId: u.id },
+      include,
+    });
+    await this.record(n.id, null, status, u.id);
+    await this.audit.log({ action: submit ? 'news.proposed' : 'news.drafted', actorId: u.id, actorLabel: u.email, entityType: 'NewsProposal', entityId: n.id });
+    return this.view(await this.findOwn(u, n.id));
+  }
+
+  /** Corriger une proposition « à corriger » la soumet de nouveau. Un brouillon reste un brouillon. */
   async update(u: AuthenticatedUser, id: string, dto: UpdateNewsDto) {
     const cur = await this.findOwnEditable(u, id);
     await this.checkCategory(dto.categoryId);
-    const n = await this.prisma.newsProposal.update({
-      where: { id }, data: { ...dto, ...(cur.status === 'CORRECTION' ? { status: 'SUBMITTED', submittedAt: new Date() } : {}) }, include,
+    const resubmit = cur.status === 'CORRECTION';
+    if (cur.status !== 'DRAFT') {
+      this.assertComplete({ title: dto.title ?? cur.title, description: dto.description ?? cur.description });
+    }
+    await this.prisma.newsProposal.update({
+      where: { id }, data: { ...this.data(dto), ...(resubmit ? { status: 'SUBMITTED', submittedAt: new Date() } : {}) },
     });
+    if (resubmit) await this.record(id, 'CORRECTION', 'SUBMITTED', u.id);
     await this.audit.log({ action: 'news.updated', actorId: u.id, actorLabel: u.email, entityType: 'NewsProposal', entityId: id });
-    return this.view(n);
+    return this.view(await this.findOwn(u, id));
+  }
+
+  /** Brouillon ou proposition à corriger → soumise à la validation. */
+  async submit(u: AuthenticatedUser, id: string) {
+    const cur = await this.findOwn(u, id);
+    if (cur.status !== 'DRAFT' && cur.status !== 'CORRECTION') {
+      throw new ConflictException({ code: 'INVALID_STATUS', message: 'Seul un brouillon ou une proposition à corriger peut être soumis.' });
+    }
+    this.assertComplete(cur);
+    const res = await this.prisma.newsProposal.updateMany({ where: { id, status: cur.status }, data: { status: 'SUBMITTED', submittedAt: new Date() } });
+    if (res.count !== 1) throw new ConflictException({ code: 'INVALID_STATUS', message: 'Le statut a changé entre-temps. Actualisez la page.' });
+    await this.record(id, cur.status, 'SUBMITTED', u.id);
+    await this.audit.log({ action: 'news.proposed', actorId: u.id, actorLabel: u.email, entityType: 'NewsProposal', entityId: id });
+    return this.view(await this.findOwn(u, id));
+  }
+
+  /** Seul un brouillon peut être supprimé. */
+  async removeDraft(u: AuthenticatedUser, id: string) {
+    const cur = await this.findOwn(u, id);
+    if (cur.status !== 'DRAFT') throw new ConflictException({ code: 'NOT_A_DRAFT', message: 'Seul un brouillon peut être supprimé.' });
+    await this.prisma.newsProposal.delete({ where: { id } });
+    for (const a of cur.attachments) await this.files.discard(a.file.id);
+    if (cur.coverFileId) await this.files.discard(cur.coverFileId);
+    await this.audit.log({ action: 'news.draft_deleted', actorId: u.id, actorLabel: u.email, entityType: 'NewsProposal', entityId: id });
+  }
+
+  async setCover(u: AuthenticatedUser, id: string, file: Express.Multer.File | undefined) {
+    const cur = await this.findOwnEditable(u, id);
+    const asset = await this.files.create(file, u.id);
+    if (!IMAGE_TYPES.includes(asset.mimeType)) {
+      await this.files.discard(asset.id);
+      throw new UnprocessableEntityException({ code: 'INVALID_FILE_TYPE', message: 'L’image de couverture doit être un fichier JPG ou PNG.' });
+    }
+    await this.prisma.newsProposal.update({ where: { id }, data: { coverFileId: asset.id } });
+    if (cur.coverFileId) await this.files.discard(cur.coverFileId);
+    return this.view(await this.findOwn(u, id));
+  }
+  async removeCover(u: AuthenticatedUser, id: string) {
+    const cur = await this.findOwnEditable(u, id);
+    if (cur.coverFileId) {
+      await this.prisma.newsProposal.update({ where: { id }, data: { coverFileId: null } });
+      await this.files.discard(cur.coverFileId);
+    }
+    return this.view(await this.findOwn(u, id));
+  }
+  private async readCover(n: Row) {
+    if (!n.cover) throw new NotFoundException({ code: 'COVER_NOT_FOUND', message: 'Pas d’image de couverture.' });
+    return this.files.read(n.cover);
+  }
+  async coverOwn(u: AuthenticatedUser, id: string) { return this.readCover(await this.findOwn(u, id)); }
+  async coverAny(id: string) { return this.readCover(await this.findAny(id)); }
+  async coverPublic(id: string) {
+    const n = await this.prisma.newsProposal.findFirst({ where: { id, status: 'PUBLISHED' }, include });
+    if (!n) throw new NotFoundException(NOT_FOUND);
+    return this.readCover(n);
   }
 
   async addAttachment(u: AuthenticatedUser, id: string, file: Express.Multer.File | undefined) {
@@ -126,7 +216,7 @@ export class NewsService {
 
   async listAll(q: ListNewsQueryDto) {
     const where: Prisma.NewsProposalWhereInput = {
-      ...(q.status ? { status: q.status } : {}), ...(q.organizationId ? { organizationId: q.organizationId } : {}),
+      status: q.status === 'DRAFT' ? { in: [] } : (q.status ?? { not: 'DRAFT' }), ...(q.organizationId ? { organizationId: q.organizationId } : {}),
       ...(q.q ? { OR: [{ title: { contains: q.q, mode: 'insensitive' } }, { organization: { name: { contains: q.q, mode: 'insensitive' } } }] } : {}),
     };
     const [total, rows] = await Promise.all([
@@ -136,7 +226,7 @@ export class NewsService {
     return paginated(rows.map((r) => this.view(r)), total, q);
   }
   private async findAny(id: string) {
-    const n = await this.prisma.newsProposal.findUnique({ where: { id }, include });
+    const n = await this.prisma.newsProposal.findFirst({ where: { id, status: { not: 'DRAFT' } }, include }); // le personnel ne voit pas les brouillons
     if (!n) throw new NotFoundException(NOT_FOUND);
     return n;
   }
@@ -152,7 +242,8 @@ export class NewsService {
   async review(u: AuthenticatedUser, id: string, dto: ReviewNewsDto) {
     const cur = await this.findAny(id);
     const allowed: Record<NewsStatus, NewsStatus[]> = {
-      SUBMITTED: ['CORRECTION', 'APPROVED', 'REJECTED'], APPROVED: ['PUBLISHED'], CORRECTION: [], REJECTED: [], PUBLISHED: [],
+      DRAFT: [], SUBMITTED: ['IN_REVIEW', 'CORRECTION', 'APPROVED', 'REJECTED'], IN_REVIEW: ['CORRECTION', 'APPROVED', 'REJECTED'],
+      APPROVED: ['PUBLISHED'], CORRECTION: [], REJECTED: [], PUBLISHED: [],
     };
     if (!allowed[cur.status].includes(dto.status)) {
       throw new ConflictException({ code: 'INVALID_STATUS', message: `Une proposition « ${LABELS[cur.status].toLowerCase()} » ne peut pas passer à « ${LABELS[dto.status].toLowerCase()} ».` });
@@ -165,6 +256,7 @@ export class NewsService {
       data: { status: dto.status, reviewerNote: dto.note ?? null, reviewedById: u.id, reviewedAt: new Date() },
     });
     if (res.count !== 1) throw new ConflictException({ code: 'INVALID_STATUS', message: 'Le statut a changé entre-temps. Actualisez la page.' });
+    await this.record(id, cur.status, dto.status, u.id, dto.note);
     void this.mail.send({
       to: cur.author.email,
       subject: `CAPH-CI — Votre actualité « ${cur.title} » : ${LABELS[dto.status].toLowerCase()}`,
@@ -182,9 +274,9 @@ export class NewsService {
       this.prisma.newsProposal.count({ where }),
       this.prisma.newsProposal.findMany({
         where, orderBy: { reviewedAt: 'desc' }, ...pageArgs(q),
-        select: { id: true, title: true, description: true, reviewedAt: true, category: { select: { code: true, label: true } }, organization: { select: { name: true } } },
+        select: { id: true, title: true, summary: true, description: true, newsDate: true, coverFileId: true, reviewedAt: true, category: { select: { code: true, label: true } }, organization: { select: { name: true } } },
       }),
     ]);
-    return paginated(rows.map((r) => ({ id: r.id, title: r.title, description: r.description, publishedAt: r.reviewedAt, category: r.category, organization: r.organization.name })), total, q);
+    return paginated(rows.map((r) => ({ id: r.id, title: r.title, summary: r.summary, description: r.description, newsDate: r.newsDate, hasCover: !!r.coverFileId, publishedAt: r.reviewedAt, category: r.category, organization: r.organization.name })), total, q);
   }
 }

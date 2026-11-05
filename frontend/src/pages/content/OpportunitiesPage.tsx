@@ -6,7 +6,12 @@ import type { Opportunity, Paginated } from '../../api/types';
 import { formatDate, formatSize, OPPORTUNITY_STATUSES, OPPORTUNITY_TYPES } from '../../lib/format';
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
+import { useAuth } from '../../auth/AuthContext';
+import { useBase } from '../../lib/useBase';
 import { Alert } from '../../ui/Alert';
+import { Flash, type Notice } from '../../ui/Flash';
+import { ReviewActions, ReviewInfo, REVIEW_OPTIONS } from '../../ui/Review';
+import { AddOpportunityModal } from './AddModals';
 import { Button } from '../../ui/Button';
 import { DownloadButton } from '../../ui/DownloadButton';
 import { SelectField, TextField } from '../../ui/Field';
@@ -18,20 +23,31 @@ const statusBadge = (s: string) => (s === 'OPEN' ? 'badge badge--green' : 'badge
 export function OpportunitiesPage() {
   usePageTitle('Opportunités');
   const f = useListParams();
+  const base = useBase();
+  const { can } = useAuth();
+  const manage = can('opportunity.manage');
+  const canAdd = manage || can('opportunity.propose');
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const [text, setText] = useState(f.get('q'));
   const status = f.get('status') || 'OPEN';
-  const query = { q: f.get('q') || undefined, type: f.get('type') || undefined, status, page: f.page, limit: 10 };
+  const query = { q: f.get('q') || undefined, type: f.get('type') || undefined, status, review: f.get('review') || undefined, page: f.page, limit: 10 };
   const list = useQuery({ queryKey: ['opportunities', query], queryFn: () => api<Paginated<Opportunity>>('/opportunities', { query }), placeholderData: (p) => p });
   const submit = (e: FormEvent) => { e.preventDefault(); f.set('q', text.trim()); };
   const total = list.data?.meta.total ?? 0;
-  const hasFilter = f.has('q', 'type', 'status');
+  const hasFilter = f.has('q', 'type', 'status', 'review');
 
   return (
     <>
-      <header className="page-head">
-        <h1>Opportunités</h1>
-        <p>Appels à projets, formations, consultations et offres ouvertes aux organisations membres.</p>
+      <header className="page-head page-head--actions">
+        <div>
+          <h1>Opportunités</h1>
+          <p>Appels à projets, formations, consultations et offres ouvertes aux organisations membres.</p>
+        </div>
+        {canAdd && <div className="page-head__actions"><Button onClick={() => setAdding(true)}>+ Ajouter une opportunité</Button></div>}
       </header>
+      <Flash notice={notice} />
+      {adding && <AddOpportunityModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
       <div className="stack">
         <form className="panel" role="search" aria-label="Rechercher une opportunité" onSubmit={submit}>
           <div className="filters">
@@ -41,6 +57,7 @@ export function OpportunitiesPage() {
             <SelectField label="État" value={status}
               options={[{ value: 'OPEN', label: 'Ouvertes' }, { value: 'ENDED', label: 'Terminées' }, { value: 'CLOSED', label: 'Fermées' }]}
               onChange={(e) => f.set('status', e.target.value)} />
+            {manage && <SelectField label="Validation" value={f.get('review')} placeholder="Tous" options={REVIEW_OPTIONS} onChange={(e) => f.set('review', e.target.value)} />}
           </div>
           <div className="row">
             <Button type="submit">Rechercher</Button>
@@ -60,13 +77,15 @@ export function OpportunitiesPage() {
             {list.data.data.map((o) => (
               <li key={o.id}>
                 <article className="panel">
-                  <h2 className="panel__title"><Link to={`/espace/opportunites/${o.id}`}>{o.title}</Link></h2>
+                  <h2 className="panel__title"><Link to={`${base}/opportunites/${o.id}`}>{o.title}</Link></h2>
                   <p className="item__meta">
                     <span className="badge badge--grey">{OPPORTUNITY_TYPES[o.type] ?? o.type}</span>{' '}
                     <span className={statusBadge(o.effectiveStatus)}>{OPPORTUNITY_STATUSES[o.effectiveStatus]}</span>{' '}
                     Réf. {o.reference}{o.deadline ? ` — date limite : ${formatDate(o.deadline)}` : ''}
                   </p>
                   <p style={{ margin: 0 }}>{o.summary}</p>
+                  <ReviewInfo item={o} />
+                  <ReviewActions item={o} path="/opportunities" canReview={manage} onNotice={setNotice} />
                 </article>
               </li>
             ))}
@@ -80,6 +99,7 @@ export function OpportunitiesPage() {
 
 export function OpportunityDetailPage() {
   const { id } = useParams();
+  const base = useBase();
   const q = useQuery({ queryKey: ['opportunity', id], queryFn: () => api<Opportunity>(`/opportunities/${id}`), retry: false });
   usePageTitle(q.data?.title ?? 'Opportunité');
   if (q.isLoading) return <Spinner />;
@@ -88,7 +108,7 @@ export function OpportunityDetailPage() {
       <div className="stack">
         <h1>Opportunité introuvable</h1>
         <p>Cette opportunité n’existe pas ou n’est plus disponible.</p>
-        <p><Link to="/espace/opportunites">Retour aux opportunités</Link></p>
+        <p><Link to={`${base}/opportunites`}>Retour aux opportunités</Link></p>
       </div>
     );
   }
@@ -102,6 +122,7 @@ export function OpportunityDetailPage() {
           <span className={statusBadge(o.effectiveStatus)}>{OPPORTUNITY_STATUSES[o.effectiveStatus]}</span>
         </p>
       </header>
+      <ReviewInfo item={o} />
       {o.effectiveStatus !== 'OPEN' && (
         <Alert kind="info" title="Cette opportunité n’accepte plus de candidatures">
           {o.deadline ? `La date limite était le ${formatDate(o.deadline)}.` : 'Elle a été fermée par la CAPH-CI.'}

@@ -3,6 +3,7 @@ import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsDate, IsIn, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 import { asBool, trimmed } from '../../common/utils/files';
+import { REVIEW_STATUSES } from '../../common/utils/review';
 
 export const EVENT_TYPES = ['MEETING', 'TRAINING', 'GENERAL_ASSEMBLY', 'CONFERENCE', 'FORUM', 'CAMPAIGN', 'CEREMONY'] as const;
 export const EVENT_MODES = ['ONLINE', 'ONSITE', 'HYBRID'] as const;
@@ -12,6 +13,10 @@ type M = (typeof EVENT_MODES)[number];
 type S = (typeof EVENT_STATUSES)[number];
 
 export class ListEventsQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ enum: REVIEW_STATUSES, description: 'Validation par le personnel : PENDING = en attente, APPROVED = validé, REJECTED = refusé' })
+  @IsOptional() @IsIn(REVIEW_STATUSES as unknown as string[])
+  review?: (typeof REVIEW_STATUSES)[number];
+
   @ApiPropertyOptional({ enum: EVENT_TYPES }) @IsOptional() @IsIn(EVENT_TYPES as unknown as string[]) type?: T;
   @ApiPropertyOptional({ enum: EVENT_STATUSES }) @IsOptional() @IsIn(EVENT_STATUSES as unknown as string[]) status?: S;
   @ApiPropertyOptional() @IsOptional() @IsUUID() regionId?: string;

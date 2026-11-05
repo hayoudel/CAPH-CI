@@ -18,7 +18,7 @@
 .hero { background: var(--paper-2); }
 .hero__inner { max-width: 80rem; margin: 0 auto; padding: var(--space-8) var(--space-5); display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); align-items: center; }
 .hero__logo { justify-self: center; width: min(100%, 22rem); }
-.hero__lead { font-size: 1.3rem; max-width: 36rem; }
+.hero__lead { font-size: 1.1875rem; max-width: 36rem; }
 .choices { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
 .choice { display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
 .choice h2 { font-size: var(--h3); margin: 0; }
@@ -42,7 +42,7 @@
 .shell__brand img { width: 9rem; }
 .shell__brand:hover { color: #fff; }
 .nav { list-style: none; margin: var(--space-4) 0 0; padding: 0 var(--space-3); display: grid; gap: var(--space-1); }
-.nav a { display: flex; align-items: center; min-height: var(--target); padding: 0.5rem 0.9rem; border-radius: var(--radius); color: #fff; text-decoration: none; font-family: var(--font-ui); font-weight: 700; font-size: var(--text-ui); border-left: 5px solid transparent; }
+.nav a { display: flex; align-items: center; gap: 0.5rem; min-height: var(--target); padding: 0.5rem 0.9rem; border-radius: var(--radius); color: #fff; text-decoration: none; font-family: var(--font-ui); font-weight: 700; font-size: var(--text-ui); border-left: 5px solid transparent; }
 .nav a:hover { background: rgb(255 255 255 / 0.1); }
 .nav a[aria-current='page'] { background: rgb(255 255 255 / 0.14); border-left-color: var(--orange); }
 .shell__spacer { flex: 1; }
@@ -53,7 +53,9 @@
 .shell__content { max-width: 70rem; padding: var(--space-6) var(--space-6) var(--space-8); }
 .page-head { margin-bottom: var(--space-6); }
 .page-head p { color: var(--ink-2); margin: 0; }
-.grid-2 { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); align-items: start; }
+.grid-2 { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); align-items: stretch; }
+.grid-2 > .panel { display: flex; flex-direction: column; }
+.panel__more { margin: auto 0 0; padding-top: var(--space-3); }
 .facts { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
 .facts dt { font-size: var(--text-small); color: var(--ink-2); }
 .facts dd { margin: 0; font-weight: 700; }

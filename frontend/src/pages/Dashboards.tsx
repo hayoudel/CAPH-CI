@@ -20,7 +20,7 @@ function Panel({ title, children, more }: { title: string; children: ReactNode; 
     <section className="panel" aria-labelledby={id}>
       <h2 id={id} className="panel__title">{title}</h2>
       {children}
-      {more && <p style={{ margin: 'var(--space-3) 0 0' }}><Link to={more.to}>{more.label}</Link></p>}
+      {more && <p className="panel__more"><Link to={more.to}>{more.label}</Link></p>}
     </section>
   );
 }
@@ -169,6 +169,19 @@ function StaffView({ d, firstName }: { d: StaffDashboard; firstName: string }) {
                   <li key={t.label}><span className="item__title">{t.label}</span><span className="item__meta">{t.n === 0 ? 'Rien en attente' : t.n}</span></li>
                 ))}
               </ul>
+            </Panel>
+          )}
+          {d.contentsToReview && (
+            <Panel title="Contenus des organisations à valider">
+              {d.contentsToReview.total === 0 ? <p className="empty" style={{ margin: 0 }}>Aucun contenu en attente de validation.</p> : (
+                <ul className="plain-list">
+                  {([['opportunities', 'Opportunités', '/admin/opportunites'], ['events', 'Événements', '/admin/agenda']] as const)
+                    .filter(([k]) => d.contentsToReview![k] > 0)
+                    .map(([k, label, to]) => (
+                      <li key={k}><Link to={`${to}?review=PENDING`}>{label}</Link><span className="item__meta">{d.contentsToReview![k]} en attente</span></li>
+                    ))}
+                </ul>
+              )}
             </Panel>
           )}
           {m && (

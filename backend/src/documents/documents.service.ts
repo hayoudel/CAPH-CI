@@ -5,11 +5,13 @@ import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import { pageArgs, paginated } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FileAssetService } from '../storage/file-asset.service';
+import { creationReview, reviewScope } from '../common/utils/review';
 import { CreateDocumentDto, ListDocumentsQueryDto, UpdateDocumentDto } from './dto/documents.dto';
 
 const NOT_FOUND = { code: 'DOCUMENT_NOT_FOUND', message: 'Document introuvable.' };
 const select = {
   id: true, title: true, description: true, category: true, accessLevel: true, isFeatured: true, publishedAt: true, archivedAt: true,
+  reviewStatus: true, reviewNote: true, organization: { select: { id: true, name: true } },
   file: { select: { originalName: true, mimeType: true, sizeBytes: true } },
 } as const;
 
@@ -27,6 +29,7 @@ export class DocumentsService {
     return {
       ...(this.manages(u) && includeArchived ? {} : { archivedAt: null }),
       ...(this.seesContributorDocs(u) ? {} : { accessLevel: 'MEMBERS' as const }),
+      ...reviewScope(u, this.manages(u)),
     };
   }
 
@@ -62,10 +65,13 @@ export class DocumentsService {
 
   async create(u: AuthenticatedUser, dto: CreateDocumentDto, file: Express.Multer.File | undefined) {
     const asset = await this.files.create(file, u.id);
+    const manage = this.manages(u);
+    // Document interne (jamais public) : publié tout de suite, sans validation. Une OPH ne choisit ni l'accès réservé ni la mise à la une.
+    const own = manage ? dto : { ...dto, accessLevel: 'MEMBERS' as const, isFeatured: false };
     const doc = await this.prisma.internalDocument.create({
-      data: { ...dto, fileId: asset.id, createdById: u.id }, select,
+      data: { ...own, ...creationReview(u, manage, false), fileId: asset.id, createdById: u.id }, select,
     });
-    await this.audit.log({ action: 'document.created', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: doc.id });
+    await this.audit.log({ action: 'document.created', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: doc.id, metadata: { reviewStatus: doc.reviewStatus } });
     return doc;
   }
 

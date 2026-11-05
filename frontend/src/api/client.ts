@@ -109,3 +109,13 @@ export async function downloadFile(path: string, fallbackName: string): Promise<
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
+
+/** Récupère une image protégée et renvoie une adresse temporaire utilisable dans <img> (le jeton d'accès ne passe pas par une balise). */
+export async function fetchBlobUrl(path: string): Promise<string> {
+  let res = await request(path);
+  if (res.status === 401) {
+    try { await refreshSession(); res = await request(path); } catch { setAccessToken(null); listener?.(null); }
+  }
+  if (!res.ok) throw await toError(res);
+  return URL.createObjectURL(await res.blob());
+}

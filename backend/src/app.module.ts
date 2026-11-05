@@ -19,6 +19,7 @@ import { CommunicationsModule } from './communications/communications.module';
 import { EventsModule } from './events/events.module';
 import { ReportsModule } from './reports/reports.module';
 import { NewsModule } from './news/news.module';
+import { ProjectsModule } from './projects/projects.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthController } from './health/health.controller';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -47,6 +48,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     EventsModule,
     ReportsModule,
     NewsModule,
+    ProjectsModule,
     DashboardModule,
   ],
   controllers: [HealthController],

@@ -20,12 +20,16 @@ function navFor(area: 'member' | 'staff'): NavItem[] {
         { to: '/espace/documents', label: 'Documents', permission: 'document.read' },
         { to: '/espace/opportunites', label: 'Opportunités', permission: 'opportunity.read' },
         { to: '/espace/agenda', label: 'Agenda', permission: 'event.read' },
+        { to: '/espace/projets', label: 'Projets', permission: 'project.read' },
         { to: '/espace/rapports', label: 'Rapports', permission: 'report.read' },
         { to: '/espace/actualites', label: 'Mes actualités', permission: 'news.propose' },
         { to: '/espace/annuaire', label: 'Annuaire public' },
       ]
     : [
         { to: '/admin', label: 'Tableau de bord', end: true },
+        { to: '/admin/documents', label: 'Documents', permission: 'document.read' },
+        { to: '/admin/opportunites', label: 'Opportunités', permission: 'opportunity.read' },
+        { to: '/admin/agenda', label: 'Agenda', permission: 'event.read' },
       ];
 }
 
@@ -81,7 +85,12 @@ export function AppShell({ area }: { area: 'member' | 'staff' }) {
               <li key={i.to}>
                 <NavLink to={i.to} end={i.end}>
                   {i.label}
-                  {i.unread && unreadCount > 0 && <span className="nav__count"> ({unreadCount} non {unreadCount > 1 ? 'lues' : 'lue'})</span>}
+                  {i.unread && unreadCount > 0 && (
+                    <>
+                      <span className="nav__badge" aria-hidden="true">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                      <span className="sr-only">, {unreadCount} non {unreadCount > 1 ? 'lues' : 'lue'}</span>
+                    </>
+                  )}
                 </NavLink>
               </li>
             ))}

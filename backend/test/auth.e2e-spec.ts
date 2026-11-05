@@ -96,9 +96,9 @@ describe('Authentification et permissions (B2a)', () => {
       expect(r.body.user.permissions).toContain('organization.update');
       expect(JSON.stringify(r.body)).not.toMatch(/passwordHash|argon2/);
     });
-    it('verrouille le compte après 5 échecs (429), même avec le bon mot de passe', async () => {
+    it('verrouille le compte après 3 échecs (429), même avec le bon mot de passe', async () => {
       const u = await tempUser('lock');
-      for (let i = 0; i < 5; i++) expect((await login(u.email, 'Faux-Mdp#2026xx')).status).toBe(401);
+      for (let i = 0; i < 3; i++) expect((await login(u.email, 'Faux-Mdp#2026xx')).status).toBe(401);
       const r = await login(u.email, DEMO);
       expect(r.status).toBe(429);
       expect(r.body.code).toBe('ACCOUNT_LOCKED');

@@ -3,7 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PERMISSIONS as P } from '../common/constants/permissions';
 import { AuthenticatedUser, CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
-import { RequirePermissions } from '../common/decorators/permissions.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../common/decorators/permissions.decorator';
+import { RejectContentDto } from '../common/utils/review';
 import { CreateEventDto, ListEventsQueryDto, UpdateEventDto } from './dto/events.dto';
 import { EventsService } from './events.service';
 
@@ -20,8 +21,16 @@ export class EventsController {
   @Get(':id') @RequirePermissions(P.EVENT_READ)
   get(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.get(u, id); }
 
-  @Post() @RequirePermissions(P.EVENT_MANAGE)
+  @Post() @RequireAnyPermission(P.EVENT_MANAGE, P.EVENT_PROPOSE)
   create(@CurrentUser() u: AuthenticatedUser, @Body() dto: CreateEventDto) { return this.svc.create(u, dto); }
+
+  @Post(':id/approve') @HttpCode(HttpStatus.OK) @RequirePermissions(P.EVENT_MANAGE)
+  @ApiOperation({ summary: 'Valider un événement proposé par une OPH' })
+  approve(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.review(u, id, 'APPROVED'); }
+
+  @Post(':id/reject') @HttpCode(HttpStatus.OK) @RequirePermissions(P.EVENT_MANAGE)
+  @ApiOperation({ summary: 'Refuser un événement proposé par une OPH (motif obligatoire)' })
+  reject(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectContentDto) { return this.svc.review(u, id, 'REJECTED', dto.note); }
 
   @Patch(':id') @RequirePermissions(P.EVENT_MANAGE)
   update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateEventDto) { return this.svc.update(u, id, dto); }

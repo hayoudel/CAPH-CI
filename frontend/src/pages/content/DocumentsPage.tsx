@@ -5,7 +5,11 @@ import type { LibraryDocument, Paginated } from '../../api/types';
 import { DOCUMENT_CATEGORIES, formatDate, formatSize } from '../../lib/format';
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
+import { useAuth } from '../../auth/AuthContext';
 import { Alert } from '../../ui/Alert';
+import { Flash, type Notice } from '../../ui/Flash';
+import { ReviewInfo } from '../../ui/Review';
+import { AddDocumentModal } from './AddModals';
 import { Button } from '../../ui/Button';
 import { DownloadButton } from '../../ui/DownloadButton';
 import { SelectField, TextField } from '../../ui/Field';
@@ -15,6 +19,11 @@ import { Spinner } from '../../ui/Spinner';
 export function DocumentsPage() {
   usePageTitle('Documents');
   const f = useListParams();
+  const { can } = useAuth();
+  const manage = can('document.manage');
+  const canAdd = manage || can('document.propose');
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const [text, setText] = useState(f.get('q'));
   const query = { q: f.get('q') || undefined, category: f.get('category') || undefined, page: f.page, limit: 10 };
   const list = useQuery({ queryKey: ['documents', query], queryFn: () => api<Paginated<LibraryDocument>>('/documents', { query }), placeholderData: (p) => p });
@@ -24,10 +33,15 @@ export function DocumentsPage() {
 
   return (
     <>
-      <header className="page-head">
-        <h1>Documents</h1>
-        <p>Guides, formulaires et comptes rendus mis à disposition par la CAPH-CI.</p>
+      <header className="page-head page-head--actions">
+        <div>
+          <h1>Documents</h1>
+          <p>Guides, formulaires et comptes rendus mis à disposition par la CAPH-CI.</p>
+        </div>
+        {canAdd && <div className="page-head__actions"><Button onClick={() => setAdding(true)}>+ Ajouter un document</Button></div>}
       </header>
+      <Flash notice={notice} />
+      {adding && <AddDocumentModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
       <div className="stack">
         <form className="panel" role="search" aria-label="Rechercher un document" onSubmit={submit}>
           <div className="filters">
@@ -59,6 +73,7 @@ export function DocumentsPage() {
                     Publié le {formatDate(d.publishedAt)} — {d.file.originalName} ({formatSize(d.file.sizeBytes)})
                   </p>
                   {d.description && <p>{d.description}</p>}
+                  <ReviewInfo item={d} />
                   <DownloadButton path={`/documents/${d.id}/file`} name={d.file.originalName} label={`Télécharger « ${d.title} »`} />
                 </article>
               </li>

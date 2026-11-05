@@ -41,6 +41,14 @@ export function TeamPage() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
   const firstName = useRef<HTMLInputElement>(null);
+  const inviteForm = useRef<HTMLFormElement>(null);
+
+  /** Fait défiler en douceur jusqu'au formulaire (sans animation si l'utilisateur l'a demandé) puis place le curseur dans le premier champ. */
+  function goToInvite() {
+    const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    inviteForm.current?.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
+    firstName.current?.focus({ preventScroll: true });
+  }
 
   const refresh = () => qc.invalidateQueries({ queryKey: key });
   const invite = useMutation({
@@ -85,9 +93,12 @@ export function TeamPage() {
 
   return (
     <div className="stack">
-      <div className="page-head">
-        <h1>Mon équipe</h1>
-        <p>{manage ? 'Les personnes de votre organisation qui utilisent cet espace. Vous pouvez en inviter d’autres.' : 'Les personnes de votre organisation qui utilisent cet espace.'}</p>
+      <div className="page-head page-head--actions">
+        <div>
+          <h1>Mon équipe</h1>
+          <p>{manage ? 'Les personnes de votre organisation qui utilisent cet espace. Vous pouvez en inviter d’autres.' : 'Les personnes de votre organisation qui utilisent cet espace.'}</p>
+        </div>
+        {manage && <div className="page-head__actions"><Button onClick={goToInvite}>Inviter un membre</Button></div>}
       </div>
 
       <Flash notice={notice} />
@@ -138,7 +149,7 @@ export function TeamPage() {
       </section>
 
       {manage && (
-        <form className="panel" onSubmit={submit} noValidate aria-labelledby="inviter">
+        <form ref={inviteForm} id="invitation" className="panel" onSubmit={submit} noValidate aria-labelledby="inviter" style={{ scrollMarginTop: 'var(--space-5)' }}>
           <h2 id="inviter" className="panel__title">Inviter une personne</h2>
           <p className="muted">Elle recevra un e-mail pour choisir son mot de passe. Votre organisation n’a qu’un seul Président.</p>
           <div className="form-grid">

@@ -14,7 +14,7 @@ import { hashToken, newToken } from './token.util';
 export interface RequestMeta { ip?: string; userAgent?: string }
 
 const DAY = 86_400_000;
-const MAX_FAILED_LOGINS = 5;
+const MAX_FAILED_LOGINS = 3;
 const LOCK_MS = 15 * 60_000;
 const SESSION_TTL_MS = 1 * DAY;       // sans « se souvenir de moi »
 const REMEMBER_TTL_MS = 30 * DAY;     // avec « se souvenir de moi »

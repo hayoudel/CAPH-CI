@@ -4,11 +4,13 @@ import { AuditService } from '../audit/audit.service';
 import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import { pageArgs, paginated } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { creationReview, decisionData, reviewScope } from '../common/utils/review';
 import { CreateEventDto, ListEventsQueryDto, UpdateEventDto } from './dto/events.dto';
 
 const NOT_FOUND = { code: 'EVENT_NOT_FOUND', message: 'Événement introuvable.' };
 const select = {
   id: true, type: true, title: true, description: true, startsAt: true, endsAt: true, mode: true, location: true, status: true, archivedAt: true,
+  reviewStatus: true, reviewNote: true, organization: { select: { id: true, name: true } },
   region: { select: { id: true, name: true } },
 } as const;
 
@@ -25,7 +27,7 @@ export class EventsService {
     const where: Prisma.EventWhereInput = {
       AND: [
         base, timeWhere,
-        q.type ? { type: q.type } : {}, q.status ? { status: q.status } : {}, q.regionId ? { regionId: q.regionId } : {},
+        q.type ? { type: q.type } : {}, q.status ? { status: q.status } : {}, q.review ? { reviewStatus: q.review } : {}, q.regionId ? { regionId: q.regionId } : {},
         q.to ? { startsAt: { lte: new Date(q.to.getTime() + 86_399_999) } } : {},
         q.q ? { OR: [{ title: { contains: q.q, mode: 'insensitive' } }, { location: { contains: q.q, mode: 'insensitive' } }] } : {},
       ],
@@ -37,17 +39,23 @@ export class EventsService {
     return paginated(rows, total, q);
   }
 
-  listForMembers(u: AuthenticatedUser, q: ListEventsQueryDto) {
-    return this.list(u.permissions.includes('event.manage') && q.includeArchived ? {} : { archivedAt: null }, q);
+  private manages = (u: AuthenticatedUser) => u.permissions.includes('event.manage');
+  private memberScope(u: AuthenticatedUser, withArchived = false): Prisma.EventWhereInput {
+    return { ...(this.manages(u) && withArchived ? {} : { archivedAt: null }), ...reviewScope(u, this.manages(u)) };
   }
-  listPublic(q: ListEventsQueryDto) { return this.list({ archivedAt: null, status: { not: 'CANCELLED' } }, { ...q, status: undefined }); }
+
+  listForMembers(u: AuthenticatedUser, q: ListEventsQueryDto) { return this.list(this.memberScope(u, q.includeArchived), q); }
+  /** Site public : uniquement les événements validés par le personnel. */
+  listPublic(q: ListEventsQueryDto) {
+    return this.list({ archivedAt: null, status: { not: 'CANCELLED' }, reviewStatus: 'APPROVED' }, { ...q, status: undefined, review: undefined });
+  }
 
   private async find(id: string, scope: Prisma.EventWhereInput = {}) {
     const e = await this.prisma.event.findFirst({ where: { id, ...scope }, select });
     if (!e) throw new NotFoundException(NOT_FOUND);
     return e;
   }
-  get(u: AuthenticatedUser, id: string) { return this.find(id, u.permissions.includes('event.manage') ? {} : { archivedAt: null }); }
+  get(u: AuthenticatedUser, id: string) { return this.find(id, this.memberScope(u, true)); }
 
   private check(startsAt: Date, endsAt?: Date | null) {
     if (endsAt && endsAt.getTime() < startsAt.getTime()) {
@@ -63,8 +71,8 @@ export class EventsService {
   async create(u: AuthenticatedUser, dto: CreateEventDto) {
     this.check(dto.startsAt, dto.endsAt);
     await this.checkRegion(dto.regionId);
-    const e = await this.prisma.event.create({ data: { ...dto, createdById: u.id }, select });
-    await this.audit.log({ action: 'event.created', actorId: u.id, actorLabel: u.email, entityType: 'Event', entityId: e.id });
+    const e = await this.prisma.event.create({ data: { ...dto, ...creationReview(u, this.manages(u)), createdById: u.id }, select });
+    await this.audit.log({ action: 'event.created', actorId: u.id, actorLabel: u.email, entityType: 'Event', entityId: e.id, metadata: { reviewStatus: e.reviewStatus } });
     return e;
   }
 
@@ -74,6 +82,14 @@ export class EventsService {
     await this.checkRegion(dto.regionId);
     const e = await this.prisma.event.update({ where: { id }, data: dto, select });
     await this.audit.log({ action: 'event.updated', actorId: u.id, actorLabel: u.email, entityType: 'Event', entityId: id });
+    return e;
+  }
+
+  /** Décision du personnel sur un événement proposé par une OPH. */
+  async review(u: AuthenticatedUser, id: string, status: 'APPROVED' | 'REJECTED', note?: string) {
+    await this.find(id);
+    const e = await this.prisma.event.update({ where: { id }, data: decisionData(u, status, note), select });
+    await this.audit.log({ action: status === 'APPROVED' ? 'event.approved' : 'event.rejected', actorId: u.id, actorLabel: u.email, entityType: 'Event', entityId: id });
     return e;
   }
 

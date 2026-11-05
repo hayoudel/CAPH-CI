@@ -49,20 +49,31 @@ export class DashboardService {
 
   private async staff(u: AuthenticatedUser) {
     const orgScope = u.isGlobalScope ? {} : { delegationId: { in: u.delegationIds } };
-    const [memberships, toReview, newsToReview, organizations, unread, events, opps] = await Promise.all([
+    const [memberships, toReview, newsToReview, organizations, unread, events, opps, contentsToReview] = await Promise.all([
       has(u, 'membership.read') ? this.memberships.stats(u) : null,
       has(u, 'report.review') ? Promise.all([this.reports.list(u, page(1, { status: 'RECEIVED' })), this.reports.list(u, page(1, { status: 'IN_PROCESS' }))]) : null,
-      has(u, 'news.review') ? this.prisma.newsProposal.count({ where: { status: 'SUBMITTED' } }) : null,
+      has(u, 'news.review') ? this.prisma.newsProposal.count({ where: { status: { in: ['SUBMITTED', 'IN_REVIEW'] } } }) : null,
       has(u, 'organization.read.all') ? this.prisma.organization.count({ where: { ...orgScope, archivedAt: null, status: 'ACTIVE' } }) : null,
       has(u, 'communication.read') ? this.comms.unreadCount(u) : null,
       has(u, 'event.read') ? this.events.listForMembers(u, page(5)) : null,
       has(u, 'opportunity.read') ? this.opps.listForMembers(u, page(5, { status: 'OPEN' })) : null,
+      this.pendingContents(u),
     ]);
     return {
       kind: 'STAFF' as const, roles: u.roleCodes,
       memberships, reports: toReview ? { received: toReview[0].meta.total, inProcess: toReview[1].meta.total } : null,
       newsToReview, activeOrganizations: organizations, unreadCommunications: unread?.unread ?? null,
-      upcomingEvents: events?.data ?? [], openOpportunities: opps?.data ?? [],
+      upcomingEvents: events?.data ?? [], openOpportunities: opps?.data ?? [], contentsToReview,
     };
+  }
+
+  /** Opportunités et événements proposés par des OPH, en attente de validation (selon les droits du personnel). */
+  private async pendingContents(u: AuthenticatedUser) {
+    const where = { reviewStatus: 'PENDING' as const, archivedAt: null };
+    const [opportunities, events] = await Promise.all([
+      has(u, 'opportunity.manage') ? this.prisma.opportunity.count({ where }) : 0,
+      has(u, 'event.manage') ? this.prisma.event.count({ where }) : 0,
+    ]);
+    return { opportunities, events, total: opportunities + events };
   }
 }

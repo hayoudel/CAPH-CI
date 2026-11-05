@@ -20,6 +20,7 @@ const fakeMail = { send: async (m: any) => { sent.push(m); return true; } };
 const stamp = Date.now();
 const T = `T${stamp}`; // marqueur de nettoyage
 const PDF = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n');
+const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64)]);
 const FAKE_PDF = Buffer.from('ceci est du texte, pas un PDF');
 const DAY = 86_400_000;
 const iso = (offsetDays: number) => new Date(Date.now() + offsetDays * DAY).toISOString();
@@ -92,11 +93,12 @@ describe('Contenus et espace membre (B5)', () => {
     await prisma.event.deleteMany({ where: { title: likeT } });
     await prisma.report.deleteMany({ where: { title: likeT } });
     await prisma.newsProposal.deleteMany({ where: { title: likeT } });
+    await prisma.project.deleteMany({ where: { title: likeT } });
     await prisma.fileAsset.deleteMany({ where: { originalName: { startsWith: T } } });
     await prisma.auditLog.deleteMany({
-      where: { createdAt: { gte: startedAt }, OR: [{ action: { startsWith: 'document.' } }, { action: { startsWith: 'opportunity.' } }, { action: { startsWith: 'communication.' } }, { action: { startsWith: 'event.' } }, { action: { startsWith: 'report.' } }, { action: { startsWith: 'news.' } }] },
+      where: { createdAt: { gte: startedAt }, OR: [{ action: { startsWith: 'document.' } }, { action: { startsWith: 'opportunity.' } }, { action: { startsWith: 'communication.' } }, { action: { startsWith: 'event.' } }, { action: { startsWith: 'report.' } }, { action: { startsWith: 'news.' } }, { action: { startsWith: 'project.' } }] },
     });
-    await prisma.organizationMember.deleteMany({ where: { organizationId: orgB.id } });
+    await prisma.organizationMember.deleteMany({ where: { OR: [{ organizationId: orgB.id }, { userId: { in: userIds } }] } });
     await prisma.userRole.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.refreshToken.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
@@ -114,7 +116,7 @@ describe('Contenus et espace membre (B5)', () => {
       expect(open.id).toBeTruthy();
       expect(restricted.accessLevel).toBe('CONTRIBUTORS');
       expect(restricted.isFeatured).toBe(true);
-      expect((await upload('/documents', AWA, { title: `Intrus ${T}`, category: 'GUIDE' }, PDF)).status).toBe(403);
+      expect((await upload('/documents', KOFFI, { title: `Intrus ${T}`, category: 'GUIDE' }, PDF)).status).toBe(403); // le Contributeur ne peut ni publier ni proposer
       expect((await http().get('/api/v1/documents')).status).toBe(401);
     });
     it('le fichier est vérifié d’après son contenu, pas son nom', async () => {
@@ -158,7 +160,7 @@ describe('Contenus et espace membre (B5)', () => {
     let pub: any; let priv: any; let ended: any;
     const body = (extra: object) => ({ type: 'CALL_FOR_PROJECTS', title: `Appel ${T}`, summary: 'Un appel à projets pour les associations.', ...extra });
     it('création réservée aux gestionnaires ; référence OP-AAAA-NN', async () => {
-      expect((await post('/opportunities', AWA, body({}))).status).toBe(403);
+      expect((await post('/opportunities', KOFFI, body({}))).status).toBe(403);
       pub = (await post('/opportunities', OPP, body({ title: `Publique ${T}`, visibility: 'PUBLIC', deadline: iso(30) }))).body;
       priv = (await post('/opportunities', OPP, body({ title: `Membres ${T}`, type: 'TRAINING' }))).body;
       ended = (await post('/opportunities', OPP, body({ title: `Dépassée ${T}`, deadline: iso(-3) }))).body;
@@ -267,7 +269,7 @@ describe('Contenus et espace membre (B5)', () => {
     let future: any; let past: any;
     const ev = (extra: object) => ({ type: 'MEETING', title: `Réunion ${T}`, startsAt: iso(10), ...extra });
     it('création contrôlée', async () => {
-      expect((await post('/events', AWA, ev({}))).status).toBe(403);
+      expect((await post('/events', KOFFI, ev({}))).status).toBe(403);
       expect((await post('/events', COMM, ev({ startsAt: iso(10), endsAt: iso(9) }))).status).toBe(422);
       expect((await post('/events', COMM, ev({ regionId: '00000000-0000-4000-8000-000000000000' }))).status).toBe(422);
       future = (await post('/events', COMM, ev({ title: `Assemblée ${T}`, type: 'GENERAL_ASSEMBLY', mode: 'HYBRID', location: 'Abidjan' }))).body;
@@ -321,7 +323,7 @@ describe('Contenus et espace membre (B5)', () => {
       for (let i = 0; i < 4; i++) expect((await upload(`/reports/${report.id}/attachments`, AWA, {}, PDF)).status).toBe(201);
       expect((await upload(`/reports/${report.id}/attachments`, AWA, {}, PDF)).status).toBe(422); // 6e refusée
       const orphans = () => prisma.fileAsset.count({
-        where: { reportAttachments: { none: {} }, newsAttachments: { none: {} }, membershipDocuments: { none: {} }, internalDocuments: { none: {} }, opportunities: { none: {} } },
+        where: { reportAttachments: { none: {} }, newsAttachments: { none: {} }, newsCovers: { none: {} }, projectCovers: { none: {} }, projectAttachments: { none: {} }, membershipDocuments: { none: {} }, internalDocuments: { none: {} }, opportunities: { none: {} } },
       });
       const before = await orphans();
       const after = await del(`/reports/${report.id}/attachments/${att.id}`, AWA);
@@ -399,6 +401,295 @@ describe('Contenus et espace membre (B5)', () => {
       expect(item.organization).toBe('Association Horizon Inclusif');
       expect(item.author).toBeUndefined(); // aucune donnée personnelle
       expect((await post(`/admin/news/${news.id}/review`, COMM, { status: 'REJECTED', note: 'Trop tard.' })).status).toBe(409);
+    });
+  });
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  describe('Actualités : brouillon, soumission en une étape, suivi', () => {
+    it('brouillon partiel → soumission → prise en charge → décision, avec historique et référence', async () => {
+      // brouillon : seul le titre est obligatoire ; le personnel ne le voit pas
+      const d = await post('/news', AWA, { title: `Brouillon ${T}`, submit: false });
+      expect(d.status).toBe(201);
+      expect(d.body.status).toBe('DRAFT');
+      expect(d.body.statusLabel).toBe('Brouillon');
+      expect(d.body.submittedAt).toBeNull();
+      expect(d.body.reference).toMatch(/^ACT-\d{4}-[0-9A-F]{6}$/);
+      expect((await get(`/admin/news/${d.body.id}`, COMM)).status).toBe(404);
+      expect((await get(`/admin/news?q=${encodeURIComponent(T)}`, COMM)).body.data.find((n: any) => n.id === d.body.id)).toBeUndefined();
+      expect((await get('/admin/news?status=DRAFT', COMM)).body.data).toHaveLength(0);
+
+      // soumission impossible tant que le contenu est incomplet
+      expect((await post(`/news/${d.body.id}/submit`, AWA)).status).toBe(422);
+      // complétion : résumé, contenu, date, couverture
+      const upd = await patch(`/news/${d.body.id}`, AWA, { summary: 'Résumé court de la journée.', description: 'Contenu complet de la journée de sensibilisation à l’inclusion.', newsDate: iso(5) });
+      expect(upd.status).toBe(200);
+      expect(upd.body.status).toBe('DRAFT'); // modifier un brouillon ne le soumet pas
+      expect((await upload(`/news/${d.body.id}/cover`, AWA, {}, PDF)).status).toBe(422); // image obligatoire
+      expect((await upload(`/news/${d.body.id}/cover`, FATOU, {}, PNG, 'c.png')).status).toBe(403);
+      const cov = await upload(`/news/${d.body.id}/cover`, AWA, {}, PNG, 'couverture.png');
+      expect(cov.status).toBe(201);
+      expect(cov.body.hasCover).toBe(true);
+      expect((await download(`/news/${d.body.id}/cover`, AWA)).headers['content-type']).toContain('image/png');
+
+      // soumission
+      const sub = await post(`/news/${d.body.id}/submit`, AWA);
+      expect(sub.status).toBe(200);
+      expect(sub.body.status).toBe('SUBMITTED');
+      expect(sub.body.submittedAt).not.toBeNull();
+      expect((await post(`/news/${d.body.id}/submit`, AWA)).status).toBe(409); // déjà soumise
+      expect((await del(`/news/${d.body.id}`, AWA)).status).toBe(409); // seul un brouillon se supprime
+
+      // le personnel la voit, la prend en charge, puis décide
+      expect((await get(`/admin/news/${d.body.id}`, COMM)).status).toBe(200);
+      expect((await download(`/admin/news/${d.body.id}/cover`, COMM)).status).toBe(200);
+      const rev = await post(`/admin/news/${d.body.id}/review`, COMM, { status: 'IN_REVIEW' });
+      expect(rev.body.status).toBe('IN_REVIEW');
+      expect(rev.body.statusLabel).toBe('En cours de validation');
+      expect((await patch(`/news/${d.body.id}`, AWA, { title: `Trop tard ${T}` })).status).toBe(409);
+      const ok = await post(`/admin/news/${d.body.id}/review`, COMM, { status: 'APPROVED', note: 'Merci, c’est validé.' });
+      expect(ok.body.statusLabel).toBe('Validée');
+      // pas encore publique
+      expect((await http().get(`/api/v1/public/news/${d.body.id}/cover`)).status).toBe(404);
+      await post(`/admin/news/${d.body.id}/review`, COMM, { status: 'PUBLISHED' });
+      const pubCover = await http().get(`/api/v1/public/news/${d.body.id}/cover`);
+      expect(pubCover.status).toBe(200);
+      const pub = (await http().get('/api/v1/public/news?limit=100')).body.data.find((n: any) => n.id === d.body.id);
+      expect(pub.summary).toBe('Résumé court de la journée.');
+      expect(pub.hasCover).toBe(true);
+
+      // l'organisation suit toutes les décisions
+      const mine = (await get(`/news/${d.body.id}`, AWA)).body;
+      expect(mine.history.map((h: any) => h.status)).toEqual(['DRAFT', 'SUBMITTED', 'IN_REVIEW', 'APPROVED', 'PUBLISHED']);
+      expect(mine.history[3].note).toContain('validé');
+      expect(JSON.stringify(mine.history)).not.toContain('actorId');
+    });
+
+    it('une autre organisation ne voit pas le brouillon ; un brouillon se supprime', async () => {
+      const d = (await post('/news', AWA, { title: `A supprimer ${T}`, submit: false })).body;
+      expect((await get(`/news/${d.id}`, KOFFI)).status).toBe(200); // même organisation
+      const list = await get(`/news?status=DRAFT&q=${encodeURIComponent(T)}`, AWA);
+      expect(list.body.data.map((n: any) => n.id)).toContain(d.id);
+      expect((await del(`/news/${d.id}`, AWA)).status).toBe(204);
+      expect((await get(`/news/${d.id}`, AWA)).status).toBe(404);
+    });
+
+    it('la soumission directe exige un contenu complet', async () => {
+      expect((await post('/news', AWA, { title: `Direct ${T}`, summary: 'x'.repeat(301), description: 'Une description assez longue.' })).status).toBe(422);
+      expect((await post('/news', AWA, { title: `Direct ${T}`, submit: true })).status).toBe(422);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  describe('Projets', () => {
+    const PRESB = `test-presb-${stamp}@test.example`;
+    const body = (extra: object = {}) => ({
+      title: `Projet atelier ${T}`, description: 'Ateliers de formation numérique pour les jeunes en situation de handicap.',
+      objectives: 'Former 60 jeunes.', zone: 'Abidjan, Yopougon', startDate: '2026-12-01', endDate: '2027-06-30', budgetXof: 3500000, ...extra,
+    });
+    let p: any;
+
+    it('seuls le Président et le Suppléant proposent ; tous les membres consultent', async () => {
+      expect((await post('/projects', KOFFI, body())).status).toBe(403); // Contributeur
+      expect((await post('/projects', FATOU, body())).status).toBe(403); // Consultant
+      expect((await post('/projects', COMM, body())).status).toBe(403); // personnel : pas une OPH
+      expect((await get('/projects', FATOU)).status).toBe(200);
+      expect((await get('/projects', COMM)).status).toBe(403);
+    });
+
+    it('brouillon partiel, puis complétude exigée à la soumission', async () => {
+      const d = await post('/projects', AWA, { title: `Brouillon projet ${T}`, submit: false });
+      expect(d.status).toBe(201);
+      expect(d.body.status).toBe('DRAFT');
+      expect(d.body.reference).toMatch(/^PRJ-\d{4}-[0-9A-F]{6}$/);
+      expect((await post(`/projects/${d.body.id}/submit`, AWA)).status).toBe(422);
+      expect((await post('/projects', AWA, body({ endDate: '2026-01-01' }))).status).toBe(422); // fin avant début
+      expect((await post('/projects', AWA, { title: `Direct ${T}` })).status).toBe(422); // soumission directe incomplète
+      // autre OPH : ne voit pas le brouillon
+      expect((await get(`/projects/${d.body.id}`, PRESB)).status).toBe(404);
+      expect((await get(`/projects/${d.body.id}`, FATOU)).status).toBe(200); // même organisation
+      expect((await del(`/projects/${d.body.id}`, AWA)).status).toBe(204);
+    });
+
+    it('soumission → validation par le personnel, jamais automatique', async () => {
+      p = (await post('/projects', AWA, body())).body;
+      expect(p.status).toBe('SUBMITTED');
+      expect(p.statusLabel).toBe('Soumis');
+      expect((await upload(`/projects/${p.id}/cover`, AWA, {}, PNG, 'c.png')).status).toBe(409); // soumis : plus modifiable
+      expect((await patch(`/projects/${p.id}`, AWA, { title: `Autre ${T}` })).status).toBe(409);
+      // invisible aux autres OPH tant qu'il n'est pas validé
+      expect((await get(`/projects/${p.id}`, PRESB)).status).toBe(404);
+      expect((await get(`/projects?filter=ALL&q=${encodeURIComponent(T)}`, PRESB)).body.data).toHaveLength(0);
+      // droits du personnel
+      expect((await get('/admin/projects', AWA)).status).toBe(403);
+      expect((await post(`/admin/projects/${p.id}/review`, AWA, { status: 'VALIDATED' })).status).toBe(403);
+      expect((await get(`/admin/projects?q=${encodeURIComponent(T)}`, COMM)).body.data.map((x: any) => x.id)).toContain(p.id);
+      expect((await post(`/admin/projects/${p.id}/review`, COMM, { status: 'ONGOING' })).status).toBe(409); // il faut valider d'abord
+      expect((await post(`/admin/projects/${p.id}/review`, COMM, { status: 'TO_COMPLETE' })).status).toBe(422); // motif obligatoire
+      expect((await post(`/admin/projects/${p.id}/review`, COMM, { status: 'IN_REVIEW' })).body.statusLabel).toBe('En cours de validation');
+      const tc = await post(`/admin/projects/${p.id}/review`, COMM, { status: 'TO_COMPLETE', note: 'Précisez le calendrier.' });
+      expect(tc.body.status).toBe('TO_COMPLETE');
+      // l'OPH voit la demande, corrige et resoumet
+      const mine = (await get(`/projects/${p.id}`, AWA)).body;
+      expect(mine.reviewerNote).toContain('calendrier');
+      expect(mine.canEdit).toBe(true);
+      expect((await patch(`/projects/${p.id}`, AWA, { partners: 'Mairie de Yopougon' })).body.status).toBe('TO_COMPLETE');
+      expect((await post(`/projects/${p.id}/submit`, AWA)).body.status).toBe('SUBMITTED');
+    });
+
+    it('validé → visible des autres OPH (sans données internes) ; en cours ; terminé', async () => {
+      expect((await post(`/admin/projects/${p.id}/review`, COMM, { status: 'VALIDATED', note: 'Projet validé.' })).body.status).toBe('VALIDATED');
+      const other = await get(`/projects/${p.id}`, PRESB);
+      expect(other.status).toBe(200);
+      expect(other.body.isMine).toBe(false);
+      expect(other.body.budgetXof).toBeNull(); // budget interne
+      expect(other.body.reviewerNote).toBeNull();
+      expect(other.body.history).toEqual([]);
+      expect(other.body.author).toBeNull();
+      // pas d'avancement tant que le personnel n'en renseigne pas
+      expect(other.body.progress).toBeNull();
+      expect((await post(`/admin/projects/${p.id}/progress`, COMM, { progress: 150 })).status).toBe(422);
+      await post(`/admin/projects/${p.id}/review`, COMM, { status: 'ONGOING' });
+      const prog = await post(`/admin/projects/${p.id}/progress`, COMM, { progress: 40, results: '24 jeunes formés.' });
+      expect(prog.body.progress).toBe(40);
+      const ongoing = (await get('/projects?filter=ONGOING&limit=100', PRESB)).body.data.find((x: any) => x.id === p.id);
+      expect(ongoing.results).toContain('24 jeunes');
+      expect((await get(`/projects?filter=PENDING&q=${encodeURIComponent(T)}`, AWA)).body.data).toHaveLength(0);
+      expect((await get(`/projects?filter=MINE&q=${encodeURIComponent(T)}`, AWA)).body.data).toHaveLength(1);
+      expect((await get(`/projects?filter=MINE&q=${encodeURIComponent(T)}`, PRESB)).body.data).toHaveLength(0);
+      const done = await post(`/admin/projects/${p.id}/review`, COMM, { status: 'COMPLETED', progress: 100 });
+      expect(done.body.statusLabel).toBe('Terminé');
+      expect((await get('/projects?filter=COMPLETED&limit=100', FATOU)).body.data.map((x: any) => x.id)).toContain(p.id);
+      expect((await post(`/admin/projects/${p.id}/review`, COMM, { status: 'REJECTED', note: 'non' })).status).toBe(409);
+    });
+
+    it('historique complet pour l’organisation ; filtre « en attente »', async () => {
+      const h = (await get(`/projects/${p.id}`, AWA)).body.history.map((x: any) => x.status);
+      expect(h).toEqual(['SUBMITTED', 'IN_REVIEW', 'TO_COMPLETE', 'SUBMITTED', 'VALIDATED', 'ONGOING', 'COMPLETED']);
+      const q2 = (await post('/projects', AWA, body({ title: `En attente ${T}` }))).body;
+      expect((await get(`/projects?filter=PENDING&q=${encodeURIComponent(T)}`, AWA)).body.data.map((x: any) => x.id)).toEqual([q2.id]);
+      expect((await get(`/projects?filter=PENDING&q=${encodeURIComponent(T)}`, PRESB)).body.data).toHaveLength(0);
+    });
+
+    it('refus : motif obligatoire, visible de l’organisation seulement ; couverture et documents', async () => {
+      const r = (await post('/projects', AWA, body({ title: `Refusé ${T}`, submit: false }))).body;
+      expect((await upload(`/projects/${r.id}/cover`, AWA, {}, PDF)).status).toBe(422);
+      expect((await upload(`/projects/${r.id}/cover`, AWA, {}, PNG, 'c.png')).body.hasCover).toBe(true);
+      expect((await upload(`/projects/${r.id}/attachments`, AWA, {}, PDF)).body.attachments).toHaveLength(1);
+      await post(`/projects/${r.id}/submit`, AWA);
+      expect((await post(`/admin/projects/${r.id}/review`, COMM, { status: 'REJECTED' })).status).toBe(422);
+      expect((await post(`/admin/projects/${r.id}/review`, COMM, { status: 'REJECTED', note: 'Hors périmètre.' })).body.status).toBe('REJECTED');
+      expect((await get(`/projects/${r.id}`, AWA)).body.reviewerNote).toContain('périmètre');
+      expect((await get(`/projects/${r.id}`, PRESB)).status).toBe(404);
+      expect((await download(`/projects/${r.id}/cover`, AWA)).status).toBe(200);
+      expect((await download(`/projects/${r.id}/cover`, PRESB)).status).toBe(404);
+      expect((await download(`/admin/projects/${r.id}/cover`, COMM)).status).toBe(200);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  describe('Contenus proposés par les OPH : validation par le personnel', () => {
+    const PRESB = `test-presb-${stamp}@test.example`;
+    const OPP = `test-opp-${stamp}@test.example`;
+    let doc: any; let opp: any; let ev: any; let rejected: any;
+    const q = () => encodeURIComponent(T);
+    const oppBody = (extra: object) => ({ type: 'CALL_FOR_PROJECTS', title: `Proposée ${T}`, summary: 'Une opportunité proposée par une OPH.', visibility: 'PUBLIC', deadline: iso(30), ...extra });
+
+    it('le Président et le Suppléant peuvent proposer ; Contributeur et Consultant non', async () => {
+      const deputy = await tempUser('deputy', { membership: { create: { organizationId: orgA.id, roleId: (await prisma.role.findUniqueOrThrow({ where: { code: 'OPH_DEPUTY' } })).id } } });
+      void deputy;
+      const DEP = `test-deputy-${stamp}@test.example`;
+      expect((await upload('/documents', DEP, { title: `Suppléant ${T}`, category: 'GUIDE' }, PDF)).status).toBe(201);
+      for (const who of [KOFFI, FATOU]) {
+        expect((await upload('/documents', who, { title: `Non ${T}`, category: 'GUIDE' }, PDF)).status).toBe(403);
+        expect((await post('/opportunities', who, oppBody({}))).status).toBe(403);
+        expect((await post('/events', who, { type: 'MEETING', title: `Non ${T}`, startsAt: iso(5) })).status).toBe(403);
+      }
+    });
+
+    it('l’envoi d’une OPH est « en attente » ; ses réglages réservés au personnel sont ignorés', async () => {
+      doc = (await upload('/documents', AWA, { title: `Doc OPH ${T}`, category: 'GUIDE', accessLevel: 'CONTRIBUTORS', isFeatured: 'true' }, PDF)).body;
+      opp = (await post('/opportunities', AWA, oppBody({}))).body;
+      ev = (await post('/events', AWA, { type: 'MEETING', title: `Évén OPH ${T}`, startsAt: iso(7) })).body;
+      for (const c of [opp, ev]) {
+        expect(c.reviewStatus).toBe('PENDING');
+        expect(c.organization.id).toBe(orgA.id);
+      }
+      // Le document est interne (jamais public) : publié tout de suite, sans validation.
+      expect(doc.reviewStatus).toBe('APPROVED');
+      expect(doc.organization.id).toBe(orgA.id);
+      expect(doc.accessLevel).toBe('MEMBERS');
+      expect(doc.isFeatured).toBe(false);
+    });
+
+    it('en attente : visible par son organisation et le personnel, invisible pour les autres et pour le public (le document interne est visible de tous les membres)', async () => {
+      for (const who of [AWA, FATOU, COMM]) {
+        expect((await get(`/documents?q=${q()}`, who)).body.data.map((d: any) => d.id)).toContain(doc.id);
+        expect((await get(`/events?q=${q()}`, who)).body.data.map((d: any) => d.id)).toContain(ev.id);
+      }
+      expect((await get(`/opportunities?q=${q()}`, OPP)).body.data.map((d: any) => d.id)).toContain(opp.id);
+      // autre OPH : rien, et 404 en accès direct
+      expect((await get(`/documents?q=${q()}`, PRESB)).body.data.map((d: any) => d.id)).toContain(doc.id);
+      expect((await get(`/events?q=${q()}`, PRESB)).body.data.map((d: any) => d.id)).not.toContain(ev.id);
+      expect((await get(`/opportunities/${opp.id}`, PRESB)).status).toBe(404);
+      expect((await get(`/events/${ev.id}`, PRESB)).status).toBe(404);
+      expect((await download(`/documents/${doc.id}/file`, PRESB)).status).toBe(200);
+      // public : rien
+      expect((await http().get(`/api/v1/public/opportunities?q=${q()}`)).body.data).toHaveLength(0);
+      expect((await http().get(`/api/v1/public/events?q=${q()}`)).body.data).toHaveLength(0);
+      expect((await http().get(`/api/v1/public/opportunities/${opp.id}`)).status).toBe(404);
+    });
+
+    it('le personnel voit la file « à valider » ; les compteurs du tableau de bord suivent (opportunités et événements)', async () => {
+      const pending = (await get('/events?review=PENDING', COMM)).body.data.map((e: any) => e.id);
+      expect(pending).toContain(ev.id);
+      const d = (await get('/dashboard', COMM)).body;
+      expect(d.contentsToReview.documents).toBeUndefined(); // les documents ne sont jamais validés
+      expect(d.contentsToReview.events).toBeGreaterThanOrEqual(1);
+      expect(d.contentsToReview.opportunities).toBe(0); // le responsable communication ne gère pas les opportunités
+    });
+
+    it('seul le personnel gestionnaire valide ou refuse ; le refus exige un motif', async () => {
+      for (const who of [AWA, KOFFI]) {
+        expect((await post(`/opportunities/${opp.id}/approve`, who)).status).toBe(403);
+        expect((await post(`/events/${ev.id}/reject`, who, { note: 'Non merci' })).status).toBe(403);
+      }
+      expect((await post(`/opportunities/${opp.id}/approve`, COMM)).status).toBe(403); // pas son domaine
+      expect((await post(`/events/${ev.id}/reject`, COMM, {})).status).toBe(422);
+      expect((await post(`/events/${ev.id}/reject`, COMM, { note: 'ok' })).status).toBe(422);
+    });
+
+    it('refus : l’OPH voit le motif, les autres ne voient toujours rien', async () => {
+      rejected = (await post(`/events/${ev.id}/reject`, COMM, { note: 'Date incompatible avec l’assemblée générale.' })).body;
+      expect(rejected.reviewStatus).toBe('REJECTED');
+      const mine = (await get(`/events/${ev.id}`, AWA)).body;
+      expect(mine.reviewStatus).toBe('REJECTED');
+      expect(mine.reviewNote).toContain('Date incompatible');
+      expect((await get(`/events/${ev.id}`, PRESB)).status).toBe(404);
+      expect((await http().get(`/api/v1/public/events?q=${q()}`)).body.data).toHaveLength(0);
+    });
+
+    it('validation : visible par toutes les OPH ; le site public seulement si « public »', async () => {
+      expect((await post(`/opportunities/${opp.id}/approve`, OPP)).body.reviewStatus).toBe('APPROVED');
+      expect((await post(`/events/${ev.id}/approve`, COMM)).body.reviewStatus).toBe('APPROVED'); // un refus peut être revu
+      expect((await get(`/documents?q=${q()}`, PRESB)).body.data.map((d: any) => d.id)).toContain(doc.id);
+      expect((await get(`/events/${ev.id}`, PRESB)).status).toBe(200);
+      expect((await get(`/opportunities/${opp.id}`, PRESB)).status).toBe(200);
+      expect((await http().get(`/api/v1/public/opportunities?q=${q()}`)).body.data.map((o: any) => o.id)).toContain(opp.id);
+      expect((await http().get(`/api/v1/public/events?q=${q()}`)).body.data.map((e: any) => e.id)).toContain(ev.id);
+      expect((await get(`/events/${ev.id}`, AWA)).body.reviewNote).toBeNull(); // le motif de refus est effacé
+    });
+
+    it('le personnel publie directement, sans validation', async () => {
+      const own = (await post('/events', COMM, { type: 'MEETING', title: `Direct ${T}`, startsAt: iso(8) })).body;
+      expect(own.reviewStatus).toBe('APPROVED');
+      expect(own.organization).toBeNull();
+    });
+
+    it('les décisions sont tracées dans le journal d’audit', async () => {
+      const logs = (await get('/admin/audit?limit=100', ADMIN)).body;
+      const actions = (logs.data ?? []).map((l: any) => l.action);
+      expect(actions).toEqual(expect.arrayContaining(['event.rejected', 'opportunity.approved']));
     });
   });
 

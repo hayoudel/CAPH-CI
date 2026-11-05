@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as Auth from '../auth/AuthContext';
 import { formatSize } from '../lib/format';
 import { AgendaPage } from '../pages/content/AgendaPage';
 import { CommunicationsPage } from '../pages/content/CommunicationsPage';
@@ -16,6 +17,7 @@ const wrap = (ui: React.ReactNode) => (
   </QueryClientProvider>
 );
 afterEach(() => vi.restoreAllMocks());
+beforeEach(() => { vi.spyOn(Auth, 'useAuth').mockReturnValue({ can: () => false } as unknown as ReturnType<typeof Auth.useAuth>); });
 
 describe('formatSize', () => {
   it('écrit les tailles en français', () => {

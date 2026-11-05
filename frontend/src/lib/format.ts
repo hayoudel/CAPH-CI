@@ -20,8 +20,12 @@ export const REPORT_STATUSES: Record<string, string> = {
   RECEIVED: 'Reçus', IN_PROCESS: 'En traitement', PROCESSED: 'Traités', CORRECTION_REQUESTED: 'À corriger',
 };
 export const NEWS_STATUSES: Record<string, string> = {
-  SUBMITTED: 'Soumises', CORRECTION: 'À corriger', APPROVED: 'Approuvées', REJECTED: 'Refusées', PUBLISHED: 'Publiées',
+  DRAFT: 'Brouillons', SUBMITTED: 'Soumises', IN_REVIEW: 'En cours de validation', CORRECTION: 'À corriger', APPROVED: 'Validées', REJECTED: 'Refusées', PUBLISHED: 'Publiées',
 };
+/** Couleur du badge d'un statut de validation (actualités, projets) : vert = bonne nouvelle, orange = action ou refus, gris = en attente. */
+export const decisionBadge = (s: string) =>
+  ['PUBLISHED', 'APPROVED', 'VALIDATED', 'ONGOING', 'COMPLETED'].includes(s) ? 'badge badge--green'
+  : ['CORRECTION', 'REJECTED', 'TO_COMPLETE'].includes(s) ? 'badge badge--orange' : 'badge badge--grey';
 export const DOCUMENT_CATEGORIES: Record<string, string> = {
   GUIDE: 'Guide', FORM: 'Formulaire', MEETING_MINUTES: 'Compte rendu', REFERENCE: 'Référence', OTHER: 'Autre',
 };
@@ -34,3 +38,8 @@ export const EVENT_STATUSES: Record<string, string> = {
 export const OPPORTUNITY_STATUSES: Record<string, string> = { OPEN: 'Ouverte', CLOSED: 'Fermée', ENDED: 'Terminée' };
 
 export const REPORT_TYPE_LABELS: Record<string, string> = { ACTIVITY: 'Rapport d’activité', FINANCIAL: 'Rapport financier', OTHER: 'Autre rapport' };
+
+export const PROJECT_FILTERS: Record<string, string> = {
+  ALL: 'Tous les projets', ONGOING: 'Projets en cours', COMPLETED: 'Projets terminés', PENDING: 'En attente de validation', MINE: 'Mes projets',
+};
+export const formatXof = (n: number) => `${new Intl.NumberFormat('fr-FR').format(n)} F CFA`;

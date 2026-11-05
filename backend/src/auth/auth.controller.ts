@@ -32,7 +32,7 @@ export class AuthController {
 
   @Public() @Throttle(TEN_PER_15_MIN) @HttpCode(HttpStatus.OK)
   @Post('login')
-  @ApiOperation({ summary: 'Connexion', description: 'Renvoie un jeton d’accès (15 min) et pose le cookie de rafraîchissement. 5 échecs = verrouillage 15 min.' })
+  @ApiOperation({ summary: 'Connexion', description: 'Renvoie un jeton d’accès (15 min) et pose le cookie de rafraîchissement. 3 échecs = verrouillage 15 min.' })
   async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.respond(res, await this.auth.login(dto.email, dto.password, !!dto.rememberMe, metaOf(req)));
   }
