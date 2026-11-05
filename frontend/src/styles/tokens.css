@@ -29,9 +29,9 @@
   --font-body: 'Atkinson Hyperlegible', Arial, sans-serif;
   --font-ui: Arial, Helvetica, sans-serif;   /* menus et boutons : Arial Bold */
 
-  --text-base: 1.0625rem;   /* 17 px */
-  --text-small: 0.9375rem;  /* 15 px : légendes */
-  --text-ui: 1rem;          /* 16 px : menus et boutons */
+  --text-base: 1rem;        /* 16 px */
+  --text-small: 0.875rem;   /* 14 px : légendes */
+  --text-ui: 0.9375rem;     /* 15 px : menus et boutons */
   --h1: clamp(1.75rem, 1.3rem + 1.6vw, 2.375rem); /* 28 → 38 px */
   --h2: clamp(1.3125rem, 1.1rem + 0.8vw, 1.75rem); /* 21 → 28 px */
   --h3: 1.1875rem;                             /* 19 px */

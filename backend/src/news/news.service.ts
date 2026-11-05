@@ -39,7 +39,7 @@ export class NewsService {
   private view(n: Row) {
     return {
       id: n.id, reference: reference(n), organization: n.organization, category: n.category, title: n.title, summary: n.summary, description: n.description,
-      newsDate: n.newsDate, hasCover: !!n.coverFileId,
+      newsDate: n.newsDate, hasCover: !!n.coverFileId, isDemo: n.isDemo,
       status: n.status, statusLabel: LABELS[n.status], reviewerNote: n.reviewerNote, createdAt: n.createdAt, submittedAt: n.submittedAt, reviewedAt: n.reviewedAt, updatedAt: n.updatedAt,
       history: n.history.map((h) => ({ id: h.id, status: h.toStatus, statusLabel: LABELS[h.toStatus], note: h.note, date: h.createdAt })),
       author: `${n.author.firstName} ${n.author.lastName}`, canEdit: EDITABLE.includes(n.status),
@@ -269,14 +269,17 @@ export class NewsService {
   // ───────────── Site public ─────────────
 
   async listPublic(q: ListNewsQueryDto) {
-    const where: Prisma.NewsProposalWhereInput = { status: 'PUBLISHED' };
+    const where: Prisma.NewsProposalWhereInput = {
+      status: 'PUBLISHED',
+      ...(q.q ? { OR: [{ title: { contains: q.q, mode: 'insensitive' } }, { summary: { contains: q.q, mode: 'insensitive' } }] } : {}),
+    };
     const [total, rows] = await Promise.all([
       this.prisma.newsProposal.count({ where }),
       this.prisma.newsProposal.findMany({
         where, orderBy: { reviewedAt: 'desc' }, ...pageArgs(q),
-        select: { id: true, title: true, summary: true, description: true, newsDate: true, coverFileId: true, reviewedAt: true, category: { select: { code: true, label: true } }, organization: { select: { name: true } } },
+        select: { id: true, title: true, summary: true, description: true, newsDate: true, coverFileId: true, isDemo: true, reviewedAt: true, category: { select: { code: true, label: true } }, organization: { select: { name: true } } },
       }),
     ]);
-    return paginated(rows.map((r) => ({ id: r.id, title: r.title, summary: r.summary, description: r.description, newsDate: r.newsDate, hasCover: !!r.coverFileId, publishedAt: r.reviewedAt, category: r.category, organization: r.organization.name })), total, q);
+    return paginated(rows.map((r) => ({ id: r.id, title: r.title, summary: r.summary, description: r.description, newsDate: r.newsDate, hasCover: !!r.coverFileId, isDemo: r.isDemo, publishedAt: r.reviewedAt, category: r.category, organization: r.organization.name })), total, q);
   }
 }

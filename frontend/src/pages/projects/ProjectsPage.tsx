@@ -9,15 +9,14 @@ import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { Alert } from '../../ui/Alert';
 import { Attachments } from '../../ui/Attachments';
-import { AuthImage } from '../../ui/AuthImage';
 import { Button, LinkButton } from '../../ui/Button';
-import { CoverEditor } from '../../ui/CoverEditor';
 import { TextAreaField, TextField } from '../../ui/Field';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { History } from '../../ui/History';
 import { NewFilesPicker, noFiles, uploadNewFiles, type NewFiles } from '../../ui/NewFiles';
 import { Pager } from '../../ui/Pager';
 import { Spinner } from '../../ui/Spinner';
+import { DemoBadge } from '../../ui/DemoBadge';
 
 export interface ProjectValues {
   title: string; context: string; objectives: string; description: string; beneficiaries: string; zone: string;
@@ -102,7 +101,7 @@ function ProjectForm({ initial, creating, toComplete = false, busy, onSave, onCa
       <TextField label="Budget estimatif (F CFA)" inputMode="numeric" value={v.budget} error={errors.budget} onChange={(e) => set('budget', e.target.value)} hint="Facultatif. Un nombre entier, par exemple 3500000. Non visible par les autres organisations." />
       {area('partners', 'Partenaires éventuels', 3)}
       {area('expectedResults', 'Résultats attendus', 4)}
-      {creating && <NewFilesPicker files={files} onChange={setFiles} extraLabel="Documents complémentaires (facultatif)" />}
+      {creating && <NewFilesPicker files={files} onChange={setFiles} label="Documents complémentaires (facultatif)" />}
       <div className="form-actions">
         <Button variant="secondary" loading={busy === 'draft'} disabled={busy !== null} onClick={() => go('draft')}>{toComplete ? 'Enregistrer sans envoyer' : 'Enregistrer comme brouillon'}</Button>
         <Button type="submit" loading={busy === 'submit'} disabled={busy === 'draft'}>{toComplete ? 'Renvoyer à la validation' : 'Soumettre à la validation'}</Button>
@@ -120,23 +119,22 @@ function Period({ p }: { p: Project }) {
 function ProjectCard({ p, showProgress }: { p: Project; showProgress: boolean }) {
   return (
     <article className="panel project-card">
-      {p.hasCover ? <AuthImage path={`/projects/${p.id}/cover`} alt="" /> : <div className="cover cover--empty" aria-hidden="true" />}
       <h2 className="panel__title"><Link to={`/espace/projets/${p.id}`}>{p.title}</Link></h2>
-      <p className="item__meta" style={{ margin: 0 }}>{p.organization.name}{p.isMine && ' (votre organisation)'}</p>
+      <DemoBadge show={p.isDemo} />
+      <p className="project-card__meta">{p.organization.name}{p.isMine && ' (vous)'}</p>
       <p className="project-card__body">{p.description}</p>
-      <p className="item__meta" style={{ margin: 0 }}>
-        {p.zone && <>{p.zone}<br /></>}
-        <Period p={p} />
-      </p>
-      <p style={{ margin: 0 }}><span className={decisionBadge(p.status)}>{p.statusLabel}</span></p>
+      <p className="project-card__meta">{p.zone ? `${p.zone} · ` : ''}<Period p={p} /></p>
       {showProgress && p.progress !== null && (
         <div>
           <div className="progress" role="progressbar" aria-valuenow={p.progress} aria-valuemin={0} aria-valuemax={100} aria-label="Avancement"><span style={{ width: `${p.progress}%` }} /></div>
-          <p className="item__meta" style={{ margin: 0 }}>Avancement : {p.progress} % (renseigné par la CAPH-CI)</p>
+          <p className="project-card__meta">Avancement : {p.progress} % (renseigné par la CAPH-CI)</p>
         </div>
       )}
-      {showProgress && p.results && <p className="project-card__body"><strong>Réalisations :</strong> {p.results}</p>}
-      <LinkButton to={`/espace/projets/${p.id}`} variant="secondary">Voir le détail</LinkButton>
+      {showProgress && p.results && <p className="project-card__meta"><strong>Réalisations :</strong> {p.results}</p>}
+      <div className="project-card__foot">
+        <span className={decisionBadge(p.status)}>{p.statusLabel}</span>
+        <Link to={`/espace/projets/${p.id}`} className="btn btn--secondary btn--sm">Voir le détail</Link>
+      </div>
     </article>
   );
 }
@@ -283,6 +281,7 @@ export function ProjectDetailPage() {
     <div className="stack">
       <header className="page-head">
         <h1>{p.title}</h1>
+        <DemoBadge show={p.isDemo} />
         <p><span className={decisionBadge(p.status)}>{p.statusLabel}</span> <span className="item__meta">{p.organization.name}</span></p>
         <p className="item__meta">Référence {p.reference}{p.submittedAt && <> · Soumis le {formatDate(p.submittedAt)}</>}</p>
       </header>
@@ -302,7 +301,6 @@ export function ProjectDetailPage() {
         </section>
       ) : (
         <>
-          {!p.isMine && p.hasCover && <AuthImage key={p.updatedAt} path={`/projects/${p.id}/cover`} alt={`Image du projet « ${p.title} »`} className="cover--small" />}
           <section className="panel" aria-labelledby="info">
             <h2 id="info" className="panel__title">Présentation</h2>
             <dl className="facts">
@@ -334,7 +332,6 @@ export function ProjectDetailPage() {
           </section>
         </>
       )}
-      {p.isMine && <CoverEditor basePath={`/projects/${p.id}`} hasCover={p.hasCover} version={p.updatedAt} alt={`Image du projet « ${p.title} »`} queryKey={key} editable={mayEdit} />}
       {p.isMine && <Attachments basePath={`/projects/${p.id}`} queryKey={key} items={p.attachments} editable={mayEdit} />}
       {p.isMine && <History entries={p.history} />}
       <p><Link to="/espace/projets">Retour aux projets</Link></p>

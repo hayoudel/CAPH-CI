@@ -14,6 +14,7 @@ import { Checkbox, SelectField, TextAreaField, TextField } from '../../ui/Field'
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { Pager } from '../../ui/Pager';
 import { Spinner } from '../../ui/Spinner';
+import { DemoBadge } from '../../ui/DemoBadge';
 
 export const SUMMARY_MAX = 600;
 const STATUS_FILTERS: Record<string, string> = { RECEIVED: 'Reçus', IN_PROCESS: 'En traitement', PROCESSED: 'Traités', CORRECTION_REQUESTED: 'Correction demandée' };
@@ -98,12 +99,14 @@ export function ReportsPage() {
   const total = list.data?.meta.total ?? 0;
   return (
     <>
-      <header className="page-head">
-        <h1>Rapports</h1>
-        <p>Les rapports que votre organisation a transmis à la CAPH-CI et leur état de traitement.</p>
+      <header className="page-head page-head--actions">
+        <div>
+          <h1>Rapports</h1>
+          <p>Les rapports que votre organisation a transmis à la CAPH-CI et leur état de traitement.</p>
+        </div>
+        {can('report.create') && <div className="page-head__actions"><LinkButton to="/espace/rapports/nouveau">+ Transmettre un rapport</LinkButton></div>}
       </header>
       <div className="stack">
-        {can('report.create') && <div><LinkButton to="/espace/rapports/nouveau">Transmettre un rapport</LinkButton></div>}
         <div className="panel">
           <div className="filters">
             <SelectField label="État" value={f.get('status')} placeholder="Tous les états"
@@ -122,6 +125,7 @@ export function ReportsPage() {
               <li key={r.id}>
                 <article className="panel">
                   <h2 className="panel__title"><Link to={`/espace/rapports/${r.id}`}>{r.title}</Link></h2>
+                  <DemoBadge show={r.isDemo} />
                   <p className="item__meta">
                     <span className="badge badge--grey">{REPORT_TYPE_LABELS[r.type]}</span>{' '}
                     <span className={statusBadge(r.status)}>{r.statusLabel}</span>{' '}
@@ -200,6 +204,7 @@ export function ReportDetailPage() {
     <div className="stack">
       <header className="page-head">
         <h1>{r.title}</h1>
+        <DemoBadge show={r.isDemo} />
         <p><span className="badge badge--grey">{REPORT_TYPE_LABELS[r.type]}</span> <span className={statusBadge(r.status)}>{r.statusLabel}</span></p>
       </header>
       <Flash notice={notice} />

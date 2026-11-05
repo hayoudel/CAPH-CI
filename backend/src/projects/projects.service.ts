@@ -51,7 +51,7 @@ export class ProjectsService {
       context: p.context, expectedResults: p.expectedResults, partners: p.partners,
       budgetXof: full ? p.budgetXof : null, hasCover: !!p.coverFileId,
       status: p.status, statusLabel: LABELS[p.status], progress: p.progress, results: p.results,
-      isMine: mine, canEdit: mine && EDITABLE.includes(p.status),
+      isDemo: p.isDemo, isMine: mine, canEdit: mine && EDITABLE.includes(p.status),
       reviewerNote: full ? p.reviewerNote : null, createdAt: p.createdAt, submittedAt: full ? p.submittedAt : null, reviewedAt: full ? p.reviewedAt : null, updatedAt: p.updatedAt,
       history: full ? p.history.map((h) => ({ id: h.id, status: h.toStatus, statusLabel: LABELS[h.toStatus], note: h.note, date: h.createdAt })) : [],
       author: full ? `${p.author.firstName} ${p.author.lastName}` : null,

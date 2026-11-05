@@ -11,7 +11,7 @@ import { CreateOpportunityDto, ListOpportunitiesQueryDto, UpdateOpportunityDto }
 const NOT_FOUND = { code: 'OPPORTUNITY_NOT_FOUND', message: 'Opportunité introuvable.' };
 const select = {
   id: true, reference: true, title: true, summary: true, body: true, type: true, status: true, deadline: true, audience: true,
-  modality: true, visibility: true, archivedAt: true, reviewStatus: true, reviewNote: true, organization: { select: { id: true, name: true } }, createdAt: true, sheetFile: { select: { originalName: true, mimeType: true, sizeBytes: true } },
+  modality: true, visibility: true, archivedAt: true, reviewStatus: true, reviewNote: true, isDemo: true, organization: { select: { id: true, name: true } }, createdAt: true, sheetFile: { select: { originalName: true, mimeType: true, sizeBytes: true } },
 } as const;
 
 type Row = Prisma.OpportunityGetPayload<{ select: typeof select }>;

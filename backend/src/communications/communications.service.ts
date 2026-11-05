@@ -36,7 +36,7 @@ export class CommunicationsService {
   private item(c: Prisma.CommunicationGetPayload<{ include: { reads: true; delegations: { select: { id: true; name: true } }; organizations: { select: { id: true; name: true } } } }>, u: AuthenticatedUser, full: boolean) {
     const manage = this.manages(u);
     return {
-      id: c.id, kind: c.kind, category: c.category, title: c.title,
+      id: c.id, isDemo: c.isDemo, kind: c.kind, category: c.category, title: c.title,
       ...(full ? { body: c.body } : { excerpt: c.body.length > 200 ? `${c.body.slice(0, 200)}…` : c.body }),
       senderLabel: c.senderLabel, publishedAt: c.publishedAt, archivedAt: manage ? c.archivedAt : undefined,
       isRead: c.reads.some((r) => r.userId === u.id),

@@ -17,6 +17,7 @@ import { DownloadButton } from '../../ui/DownloadButton';
 import { SelectField, TextField } from '../../ui/Field';
 import { Pager } from '../../ui/Pager';
 import { Spinner } from '../../ui/Spinner';
+import { DemoBadge } from '../../ui/DemoBadge';
 
 const statusBadge = (s: string) => (s === 'OPEN' ? 'badge badge--green' : 'badge badge--grey');
 
@@ -78,6 +79,7 @@ export function OpportunitiesPage() {
               <li key={o.id}>
                 <article className="panel">
                   <h2 className="panel__title"><Link to={`${base}/opportunites/${o.id}`}>{o.title}</Link></h2>
+                  <DemoBadge show={o.isDemo} />
                   <p className="item__meta">
                     <span className="badge badge--grey">{OPPORTUNITY_TYPES[o.type] ?? o.type}</span>{' '}
                     <span className={statusBadge(o.effectiveStatus)}>{OPPORTUNITY_STATUSES[o.effectiveStatus]}</span>{' '}
@@ -117,6 +119,7 @@ export function OpportunityDetailPage() {
     <div className="stack">
       <header className="page-head">
         <h1>{o.title}</h1>
+        <DemoBadge show={o.isDemo} />
         <p>
           <span className="badge badge--grey">{OPPORTUNITY_TYPES[o.type] ?? o.type}</span>{' '}
           <span className={statusBadge(o.effectiveStatus)}>{OPPORTUNITY_STATUSES[o.effectiveStatus]}</span>

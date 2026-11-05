@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as Auth from '../auth/AuthContext';
-import { checkCover, validateNews } from '../pages/content/NewsPage';
+import { validateNews } from '../pages/content/NewsPage';
 import { emptyReport, ReportsPage, validateReport } from '../pages/content/ReportsPage';
 import { checkFile } from '../ui/Attachments';
 
@@ -45,10 +45,6 @@ describe('actualité : validation', () => {
     expect(Object.keys(validateNews({ ...base, title: 'abc' }, false))).toEqual(['title']);
     expect(validateNews({ ...base, title: 'Journée portes ouvertes', summary: 'x'.repeat(301) }, false).summary).toMatch(/300/);
   });
-  it('l’image de couverture doit être JPG ou PNG', () => {
-    expect(checkCover({ name: 'a.pdf', size: 10 })).toMatch(/JPG ou PNG/);
-    expect(checkCover({ name: 'a.jpg', size: 10 })).toBeNull();
-  });
 });
 
 describe('pièces jointes : contrôle du fichier', () => {
@@ -72,6 +68,6 @@ describe('liste des rapports', () => {
     render(wrap(<ReportsPage />));
     expect(await screen.findByText('Rapport T1')).toBeInTheDocument();
     expect(screen.getByText(/vous demande de corriger/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Transmettre un rapport' })).toHaveAttribute('href', '/espace/rapports/nouveau');
+    expect(screen.getByRole('link', { name: '+ Transmettre un rapport' })).toHaveAttribute('href', '/espace/rapports/nouveau');
   });
 });

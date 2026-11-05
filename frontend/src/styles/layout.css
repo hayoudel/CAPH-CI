@@ -50,7 +50,7 @@
 .shell__top { grid-area: top; display: none; align-items: center; justify-content: space-between; background: var(--green-deep); color: #fff; padding: var(--space-2) var(--space-4); position: sticky; top: 0; z-index: 20; }
 .shell__top img { height: 2.75rem; }
 .shell__main { grid-area: main; background: var(--paper); min-width: 0; }
-.shell__content { max-width: 70rem; padding: var(--space-6) var(--space-6) var(--space-8); }
+.shell__content { max-width: none; width: 100%; padding: var(--space-6) var(--space-6) var(--space-8); }
 .page-head { margin-bottom: var(--space-6); }
 .page-head p { color: var(--ink-2); margin: 0; }
 .grid-2 { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); align-items: stretch; }

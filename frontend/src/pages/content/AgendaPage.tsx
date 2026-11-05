@@ -14,6 +14,7 @@ import { AddEventModal } from './AddModals';
 import { SelectField } from '../../ui/Field';
 import { Pager } from '../../ui/Pager';
 import { Spinner } from '../../ui/Spinner';
+import { DemoBadge } from '../../ui/DemoBadge';
 
 const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
@@ -75,6 +76,7 @@ export function AgendaPage() {
               <li key={e.id}>
                 <article className="panel">
                   <h2 className="panel__title">{e.title}</h2>
+                  <DemoBadge show={e.isDemo} />
                   <p className="item__meta">
                     <span className="badge badge--grey">{EVENT_TYPES[e.type] ?? e.type}</span>{' '}
                     <span className={e.status === 'CANCELLED' ? 'badge badge--orange' : 'badge badge--green'}>{EVENT_STATUSES[e.status] ?? e.status}</span>

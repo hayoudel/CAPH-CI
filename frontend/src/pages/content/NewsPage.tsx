@@ -8,8 +8,6 @@ import { decisionBadge, formatDate, NEWS_STATUSES } from '../../lib/format';
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { Alert } from '../../ui/Alert';
-import { AuthImage } from '../../ui/AuthImage';
-import { CoverEditor, checkCover } from '../../ui/CoverEditor';
 import { NewFilesPicker, noFiles, uploadNewFiles, type NewFiles } from '../../ui/NewFiles';
 import { Attachments } from '../../ui/Attachments';
 import { Button, LinkButton } from '../../ui/Button';
@@ -18,6 +16,7 @@ import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { History } from '../../ui/History';
 import { Pager } from '../../ui/Pager';
 import { Spinner } from '../../ui/Spinner';
+import { DemoBadge } from '../../ui/DemoBadge';
 
 export const DESCRIPTION_MAX = 5000;
 export const SUMMARY_MAX = 300;
@@ -39,8 +38,6 @@ export function validateNews(v: NewsValues, submitting = true): Record<string, s
   else if (submitting && d < 20) e.description = 'Le contenu doit contenir au moins 20 caractères.';
   return e;
 }
-
-export { checkCover };
 
 export type Intent = 'draft' | 'submit';
 type Mode = 'new' | 'draft' | 'submitted' | 'correction';
@@ -133,8 +130,8 @@ export function NewsListPage() {
             {list.data.data.map((n) => (
               <li key={n.id}>
                 <article className="panel">
-                  {n.hasCover && <AuthImage className="cover--small" path={`/news/${n.id}/cover`} alt="" />}
                   <h2 className="panel__title"><Link to={`/espace/actualites/${n.id}`}>{n.title}</Link></h2>
+                  <DemoBadge show={n.isDemo} />
                   <p className="item__meta">
                     <span className={decisionBadge(n.status)}>{n.statusLabel}</span>{' '}
                     {n.category && <><span className="badge badge--grey">{n.category.label}</span>{' '}</>}
@@ -249,6 +246,7 @@ export function NewsDetailPage() {
     <div className="stack">
       <header className="page-head">
         <h1>{n.title}</h1>
+        <DemoBadge show={n.isDemo} />
         <p><span className={decisionBadge(n.status)}>{n.statusLabel}</span>{n.category && <> <span className="badge badge--grey">{n.category.label}</span></>}</p>
         <p className="item__meta">Référence {n.reference}{n.submittedAt && <> · Soumise le {formatDate(n.submittedAt)}</>} · {n.organization.name}</p>
       </header>
@@ -296,7 +294,6 @@ export function NewsDetailPage() {
           )}
         </section>
       )}
-      <CoverEditor basePath={`/news/${n.id}`} hasCover={n.hasCover} version={n.updatedAt} alt={`Image de couverture de « ${n.title} »`} queryKey={key} editable={mayEdit} />
       <Attachments basePath={`/news/${n.id}`} queryKey={key} items={n.attachments} editable={mayEdit} />
       <History entries={n.history} />
       <p><Link to="/espace/actualites">Retour à mes actualités</Link></p>

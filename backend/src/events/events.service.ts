@@ -10,7 +10,7 @@ import { CreateEventDto, ListEventsQueryDto, UpdateEventDto } from './dto/events
 const NOT_FOUND = { code: 'EVENT_NOT_FOUND', message: 'Événement introuvable.' };
 const select = {
   id: true, type: true, title: true, description: true, startsAt: true, endsAt: true, mode: true, location: true, status: true, archivedAt: true,
-  reviewStatus: true, reviewNote: true, organization: { select: { id: true, name: true } },
+  reviewStatus: true, reviewNote: true, isDemo: true, organization: { select: { id: true, name: true } },
   region: { select: { id: true, name: true } },
 } as const;
 

@@ -10,6 +10,7 @@ import { Alert } from '../../ui/Alert';
 import { SelectField } from '../../ui/Field';
 import { Pager } from '../../ui/Pager';
 import { Spinner } from '../../ui/Spinner';
+import { DemoBadge } from '../../ui/DemoBadge';
 
 export function CommunicationsPage() {
   usePageTitle('Communications');
@@ -51,6 +52,7 @@ export function CommunicationsPage() {
                     <Link to={`/espace/communications/${c.id}`}>{c.title}</Link>
                     {!c.isRead && <> <span className="badge badge--orange">Non lue</span></>}
                   </h2>
+                  <DemoBadge show={c.isDemo} />
                   <p className="item__meta">{formatDateTime(c.publishedAt)} — {c.senderLabel}{c.category ? ` — ${c.category}` : ''}</p>
                   {c.excerpt && <p style={{ margin: 0 }}>{c.excerpt}</p>}
                 </article>
@@ -92,6 +94,7 @@ export function CommunicationDetailPage() {
     <div className="stack">
       <header className="page-head">
         <h1>{c.title}</h1>
+        <DemoBadge show={c.isDemo} />
         <p>{formatDateTime(c.publishedAt)} — {c.senderLabel}{c.category ? ` — ${c.category}` : ''}</p>
       </header>
       <article className="panel"><p className="prose">{c.body}</p></article>

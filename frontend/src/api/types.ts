@@ -18,8 +18,8 @@ export interface SessionResponse { accessToken: string; expiresIn: number; user:
 export interface Paginated<T> { data: T[]; meta: { page: number; limit: number; total: number; totalPages: number } }
 
 export interface EventItem { id: string; title: string; type: string; mode: string; location: string | null; startsAt: string; endsAt: string | null; status: string }
-export interface OpportunityItem { id: string; reference: string; title: string; type: string; deadline: string | null; effectiveStatus: string }
-export interface CommunicationItem { id: string; title: string; excerpt?: string; category: string | null; publishedAt: string; isRead: boolean }
+export interface OpportunityItem { id: string; isDemo?: boolean; reference: string; title: string; type: string; deadline: string | null; effectiveStatus: string }
+export interface CommunicationItem { id: string; isDemo?: boolean; title: string; excerpt?: string; category: string | null; publishedAt: string; isRead: boolean }
 export interface DocumentItem { id: string; title: string; category: string; isFeatured: boolean; publishedAt: string }
 
 export interface MemberDashboard {
@@ -33,6 +33,16 @@ export interface MemberDashboard {
   latestDocuments: DocumentItem[];
   reports: Record<string, number> | null;
   newsProposals: Record<string, number> | null;
+  hasDemoData: boolean;
+  myProjects: {
+    ongoing: { id: string; title: string; progress: number | null; startDate: string | null; endDate: string | null; isDemo: boolean }[];
+    pending: { id: string; title: string; status: string; statusLabel: string; isDemo: boolean }[];
+    counts: Record<string, number>;
+  } | null;
+  myNews: { id: string; title: string; status: string; statusLabel: string; date: string; isDemo: boolean }[] | null;
+  myReports: { id: string; title: string; status: string; statusLabel: string; date: string; isDemo: boolean }[] | null;
+  upcomingDeadlines: { kind: 'opportunity' | 'project'; id: string; title: string; date: string; link: string }[];
+  notifications: { kind: 'news' | 'project' | 'report'; id: string; title: string; status: string; statusLabel: string; note: string | null; date: string; needsAction: boolean; link: string }[];
 }
 
 export interface StaffDashboard {
@@ -131,7 +141,7 @@ export interface TrackResult {
 // ── Lot F5a : contenus en lecture (documents, opportunités, communications, agenda) ──
 export interface FileInfo { originalName: string; mimeType: string; sizeBytes: number }
 /** Validation par le personnel CAPH-CI des contenus proposés par une OPH. */
-export interface ReviewFields { reviewStatus: 'PENDING' | 'APPROVED' | 'REJECTED'; reviewNote: string | null; organization: { id: string; name: string } | null }
+export interface ReviewFields { isDemo?: boolean; reviewStatus: 'PENDING' | 'APPROVED' | 'REJECTED'; reviewNote: string | null; organization: { id: string; name: string } | null }
 export interface LibraryDocument extends ReviewFields {
   id: string; title: string; description: string | null; category: string; accessLevel: string;
   isFeatured: boolean; publishedAt: string; file: FileInfo;
@@ -142,7 +152,7 @@ export interface Opportunity extends ReviewFields {
   modality: string | null; hasSheet: boolean; sheet: FileInfo | null; createdAt: string;
 }
 export interface Communication {
-  id: string; kind: 'INTERNAL' | 'EXTERNAL'; category: string | null; title: string; excerpt?: string; body?: string;
+  id: string; isDemo?: boolean; kind: 'INTERNAL' | 'EXTERNAL'; category: string | null; title: string; excerpt?: string; body?: string;
   senderLabel: string; publishedAt: string; isRead: boolean;
 }
 export interface AgendaEvent extends ReviewFields {
@@ -153,21 +163,21 @@ export interface AgendaEvent extends ReviewFields {
 // ── Lot F5b : rapports et propositions d'actualités ──
 export interface Attachment { id: string; originalName: string; mimeType: string; sizeBytes: number }
 export interface Report {
-  id: string; organization: { id: string; name: string }; type: 'ACTIVITY' | 'FINANCIAL' | 'OTHER'; title: string; summary: string;
+  id: string; isDemo?: boolean; organization: { id: string; name: string }; type: 'ACTIVITY' | 'FINANCIAL' | 'OTHER'; title: string; summary: string;
   periodStart: string | null; periodEnd: string | null; status: string; statusLabel: string; reviewerNote: string | null;
   submittedAt: string; processedAt: string | null; author: string; canEdit: boolean; attachments: Attachment[];
 }
 export interface NewsCategory { id: string; code: string; label: string }
 export interface StatusHistoryEntry { id: string; status: string; statusLabel: string; note: string | null; date: string }
 export interface NewsProposal {
-  id: string; reference: string; organization: { id: string; name: string }; category: NewsCategory | null; title: string; summary: string | null; description: string;
+  id: string; isDemo?: boolean; reference: string; organization: { id: string; name: string }; category: NewsCategory | null; title: string; summary: string | null; description: string;
   newsDate: string | null; hasCover: boolean; status: string; statusLabel: string; reviewerNote: string | null;
   createdAt: string; submittedAt: string | null; reviewedAt: string | null; updatedAt: string;
   history: StatusHistoryEntry[]; author: string; canEdit: boolean; attachments: Attachment[];
 }
 
 export interface Project {
-  id: string; reference: string; organization: { id: string; name: string }; title: string; description: string;
+  id: string; isDemo?: boolean; reference: string; organization: { id: string; name: string }; title: string; description: string;
   zone: string | null; startDate: string | null; endDate: string | null; objectives: string | null; beneficiaries: string | null;
   context: string | null; expectedResults: string | null; partners: string | null; budgetXof: number | null; hasCover: boolean;
   status: string; statusLabel: string; progress: number | null; results: string | null; isMine: boolean; canEdit: boolean;

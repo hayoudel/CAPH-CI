@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import type { Dashboard, EventItem, MemberDashboard, OpportunityItem, StaffDashboard } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
-import { EVENT_MODES, EVENT_TYPES, NEWS_STATUSES, OPPORTUNITY_TYPES, REPORT_STATUSES, formatDate, formatDay } from '../lib/format';
+import { EVENT_MODES, EVENT_TYPES, OPPORTUNITY_TYPES, formatDate, formatDay } from '../lib/format';
 import { usePageTitle } from '../lib/usePageTitle';
 import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
@@ -84,8 +84,14 @@ function State({ query }: { query: ReturnType<typeof useDashboard> }) {
 
 // ─────────────────────────────── Organisation ───────────────────────────────
 
+const KIND_LABELS = { news: 'Actualité', project: 'Projet', report: 'Rapport' } as const;
+const statusBadge = (s: string) =>
+  ['PUBLISHED', 'APPROVED', 'VALIDATED', 'ONGOING', 'COMPLETED', 'PROCESSED'].includes(s) ? 'badge badge--green'
+  : ['CORRECTION', 'REJECTED', 'TO_COMPLETE', 'CORRECTION_REQUESTED'].includes(s) ? 'badge badge--orange' : 'badge badge--grey';
+
 function MemberView({ d, firstName }: { d: MemberDashboard; firstName: string }) {
   const unread = d.unreadCommunications;
+  const todo = d.notifications.filter((n) => n.needsAction);
   return (
     <>
       <header className="page-head">
@@ -99,33 +105,89 @@ function MemberView({ d, firstName }: { d: MemberDashboard; firstName: string })
       </header>
 
       <div className="stack">
-        {unread > 0 && (
-          <Alert kind="info" title={unread === 1 ? 'Vous avez 1 communication non lue' : `Vous avez ${unread} communications non lues`}>
-            <Link to="/espace/communications">Lire les communications</Link>
+        {d.hasDemoData && <Alert kind="info" title="Données de démonstration">Cet espace contient des exemples fictifs, repérés par l’étiquette « Données de démonstration ». Ils ne représentent aucune activité réelle de la CAPH-CI.</Alert>}
+        {todo.length > 0 && (
+          <Alert kind="error" title={todo.length === 1 ? '1 élément demande votre action' : `${todo.length} éléments demandent votre action`}>
+            <ul className="plain-list">
+              {todo.slice(0, 2).map((n) => <li key={`${n.kind}-${n.id}`}><Link to={n.link}>{KIND_LABELS[n.kind]} : {n.title}</Link> — {n.statusLabel}{n.note ? ` (${n.note})` : ''}</li>)}
+            </ul>
           </Alert>
         )}
         <div className="grid-2">
-          <Panel title="Dernières communications" more={{ to: '/espace/communications', label: 'Toutes les communications' }}>
-            {d.latestCommunications.length === 0 ? <p className="empty">Aucune communication pour le moment.</p> : (
+          {d.myProjects && (
+            <Panel title="Mes projets en cours" more={{ to: '/espace/projets?filter=MINE', label: 'Voir mes projets' }}>
+              {d.myProjects.ongoing.length === 0 ? <p className="empty">Aucun projet en cours.</p> : (
+                <ul className="plain-list">
+                  {d.myProjects.ongoing.slice(0, 2).map((p) => (
+                    <li key={p.id}>
+                      <Link to={`/espace/projets/${p.id}`} className="item__title">{p.title}</Link>
+                      <span className="item__meta">
+                        {p.endDate ? `Fin prévue le ${formatDate(p.endDate)}` : 'Fin non précisée'} · {p.progress !== null ? `Avancement : ${p.progress} %` : 'Avancement non renseigné'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+          )}
+          {d.myProjects && (
+            <Panel title="Mes projets en attente de validation" more={{ to: '/espace/projets?filter=PENDING', label: 'Voir les projets en attente' }}>
+              {d.myProjects.pending.length === 0 ? <p className="empty">Aucun projet en attente de validation.</p> : (
+                <ul className="plain-list">
+                  {d.myProjects.pending.slice(0, 2).map((p) => (
+                    <li key={p.id}><Link to={`/espace/projets/${p.id}`} className="item__title">{p.title}</Link> <span className={statusBadge(p.status)}>{p.statusLabel}</span></li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+          )}
+          {d.myNews && (
+            <Panel title="Mes propositions d’actualités" more={{ to: '/espace/actualites', label: 'Voir mes propositions' }}>
+              {d.myNews.length === 0 ? <p className="empty">Vous n’avez pas encore proposé d’actualité.</p> : (
+                <ul className="plain-list">
+                  {d.myNews.slice(0, 2).map((n) => <li key={n.id}><Link to={`/espace/actualites/${n.id}`} className="item__title">{n.title}</Link> <span className={statusBadge(n.status)}>{n.statusLabel}</span></li>)}
+                </ul>
+              )}
+            </Panel>
+          )}
+          {d.myReports && (
+            <Panel title="Mes rapports soumis" more={{ to: '/espace/rapports', label: 'Voir mes rapports' }}>
+              {d.myReports.length === 0 ? <p className="empty">Vous n’avez pas encore transmis de rapport.</p> : (
+                <ul className="plain-list">
+                  {d.myReports.slice(0, 2).map((r) => (
+                    <li key={r.id}><Link to={`/espace/rapports/${r.id}`} className="item__title">{r.title}</Link> <span className={statusBadge(r.status)}>{r.statusLabel}</span><span className="item__meta">Transmis le {formatDate(r.date)}</span></li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+          )}
+          <Panel title="Prochaines opportunités" more={{ to: '/espace/opportunites', label: 'Toutes les opportunités' }}><Opportunities items={d.openOpportunities.slice(0, 2)} /></Panel>
+          <Panel title="Prochains événements" more={{ to: '/espace/agenda', label: 'Voir l’agenda' }}><Events items={d.upcomingEvents.slice(0, 2)} /></Panel>
+          <Panel title="Communications non lues" more={{ to: '/espace/communications', label: 'Toutes les communications' }}>
+            {unread === 0 ? <p className="empty">Vous avez tout lu.</p> : (
+              <>
+                <p style={{ margin: 0 }}><strong>{unread}</strong> {unread > 1 ? 'communications non lues' : 'communication non lue'}</p>
+                <ul className="plain-list">
+                  {d.latestCommunications.filter((c) => !c.isRead).slice(0, 2).map((c) => (
+                    <li key={c.id}><Link to={`/espace/communications/${c.id}`} className="item__title">{c.title}</Link><span className="item__meta">{formatDate(c.publishedAt)}{c.category ? ` · ${c.category}` : ''}</span></li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Panel>
+          <Panel title="Décisions et demandes de la CAPH-CI">
+            {d.notifications.length === 0 ? <p className="empty">Aucune décision récente.</p> : (
               <ul className="plain-list">
-                {d.latestCommunications.map((c) => (
-                  <li key={c.id}>
-                    <span className="item__title">{c.title}{!c.isRead && <> <span className="badge badge--orange">Non lue</span></>}</span>
-                    <span className="item__meta">{formatDate(c.publishedAt)}{c.category ? ` · ${c.category}` : ''}</span>
+                {d.notifications.slice(0, 2).map((n, i) => (
+                  <li key={`${n.kind}-${n.id}-${i}`}>
+                    <Link to={n.link} className="item__title">{KIND_LABELS[n.kind]} : {n.title}</Link>{' '}
+                    <span className={statusBadge(n.status)}>{n.statusLabel}</span>
+                    <span className="item__meta">{formatDate(n.date)}{n.note ? ` — ${n.note}` : ''}</span>
                   </li>
                 ))}
               </ul>
             )}
           </Panel>
-          <Panel title="Prochains événements" more={{ to: '/espace/agenda', label: 'Voir l’agenda' }}><Events items={d.upcomingEvents} /></Panel>
-          <Panel title="Opportunités ouvertes" more={{ to: '/espace/opportunites', label: 'Toutes les opportunités' }}><Opportunities items={d.openOpportunities} /></Panel>
-          <Panel title="Documents récents" more={{ to: '/espace/documents', label: 'Tous les documents' }}>
-            {d.latestDocuments.length === 0 ? <p className="empty">Aucun document pour le moment.</p> : (
-              <ul className="plain-list">{d.latestDocuments.map((x) => <li key={x.id}><span className="item__title">{x.title}</span><span className="item__meta">{formatDate(x.publishedAt)}</span></li>)}</ul>
-            )}
-          </Panel>
-          {d.reports && <Panel title="Vos rapports" more={{ to: '/espace/rapports', label: 'Voir mes rapports' }}><Counts data={d.reports} labels={REPORT_STATUSES} empty="Vous n’avez pas encore transmis de rapport." /></Panel>}
-          {d.newsProposals && <Panel title="Vos propositions d’actualités" more={{ to: '/espace/actualites', label: 'Voir mes propositions' }}><Counts data={d.newsProposals} labels={NEWS_STATUSES} empty="Vous n’avez pas encore proposé d’actualité." /></Panel>}
         </div>
       </div>
     </>

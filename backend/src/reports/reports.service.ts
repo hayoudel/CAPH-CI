@@ -45,7 +45,7 @@ export class ReportsService {
       periodStart: r.periodStart, periodEnd: r.periodEnd, status: r.status, statusLabel: STATUS_LABELS[r.status],
       reviewerNote: r.status === 'CORRECTION_REQUESTED' || r.reviewerNote ? r.reviewerNote : null,
       submittedAt: r.submittedAt, processedAt: r.processedAt, author: `${r.author.firstName} ${r.author.lastName}`,
-      canEdit: EDITABLE.includes(r.status),
+      canEdit: EDITABLE.includes(r.status), isDemo: r.isDemo,
       attachments: r.attachments.map((a) => ({ id: a.id, originalName: a.file.originalName, mimeType: a.file.mimeType, sizeBytes: a.file.sizeBytes })),
     };
   }
