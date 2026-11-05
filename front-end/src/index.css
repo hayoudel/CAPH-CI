@@ -87,7 +87,7 @@ a {
 ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
 :focus-visible {
-  outline: 3px solid #F56600;
+  outline: 3px solid #006B35;
   outline-offset: 2px;
   border-radius: 3px;
 }

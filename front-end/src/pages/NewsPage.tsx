@@ -30,7 +30,6 @@ function NewsPageContent({ detail, newsItems }: Props & { newsItems: NewsItem[] 
               <span className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-600 text-xs font-semibold">{article.category}</span>
               <span className="text-slate-400 text-sm">{article.date}</span>
               <span className="text-slate-300">·</span>
-              <span className="text-slate-400 text-sm">{article.author}</span>
             </div>
             <div className="rounded-2xl overflow-hidden mb-8">
               <img src={article.image} alt={article.title} className="w-full h-72 object-cover" />
@@ -108,42 +107,55 @@ function NewsPageContent({ detail, newsItems }: Props & { newsItems: NewsItem[] 
               />
             </div>
           </div>
-          <div className="flex gap-2 mt-4 overflow-x-auto pb-1" role="tablist">
+          <div className="hidden lg:flex gap-2 mt-4 overflow-x-auto pb-1" role="tablist">
             {categories.map(cat => (
               <button
                 key={cat}
                 role="tab"
                 aria-selected={activeCategory === cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                  activeCategory === cat ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >{cat}</button>
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${activeCategory === cat
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+              >
+                {cat}
+              </button>
             ))}
           </div>
         </div>
       </div>
 
-      <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="py-10 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
           {/* Featured article */}
           {filtered.length > 0 && activeCategory === 'Tous' && !search && (
             <button
               onClick={() => navigate('news-detail', filtered[0].id)}
-              className="group w-full text-left rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg transition-all mb-8"
+              className="group w-full h-[280px] text-left rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg transition-all mb-8 cursor-pointer"
             >
-              <div className="grid lg:grid-cols-2">
-                <div className="h-64 lg:h-auto bg-slate-100 overflow-hidden">
+              <div className="grid h-full lg:grid-cols-2">
+                <div className="h-64 lg:h-full bg-slate-100 overflow-hidden">
                   <img src={filtered[0].image} alt={filtered[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
-                <div className="p-8 flex flex-col justify-center">
-                  <div className="flex items-center gap-2 mb-3">
+
+                <div className="p-4 flex flex-col justify-center min-h-0 overflow-hidden">
+                  <div className="flex items-center gap-2 mb-2">
                     <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-semibold">{filtered[0].category}</span>
                     <span className="text-xs text-slate-400">{filtered[0].date}</span>
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900 font-display mb-3">{filtered[0].title}</h2>
-                  <p className="text-slate-600 text-sm leading-relaxed mb-4">{filtered[0].summary}</p>
-                  <span className="text-blue-600 text-sm font-semibold group-hover:underline">Lire l'article →</span>
+
+                  <h2 className="text-xl font-bold text-slate-900 font-display mb-2 line-clamp-2">
+                    {filtered[0].title}
+                  </h2>
+
+                  <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
+                    {filtered[0].summary}
+                  </p>
+
+                  <span className="text-blue-600 text-sm font-semibold mt-2 group-hover:underline">
+                    Lire l'article →
+                  </span>
                 </div>
               </div>
             </button>
@@ -154,12 +166,12 @@ function NewsPageContent({ detail, newsItems }: Props & { newsItems: NewsItem[] 
               <button
                 key={n.id}
                 onClick={() => navigate('news-detail', n.id)}
-                className="group text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                className="group h-[350px] text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all"
               >
-                <div className="h-44 bg-slate-100 overflow-hidden">
+                <div className="h-40 bg-slate-100 overflow-hidden">
                   <img src={n.image} alt={n.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
-                <div className="p-5">
+                <div className="p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 text-xs font-medium">{n.category}</span>
                     <span className="text-xs text-slate-400">{n.date}</span>

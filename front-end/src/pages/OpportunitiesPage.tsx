@@ -313,7 +313,7 @@ function OpportunitiesPageContent({ detail, opportunities }: Props & { opportuni
       </div>
 
       {/* Category quick filters */}
-      <div className="py-4 bg-white border-b border-slate-100">
+      <div className="hidden md:block py-4 bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-2 overflow-x-auto">
             <button onClick={() => setCatFilter('')} className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${!catFilter ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Toutes</button>
@@ -333,12 +333,12 @@ function OpportunitiesPageContent({ detail, opportunities }: Props & { opportuni
               <p>Aucune opportunité ne correspond à votre recherche.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {filtered.map(o => (
                 <button
                   key={o.id}
                   onClick={() => navigate('opportunity-detail', o.id)}
-                  className="group w-full text-left p-5 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all bg-white"
+                  className="group w-full text-left p-5 rounded-xl border border-slate-500 hover:border-blue-300 hover:shadow-md transition-all bg-white cursor-pointer"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">

@@ -128,7 +128,7 @@ function ActionsPageContent({ detail, domains, projects }: Props & { domains: Do
               <button
                 key={d.id}
                 onClick={() => { setSelected(d.id); navigate('action-detail', d.id); }}
-                className="group text-left p-6 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all bg-white"
+                className="group text-left p-6 rounded-xl border border-slate-500 hover:border-blue-300 hover:shadow-md transition-all bg-white"
               >
                 <div className="text-3xl mb-3" aria-hidden="true">{d.icon}</div>
                 <div className="text-xs text-blue-600 font-bold mb-2 font-display tracking-wider">DOMAINE 0{i + 1}</div>

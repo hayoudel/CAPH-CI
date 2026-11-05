@@ -419,7 +419,11 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
       />
       <section className="py-10 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+
+      {/* COLONNE GAUCHE : RECHERCHE */}
+      <aside>
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">Recherche multicritère</p>
               <h2 className="text-xl font-bold text-slate-900 font-display">Trouver un projet</h2>
@@ -428,8 +432,8 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
               <button onClick={resetFilters} className="self-start md:self-auto text-sm font-semibold text-blue-700 hover:underline">Réinitialiser les filtres</button>
             )}
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="sm:col-span-2 lg:col-span-3">
+         <div className="grid grid-cols-3 lg:grid-cols-1 gap-2">
+            <div className="col-span-3 lg:col-span-1">
               <label htmlFor="search-projects" className="block text-xs font-semibold text-slate-700 mb-1.5">Mot-clé</label>
               <input
                 id="search-projects"
@@ -437,33 +441,45 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
                 placeholder="Titre, zone, partenaire…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 text-sm bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none"
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none"
               />
             </div>
-            {[
-              { label: 'Domaine', value: domainFilter, change: setDomainFilter, options: domains.map(d => d.title), empty: 'Tous les domaines' },
-              { label: 'Région', value: regionFilter, change: setRegionFilter, options: regions, empty: 'Toutes les régions' },
-              { label: 'Année', value: yearFilter, change: setYearFilter, options: years.map(String), empty: 'Toutes les années' },
-              { label: 'Public cible', value: targetFilter, change: setTargetFilter, options: targets, empty: 'Tous les publics' },
-              { label: 'Partenaire', value: partnerFilter, change: setPartnerFilter, options: partners, empty: 'Tous les partenaires' },
-              { label: 'Statut', value: statusFilter, change: setStatusFilter, options: ['En cours', 'Terminé', 'Planifié'], empty: 'Tous les statuts' },
-            ].map(filter => (
-              <label key={filter.label} className="block text-xs font-semibold text-slate-700">
-                {filter.label}
-                <select value={filter.value} onChange={e => filter.change(e.target.value)} className="mt-1.5 w-full px-3 py-3 rounded-lg border border-slate-300 text-sm font-normal text-slate-700 bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none">
-                  <option value="">{filter.empty}</option>
-                  {filter.options.map(option => <option key={option} value={option}>{option}</option>)}
-                </select>
-              </label>
-            ))}
+           {[
+  { label: 'Domaine', value: domainFilter, change: setDomainFilter, options: domains.map(d => d.title), empty: 'Tous les domaines' },
+  { label: 'Région', value: regionFilter, change: setRegionFilter, options: regions, empty: 'Toutes les régions' },
+  { label: 'Année', value: yearFilter, change: setYearFilter, options: years.map(String), empty: 'Toutes les années' },
+  { label: 'Public cible', value: targetFilter, change: setTargetFilter, options: targets, empty: 'Tous les publics' },
+  { label: 'Partenaire', value: partnerFilter, change: setPartnerFilter, options: partners, empty: 'Tous les partenaires' },
+  { label: 'Statut', value: statusFilter, change: setStatusFilter, options: ['En cours', 'Terminé', 'Planifié'], empty: 'Tous les statuts' },
+].map(filter => (
+  <label key={filter.label} className="block min-w-0 text-[10px] sm:text-xs font-semibold text-slate-700">
+    {filter.label}
+
+    <select
+      value={filter.value}
+      onChange={e => filter.change(e.target.value)}
+      className="mt-1 w-full min-w-0 px-1.5 py-2 rounded-lg border border-slate-300 text-[10px] sm:text-xs font-normal text-slate-700 bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none"
+    >
+      <option value="">{filter.empty}</option>
+
+      {filter.options.map(option => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  </label>
+))}
           </div>
           <p className="text-slate-600 text-sm mt-5" role="status">
             <span className="font-bold text-slate-900">{filtered.length}</span> projet{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
           </p>
-        </div>
-      </section>
-
-      <section className="py-12 bg-white">
+      </aside>
+        
+    
+  <div className="min-w-0">
+      <div className="py-12 bg-white">
+        <div>
         <div className="max-w-7xl mx-auto px-4">
           {filtered.length === 0 ? (
             <div className="text-center py-20 text-slate-400">
@@ -479,7 +495,7 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
                 <button
                   key={p.id}
                   onClick={() => navigate('project-detail', p.id)}
-                  className="group text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                  className="group text-left rounded-xl overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all"
                 >
                   <div className="relative h-48 bg-slate-100 overflow-hidden">
                     <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -517,6 +533,11 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
               ))}
             </div>
           )}
+          </div>
+          </div>
+        </div>
+        </div>
+         </div>
         </div>
       </section>
     </>

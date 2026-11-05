@@ -263,7 +263,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               <button
                 key={d.id}
                 onClick={() => navigate('action-detail', d.id)}
-                className="group text-left p-5 rounded-xl bg-white border border-slate-200 hover:border-[#006B35] hover:shadow-lg transition-all  cursor-pointer"
+                className="group text-left p-5 rounded-xl bg-white border border-[#006B35] hover:border-[#006B35] hover:shadow-lg transition-all  cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-2xl group-hover:bg-blue-100 transition-colors" aria-hidden="true">
@@ -273,7 +273,7 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
                 </div>
                 <div className="font-bold text-slate-900 text-sm font-display mb-2 group-hover:text-[#006B35] transition-colors">{d.title}</div>
                 <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 mb-3">{d.description}</p>
-                <span className="text-[#006B35] text-xs font-semibold flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-[#006B35] text-xs font-semibold flex items-center gap-1 ">
                   Découvrir
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
