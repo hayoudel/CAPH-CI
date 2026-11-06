@@ -30,29 +30,37 @@ export default function ContactPage() {
         compact
       />
 
-      <section className="py-16 bg-white">
+      <section className="py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid lg:grid-cols-3 gap-12">
+          <div className="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-8 lg:gap-12">
             {/* Contact info */}
             <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 font-display mb-5">Nos coordonnées</h2>
-                <div className="space-y-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+                <h2 className="text-lg font-bold text-slate-900 font-display mb-5">Nos coordonnées</h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
                   {[
-                    { icon: '📍', label: 'Adresse', value: 'Abidjan, Abobo Sogefiha\nNon loin du Terrain des 4 Étages, APP 1400' },
+                    { icon: '📍', label: 'Adresse', value: 'Abidjan, Abobo Sogefiha\nNon loin du Terrain des 4 Étages, APP 1400', wide: true },
                     { icon: '📞', label: 'Téléphone 1', value: '07 08 24 95 30', href: 'tel:+2250708249530' },
                     { icon: '📞', label: 'Téléphone 2', value: '05 05 28 39 55', href: 'tel:+2250505283955' },
-                    { icon: '📞', label: 'Téléphone 3', value: '01 42 09 96 96', href: 'tel:+2250142099696' },
-                    { icon: '✉️', label: 'Email', value: 'caphci2011@gmail.com', href: 'mailto:caphci2011@gmail.com' },
+                    { icon: '✉️', label: 'Email', value: 'caphci2011@gmail.com', href: 'mailto:caphci2011@gmail.com', wide: true },
                   ].map(c => (
-                    <div key={c.label} className="flex gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <span className="text-xl flex-shrink-0 mt-0.5" aria-hidden="true">{c.icon}</span>
-                      <div>
-                        <div className="text-xs text-slate-500 font-medium mb-0.5">{c.label}</div>
+                    <div
+                      key={c.label}
+                      className={`flex items-start gap-2 w-full min-h-10 p-4 rounded-xl bg-white border border-slate-200 ${c.wide ? 'sm:col-span-2 lg:col-span-1 xl:col-span-2' : ''}`}
+                    >
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-lg bg-slate-50 text-xs" aria-hidden="true">
+                        {c.icon}
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-slate-500 font-medium mb-1">{c.label}</div>
                         {c.href ? (
-                          <a href={c.href} className="text-slate-900 text-sm font-medium hover:text-blue-600 transition-colors">{c.value}</a>
+                          <a href={c.href} className="block break-words text-slate-900 text-xs font-medium hover:text-blue-600 transition-colors">
+                            {c.value}
+                          </a>
                         ) : (
-                          <div className="text-slate-900 text-sm font-medium whitespace-pre-line">{c.value}</div>
+                          <div className="text-slate-900 text-xs font-medium whitespace-pre-line break-words">{c.value}</div>
                         )}
                       </div>
                     </div>
@@ -70,15 +78,10 @@ export default function ContactPage() {
                   ))}
                 </div>
               </div>
-
-              <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
-                <h3 className="font-bold text-slate-900 font-display mb-2">Localisation</h3>
-                <p className="text-sm text-slate-600">La carte sera intégrée après confirmation des coordonnées géographiques exactes du siège.</p>
-              </div>
             </div>
 
             {/* Form */}
-            <div className="lg:col-span-2">
+          <div className="min-w-0 w-full max-w-2xl mx-auto">
               <h2 className="text-xl font-bold text-slate-900 font-display mb-6">Envoyez-nous un message</h2>
 
               {submitted ? (
@@ -89,7 +92,7 @@ export default function ContactPage() {
                   <button onClick={() => { reset(); mutation.reset(); setSubmitted(false); }} className="text-blue-600 text-sm hover:underline">Envoyer un autre message</button>
                 </div>
               ) : (
-                <form onSubmit={onSubmit} noValidate className="space-y-5 bg-white border border-slate-200 rounded-2xl p-8">
+               <form onSubmit={onSubmit} noValidate className="space-y-4 bg-white border border-slate-200 rounded-xl p-5">
                   <ErrorSummary errors={errors} ids={fieldIds} show={submitCount > 0} submitCount={submitCount} />
                   <div className="grid sm:grid-cols-2 gap-4">
                     {[
@@ -101,7 +104,8 @@ export default function ContactPage() {
                       <div key={f.id}>
                         <label htmlFor={f.id} className="block text-sm font-medium text-slate-700 mb-1">{f.label}</label>
                         <input {...register(f.key)} {...a11y(errors, f.key, f.id)} type={f.type} placeholder={f.placeholder}
-                          className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+                          className="w-full px-3 py-2
+                           rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
                         <FieldError errors={errors} name={f.key} id={f.id} />
                       </div>
                     ))}
@@ -109,7 +113,7 @@ export default function ContactPage() {
 
                   <div>
                     <label htmlFor="sujet" className="block text-sm font-medium text-slate-700 mb-1">Sujet *</label>
-                    <select {...register('sujet')} {...a11y(errors, 'sujet', 'sujet')} className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none bg-white">
+                    <select {...register('sujet')} {...a11y(errors, 'sujet', 'sujet')} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:border-blue-500 outline-none bg-white">
                       <option value="">Choisir un sujet...</option>
                       {[
                         'Informations générales',
@@ -128,7 +132,7 @@ export default function ContactPage() {
                   <div>
                     <label htmlFor="message-contact" className="block text-sm font-medium text-slate-700 mb-1">Message *</label>
                     <textarea {...register('message')} {...a11y(errors, 'message', 'message-contact')} rows={6} placeholder="Décrivez votre demande avec le plus de détails possible..."
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none" />
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none" />
                     <FieldError errors={errors} name="message" id="message-contact" />
                   </div>
 
@@ -141,29 +145,11 @@ export default function ContactPage() {
                   <FieldError errors={errors} name="privacy" id="privacy" />
 
                   <ApiErrorAlert message={mutation.error?.message} />
-                  <button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending} className="w-full py-3.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-wait">
+                  <button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending} className="w-full py-3.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-pointer">
                     {mutation.isPending ? 'Envoi en cours…' : 'Envoyer le message'}
                   </button>
                 </form>
               )}
-
-              {/* Quick links */}
-              <div className="mt-8 p-6 rounded-xl bg-slate-50 border border-slate-200">
-                <h3 className="font-bold text-slate-900 font-display mb-4">Liens utiles</h3>
-                <div className="grid sm:grid-cols-3 gap-3">
-                  {[
-                    { label: 'FAQ', sub: 'Questions fréquentes', icon: '❓' },
-                    { label: 'Ressources', sub: 'Documents & guides', icon: '📄' },
-                    { label: 'Délégations', sub: 'Trouver une délégation', icon: '📍' },
-                  ].map(l => (
-                    <div key={l.label} className="p-3 rounded-lg bg-white border border-slate-200 text-center">
-                      <div className="text-xl mb-1" aria-hidden="true">{l.icon}</div>
-                      <div className="font-semibold text-slate-900 text-xs">{l.label}</div>
-                      <div className="text-slate-400 text-xs">{l.sub}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>

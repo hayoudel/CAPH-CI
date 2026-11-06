@@ -68,7 +68,7 @@ export default function PartnerPage({ confirmed }: Props) {
 
       {/* ───── GAUCHE : formulaire ───── */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 font-display mb-6">Proposer un partenariat</h2>
+        <h2 className="text-xl font-bold text-slate-900 font-display mb-6">Proposer un partenariat</h2>
         <form onSubmit={onSubmit} noValidate className="space-y-5 bg-white border border-slate-200 rounded-2xl p-8">
           <ErrorSummary errors={errors} ids={fieldIds} show={submitCount > 0} submitCount={submitCount} />
           <div className="grid sm:grid-cols-2 gap-4">
@@ -82,7 +82,7 @@ export default function PartnerPage({ confirmed }: Props) {
               <div key={f.id} className={f.id === 'email' ? 'sm:col-span-2' : ''}>
                 <label htmlFor={f.id} className="block text-sm font-medium text-slate-700 mb-1">{f.label}</label>
                 <input {...register(f.key)} {...a11y(errors, f.key, f.id)} type={f.type} placeholder={f.placeholder}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
                 <FieldError errors={errors} name={f.key} id={f.id} />
               </div>
             ))}
@@ -121,7 +121,7 @@ export default function PartnerPage({ confirmed }: Props) {
           </div>
 
           <ApiErrorAlert message={mutation.error?.message} />
-          <button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending} className="w-full py-3.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-wait">
+          <button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending} className="w-full py-3.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 cursor-pointer">
             {mutation.isPending ? 'Envoi en cours…' : 'Envoyer ma proposition de partenariat'}
           </button>
         </form>
@@ -135,8 +135,8 @@ export default function PartnerPage({ confirmed }: Props) {
           <h2 className="text-2xl font-bold text-slate-900 font-display mb-6">Types de partenariats</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {partnerTypes.map(p => (
-              <div key={p.title} className="p-5 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors">
-                <div className="text-3xl mb-3" aria-hidden="true">{p.icon}</div>
+              <div key={p.title} className="p-2 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors">
+                <div className="text-xl mb-3" aria-hidden="true">{p.icon}</div>
                 <h3 className="font-bold text-slate-900 font-display text-sm mb-2">{p.title}</h3>
                 <p className="text-slate-500 text-xs leading-relaxed">{p.description}</p>
               </div>
@@ -146,7 +146,7 @@ export default function PartnerPage({ confirmed }: Props) {
 
         {/* Avantages */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8">
-          <h2 className="text-xl font-bold text-slate-900 font-display mb-6">Pourquoi s'associer à la CAPH-CI ?</h2>
+          <h2 className="text-lg font-bold text-slate-900 font-display mb-6">Pourquoi s'associer à la CAPH-CI ?</h2>
           <div className="space-y-5">
             {[
               { icon: '🌟', title: 'Visibilité nationale', text: 'Votre logo sur nos supports officiels, portail web et événements nationaux.' },
@@ -157,7 +157,7 @@ export default function PartnerPage({ confirmed }: Props) {
               { icon: '🏅', title: 'Reconnaissance', text: 'Label Partenaire CAPH-CI valorisable dans votre communication RSE et ESG.' },
             ].map(b => (
               <div key={b.title} className="flex gap-3">
-                <span className="text-xl flex-shrink-0" aria-hidden="true">{b.icon}</span>
+                <span className="text-sm flex-shrink-0" aria-hidden="true">{b.icon}</span>
                 <div>
                   <div className="font-bold text-slate-900 text-sm font-display">{b.title}</div>
                   <p className="text-slate-600 text-xs">{b.text}</p>

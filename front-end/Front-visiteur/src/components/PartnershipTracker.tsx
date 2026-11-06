@@ -47,7 +47,7 @@ export default function PartnershipTracker() {
               placeholder="CAPH-PAR-2026-1234"
               className="flex-1 min-h-11 px-3 py-2.5 rounded-lg border border-slate-300 text-sm uppercase placeholder:normal-case focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
             />
-            <button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending} className="min-h-11 px-6 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-wait">
+            <button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending} className="min-h-11 px-6 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 cursor-pointer">
               {mutation.isPending ? 'Vérification…' : 'Vérifier'}
             </button>
           </div>
