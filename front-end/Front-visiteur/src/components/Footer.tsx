@@ -1,4 +1,5 @@
 import { useNavigation, PageName } from '../context/NavigationContext';
+import { MapPin, Phone, Mail } from 'lucide-react';
 
 const navCol: { label: string; page: PageName }[] = [
   { label: 'Accueil', page: 'home' },
@@ -78,20 +79,45 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h3 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider font-display">Contact</h3>
+
             <ul className="space-y-3 text-sm text-slate-400">
               <li className="flex gap-2">
-                <span className="text-blue-400 mt-0.5" aria-hidden="true">📍</span>
-                <span>Abidjan, Abobo Sogefiha<br />Près du Terrain des 4 Étages, APP 1400</span>
+                <MapPin
+                  size={17}
+                  className="text-blue-400 mt-0.5 flex-shrink-0"
+                  aria-hidden="true"
+                />
+                <span>
+                  Abidjan, Abobo Sogefiha<br />
+                  Près du Terrain des 4 Étages, APP 1400
+                </span>
               </li>
+
               <li className="flex gap-2">
-                <span className="text-blue-400" aria-hidden="true">📞</span>
-                <span><a href="tel:+2250708249530" className="hover:text-blue-400 transition-colors">07 08 24 95 30</a><br /><a href="tel:+2250505283955" className="hover:text-blue-400 transition-colors">05 05 28 39 55</a><br /><a href="tel:+2250142099696" className="hover:text-blue-400 transition-colors">01 42 09 96 96</a></span>
+                <Phone
+                  size={17}
+                  className="text-blue-400 mt-0.5 flex-shrink-0"
+                  aria-hidden="true"
+                />
+                <span>
+                  <a href="tel:+2250708249530" className="hover:text-blue-400 transition-colors">07 08 24 95 30</a><br />
+                  <a href="tel:+2250505283955" className="hover:text-blue-400 transition-colors">05 05 28 39 55</a><br />
+                  <a href="tel:+2250142099696" className="hover:text-blue-400 transition-colors">01 42 09 96 96</a>
+                </span>
               </li>
+
               <li className="flex gap-2">
-                <span className="text-blue-400" aria-hidden="true">✉️</span>
-                <a href="mailto:caphci2011@gmail.com" className="hover:text-blue-400 transition-colors">caphci2011@gmail.com</a>
+                <Mail
+                  size={17}
+                  className="text-blue-400 mt-0.5 flex-shrink-0"
+                  aria-hidden="true"
+                />
+                <a href="mailto:caphci2011@gmail.com" className="hover:text-blue-400 transition-colors">
+                  caphci2011@gmail.com
+                </a>
               </li>
             </ul>
+
             <div className="mt-6">
               <button onClick={() => navigate('donate')} className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors text-sm font-semibold text-white text-center">
                 Faire un don

@@ -1,63 +1,74 @@
 import type { AgendaEvent, Delegation, Domain, MediaItem, NewsItem, OPH, Opportunity, Project, Resource } from '../../types';
+import {
+  Scale,
+  BriefcaseBusiness,
+  GraduationCap,
+  HeartPulse,
+  Accessibility,
+  MonitorSmartphone,
+  HandHeart,
+  UsersRound,
+} from 'lucide-react';
 
 export const domains: Domain[] = [
   {
     id: 'droits',
-    icon: '♿',
+    icon: Scale,
     title: 'Défense des droits et plaidoyer',
     description: 'Faire respecter les droits, combattre les discriminations et favoriser la participation des personnes handicapées aux décisions qui les concernent.',
     color: 'blue',
   },
   {
     id: 'emploi',
-    icon: '💼',
+    icon: BriefcaseBusiness,
     title: 'Emploi et autonomisation économique',
     description: 'Accompagner vers la formation, l’emploi, l’entrepreneuriat et l’autonomie financière, en valorisant les compétences au-delà du handicap.',
     color: 'blue',
   },
   {
     id: 'education',
-    icon: '🎓',
+    icon: GraduationCap,
     title: 'Éducation et formation inclusive',
     description: 'Soutenir l’accès à une éducation adaptée, à l’alphabétisation et à la formation professionnelle pour apprendre et réussir.',
     color: 'blue',
   },
   {
     id: 'sante',
-    icon: '🏥',
+    icon: HeartPulse,
     title: 'Santé, réadaptation et protection sociale',
     description: 'Faciliter l’accès aux soins, à la réadaptation, aux aides techniques et aux dispositifs d’accompagnement.',
     color: 'blue',
   },
   {
     id: 'accessibilite',
-    icon: '🏢',
+    icon: Accessibility,
     title: 'Accessibilité et mobilité',
     description: 'Rendre les bâtiments, les transports, les équipements, les services et les communications accessibles à tous.',
     color: 'blue',
   },
   {
     id: 'numerique',
-    icon: '💻',
+    icon: MonitorSmartphone,
     title: 'Innovation, numérique et communication inclusive',
     description: 'Mettre les technologies adaptées, les compétences numériques et les supports accessibles au service de l’inclusion.',
     color: 'blue',
   },
   {
     id: 'paix',
-    icon: '🤝',
+    icon: HandHeart,
     title: 'Inclusion sociale et accompagnement communautaire',
     description: 'Rompre l’isolement par l’écoute, l’orientation, le soutien social, la mobilisation communautaire et la participation citoyenne.',
     color: 'blue',
   },
   {
     id: 'developpement',
-    icon: '🏘️',
+    icon: UsersRound,
     title: 'Renforcement des organisations et gouvernance inclusive',
     description: 'Renforcer la gouvernance, les compétences, la mise en réseau et la capacité d’action des organisations de personnes handicapées.',
     color: 'blue',
   },
 ];
+
 
 export const projects: Project[] = [
   {

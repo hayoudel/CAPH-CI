@@ -2,6 +2,34 @@ import { useNavigation } from '../context/NavigationContext';
 import QueryState from '../components/QueryState';
 import { useDomains, useNews, useOpportunities, useProjects } from '../hooks/queries';
 import type { Domain, NewsItem, Opportunity, Project } from '../types';
+import {
+  Newspaper,
+  Lightbulb,
+  MapPin,
+  Building2,
+  ClipboardList,
+  ChevronRight,
+  Flag, Globe, Scale,
+  BriefcaseBusiness,
+  GraduationCap,
+  HeartPulse,
+  Accessibility,
+  MonitorSmartphone,
+  HandHeart,
+  UsersRound, ScanSearch,
+  Award, Plus, Handshake, Heart
+} from 'lucide-react';
+
+const domainIcons = {
+  droits: Scale,
+  emploi: BriefcaseBusiness,
+  education: GraduationCap,
+  sante: HeartPulse,
+  accessibilite: Accessibility,
+  numerique: MonitorSmartphone,
+  paix: HandHeart,
+  developpement: UsersRound,
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -125,30 +153,53 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
           </div>
 
           {/* Right — quick access */}
+
+
           <div className="hidden lg:flex flex-col gap-3">
             {[
-              { icon: '📰', label: 'Dernières actualités', sub: newsItems[0]?.title, page: 'news' as const },
-              { icon: '💡', label: 'Opportunités disponibles', sub: `${opportunities.length} offres actives`, page: 'opportunities' as const },
-              { icon: '📍', label: 'Trouver une délégation', sub: '45 délégations régionales et communales', page: 'delegations' as const },
-              { icon: '🏢', label: 'Annuaire des OPH membres', sub: '37 organisations affiliées', page: 'oph' as const },
-              { icon: '📋', label: 'Suivre ma demande d\'adhésion', sub: 'Accès espace OPH', page: 'adhesion' as const },
-            ].map(item => (
-              <button
-                key={item.page + item.label}
-                onClick={() => navigate(item.page)}
-                className="flex items-center gap-4 p-4 rounded-xl bg-black/30 hover:bg-white/8 border border-white/8 transition-all text-left group cursor-pointer"
-              >
-                <span className="text-2xl w-9 text-center flex-shrink-0" aria-hidden="true">{item.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-white text-lg font-display">{item.label}</div>
-                  <div className="text-white/90 text-xs font-medium truncate mt-0.5">{item.sub}</div>
-                </div>
-                <svg className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            ))}
+              { icon: Newspaper, label: 'Dernières actualités', sub: newsItems[0]?.title, page: 'news' as const },
+              { icon: Lightbulb, label: 'Opportunités disponibles', sub: `${opportunities.length} offres actives`, page: 'opportunities' as const },
+              { icon: MapPin, label: 'Trouver une délégation', sub: '45 délégations régionales et communales', page: 'delegations' as const },
+              { icon: Building2, label: 'Annuaire des OPH membres', sub: '37 organisations affiliées', page: 'oph' as const },
+              { icon: ClipboardList, label: "Suivre ma demande d'adhésion", sub: 'Accès espace OPH', page: 'adhesion' as const },
+            ].map(item => {
+              const Icon = item.icon;
+
+              return (
+                <button
+                  key={item.page + item.label}
+                  onClick={() => navigate(item.page)}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-black/30 hover:bg-white/8 border border-white/8 transition-all text-left group cursor-pointer"
+                >
+                  <span className="w-9 flex-shrink-0 flex items-center justify-center">
+                    <Icon
+                      size={24}
+                      strokeWidth={1.8}
+                      className="text-slate-300 group-hover:text-[#006B35] transition-colors"
+                      aria-hidden="true"
+                    />
+                  </span>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white text-lg font-display">
+                      {item.label}
+                    </div>
+                    <div className="text-white/90 text-xs font-medium truncate mt-0.5">
+                      {item.sub}
+                    </div>
+                  </div>
+
+                  <ChevronRight
+                    size={18}
+                    strokeWidth={2}
+                    className="text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0"
+                    aria-hidden="true"
+                  />
+                </button>
+              );
+            })}
           </div>
+
         </div>
 
         {/* Scroll cue */}
@@ -225,20 +276,39 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
               </div>
             </div>
 
+
             <div className="grid grid-cols-2 gap-4">
               {[
-                { icon: '🎯', title: 'Mission', text: 'Fédérer et représenter les OPH, porter leur voix auprès des institutions nationales et internationales.' },
-                { icon: '🌟', title: 'Vision', text: 'Une Côte d\'Ivoire inclusive où toute personne peut vivre, apprendre, travailler et participer pleinement.' },
-                { icon: '⚖️', title: 'Plaidoyer', text: 'Défense active des droits des personnes handicapées auprès des pouvoirs publics et des partenaires.' },
-                { icon: '🌐', title: 'Réseau', text: 'Cohésion entre organisations membres, partage d\'expériences et mutualisation des ressources à l\'échelle nationale.' },
-              ].map(v => (
-                <div key={v.title} className="p-5 rounded-xl border border-slate-200 hover:border-blue-200 hover:bg-blue-50/30 transition-colors group">
-                  <div className="text-2xl mb-3" aria-hidden="true">{v.icon}</div>
-                  <div className="font-bold text-slate-900 text-sm font-display mb-2 group-hover:text-blue-600 transition-colors">{v.title}</div>
-                  <p className="text-slate-600 text-xs leading-relaxed">{v.text}</p>
-                </div>
-              ))}
+                { icon: Flag, title: 'Mission', text: 'Fédérer et représenter les OPH, porter leur voix auprès des institutions nationales et internationales.' },
+                { icon: HandHeart, title: 'Vision', text: 'Une Côte d\'Ivoire inclusive où toute personne peut vivre, apprendre, travailler et participer pleinement.' },
+                { icon: Scale, title: 'Plaidoyer', text: 'Défense active des droits des personnes handicapées auprès des pouvoirs publics et des partenaires.' },
+                { icon: Globe, title: 'Réseau', text: 'Cohésion entre organisations membres, partage d\'expériences et mutualisation des ressources à l\'échelle nationale.' },
+              ].map(v => {
+                const Icon = v.icon;
+
+                return (
+                  <div key={v.title} className="p-5 rounded-xl border border-slate-200 hover:border-blue-200 hover:bg-blue-50/30 transition-colors group">
+                    <div className="mb-3">
+                      <Icon
+                        size={28}
+                        strokeWidth={1.8}
+                        className="text-blue-600 group-hover:scale-110 transition-transform"
+                        aria-hidden="true"
+                      />
+                    </div>
+
+                    <div className="font-bold text-slate-900 text-sm font-display mb-2 group-hover:text-blue-600 transition-colors">
+                      {v.title}
+                    </div>
+
+                    <p className="text-slate-600 text-xs leading-relaxed">
+                      {v.text}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
+
           </div>
         </div>
       </section>
@@ -258,30 +328,51 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
             </p>
           </div>
 
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {domains.map((d, i) => (
-              <button
-                key={d.id}
-                onClick={() => navigate('action-detail', d.id)}
-                className="group text-left p-5 rounded-xl bg-white border border-[#006B35] hover:border-[#006B35] hover:shadow-lg transition-all  cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-2xl group-hover:bg-blue-100 transition-colors" aria-hidden="true">
-                    {d.icon}
+            {domains.map((d, i) => {
+              const Icon = domainIcons[d.id as keyof typeof domainIcons];
+
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => navigate('action-detail', d.id)}
+                  className="group text-left p-5 rounded-xl bg-white border border-[#006B35] hover:border-[#006B35] hover:shadow-lg transition-all cursor-pointer"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors"
+                      aria-hidden="true"
+                    >
+                      <Icon
+                        size={26}
+                        strokeWidth={1.8}
+                        className="text-[#006B35] group-hover:scale-110 transition-transform"
+                      />
+                    </div>
+
+                    <span className="text-xs font-bold text-slate-300 font-display">
+                      0{i + 1}
+                    </span>
                   </div>
-                  <span className="text-xs font-bold text-slate-300 font-display">0{i + 1}</span>
-                </div>
-                <div className="font-bold text-slate-900 text-sm font-display mb-2 group-hover:text-[#006B35] transition-colors">{d.title}</div>
-                <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 mb-3">{d.description}</p>
-                <span className="text-[#006B35] text-xs font-semibold flex items-center gap-1 ">
-                  Découvrir
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                  </svg>
-                </span>
-              </button>
-            ))}
+
+                  <div className="font-bold text-slate-900 text-sm font-display mb-2 group-hover:text-[#006B35] transition-colors">
+                    {d.title}
+                  </div>
+
+                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 mb-3">
+                    {d.description}
+                  </p>
+
+                  <span className="text-[#006B35] text-xs font-semibold flex items-center gap-1">
+                    Découvrir
+                    <ChevronRight size={14} strokeWidth={2.5} />
+                  </span>
+                </button>
+              );
+            })}
           </div>
+
 
           <div className="text-center mt-8">
             <button
@@ -314,20 +405,39 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
                   Accompagnez votre organisation vers une inclusion réelle et mesurable. Notre cabinet propose des prestations de conseil, audit d'accessibilité, formation RSE et certification pour les entreprises, institutions publiques et organisations internationales.
                 </p>
 
+
                 <div className="grid grid-cols-2 gap-3 mb-8">
                   {[
-                    { icon: '🔍', label: 'Audits accessibilité', desc: 'Web, physique & numérique' },
-                    { icon: '🎓', label: 'Formations RSE', desc: 'Management inclusif' },
-                    { icon: '📋', label: 'Stratégie handicap', desc: 'Politique & gouvernance' },
-                    { icon: '🏅', label: 'Certification', desc: 'Label Emploi Inclusif' },
-                  ].map(s => (
-                    <div key={s.label} className="p-3.5 rounded-xl bg-white/8 border border-white/10">
-                      <div className="text-lg mb-1.5" aria-hidden="true">{s.icon}</div>
-                      <div className="text-white text-xs font-semibold font-display">{s.label}</div>
-                      <div className="text-slate-400 text-xs">{s.desc}</div>
-                    </div>
-                  ))}
+                    { icon: ScanSearch, label: 'Audits accessibilité', desc: 'Web, physique & numérique' },
+                    { icon: GraduationCap, label: 'Formations RSE', desc: 'Management inclusif' },
+                    { icon: ClipboardList, label: 'Stratégie handicap', desc: 'Politique & gouvernance' },
+                    { icon: Award, label: 'Certification', desc: 'Label Emploi Inclusif' },
+                  ].map(s => {
+                    const Icon = s.icon;
+
+                    return (
+                      <div key={s.label} className="p-3.5 rounded-xl bg-white/8 border border-white/10">
+                        <div className="mb-2">
+                          <Icon
+                            size={23}
+                            strokeWidth={1.8}
+                            className="text-white"
+                            aria-hidden="true"
+                          />
+                        </div>
+
+                        <div className="text-white text-xs font-semibold font-display">
+                          {s.label}
+                        </div>
+
+                        <div className="text-slate-400 text-xs">
+                          {s.desc}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
+
 
                 <div className="flex flex-wrap gap-3">
                   <button
@@ -421,40 +531,40 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
       {/* ══════════════════════════════════════════
           DÉLÉGATIONS
       ══════════════════════════════════════════ */}
-      
-<section className="py-12 bg-[#006B35] text-white" aria-label="Nos délégations régionales">
-  <div className="max-w-7xl mx-auto px-6">
-    <div  >
-      <div>
-        <SectionLabel label="Délégations régionales" />
 
-        <h2 className="text-2xl md:text-3xl font-bold font-display mb-3">
-          Un réseau de proximité sur le territoire national
-        </h2>
+      <section className="py-12 bg-[#006B35] text-white" aria-label="Nos délégations régionales">
+        <div className="max-w-7xl mx-auto px-6">
+          <div  >
+            <div>
+              <SectionLabel label="Délégations régionales" />
 
-        <p className="text-blue-100 mb-4 leading-relaxed text-sm">
-          La CAPH-CI dispose de 45 délégations statutaires qui assurent la présence et l'action de l'organisation au plus près des personnes handicapées, sur l'ensemble du territoire.
-        </p>
+              <h2 className="text-2xl md:text-3xl font-bold font-display mb-3">
+                Un réseau de proximité sur le territoire national
+              </h2>
 
-        <div className="flex items-end gap-3 mb-5">
-          <span className="text-5xl font-extrabold text-[#FFD600] font-display">
-            45
-          </span>
-          <span className="text-blue-100 font-semibold pb-2 text-sm">
-            délégations régionales et communales
-          </span>
+              <p className="text-blue-100 mb-4 leading-relaxed text-sm">
+                La CAPH-CI dispose de 45 délégations statutaires qui assurent la présence et l'action de l'organisation au plus près des personnes handicapées, sur l'ensemble du territoire.
+              </p>
+
+              <div className="flex items-end gap-3 mb-5">
+                <span className="text-5xl font-extrabold text-[#FFD600] font-display">
+                  45
+                </span>
+                <span className="text-blue-100 font-semibold pb-2 text-sm">
+                  délégations régionales et communales
+                </span>
+              </div>
+
+              <button
+                onClick={() => navigate('delegations')}
+                className="px-5 py-2.5 bg-white text-[#006B35] rounded-lg font-semibold hover:bg-blue-50 transition-colors text-sm cursor-pointer"
+              >
+                Voir toutes les délégations
+              </button>
+            </div>
+          </div>
         </div>
-
-        <button
-          onClick={() => navigate('delegations')}
-          className="px-5 py-2.5 bg-white text-[#006B35] rounded-lg font-semibold hover:bg-blue-50 transition-colors text-sm cursor-pointer"
-        >
-          Voir toutes les délégations
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
 
       {/* ══════════════════════════════════════════
@@ -555,26 +665,34 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
           <p className="text-slate-400 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
             Que vous soyez une organisation de personnes handicapées, une entreprise, un citoyen ou un partenaire international — votre engagement compte. Ensemble, construisons une Côte d'Ivoire accessible à toutes et à tous.
           </p>
+
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={() => navigate('adhesion')}
-              className="px-4 py-2 bg-[#006B35] text-white rounded-lg font-bold hover:bg-[#004D29] transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-[#006B35] text-white rounded-lg font-bold hover:bg-[#004D29] transition-colors cursor-pointer"
             >
-              ➕ Adhérer à la CAPH-CI
+              <Plus size={18} strokeWidth={2.5} />
+              Adhérer à la CAPH-CI
             </button>
+
             <button
               onClick={() => navigate('partner')}
-              className="px-4 py-2 border border-white/25 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 border border-white/25 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors cursor-pointer"
             >
-              🤝 Devenir partenaire
+              <Handshake size={18} strokeWidth={1.8} />
+              Devenir partenaire
             </button>
+
             <button
               onClick={() => navigate('donate')}
-              className="px-4 py-2 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-100 transition-colors cursor-pointer"
             >
-              ❤️ Faire un don
+              <Heart size={18} strokeWidth={2} className="text-red-500"
+                fill="currentColor" />
+              Faire un don
             </button>
           </div>
+
         </div>
       </section>
     </>

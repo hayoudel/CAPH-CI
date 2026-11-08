@@ -1,8 +1,9 @@
+import type { LucideIcon } from 'lucide-react';
 export type Domain = {
   /** Donnée provisoire : affichée avec le bandeau « Prototype — à valider ». */
   isProvisional?: boolean;
   id: string;
-  icon: string;
+  icon: LucideIcon;
   title: string;
   description: string;
   color: string;

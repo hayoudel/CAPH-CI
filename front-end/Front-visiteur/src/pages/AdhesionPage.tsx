@@ -112,10 +112,7 @@ export default function AdhesionPage({ initialStep }: Props) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 font-display mb-3">Votre formulaire est prêt à être transmis</h2>
-              <p className="text-slate-600 mb-4">
-                Cette maquette n’envoie ni ne conserve aucune donnée. Dans le parcours réel, le dossier sera examiné par les instances compétentes et l’admission relèvera du Conseil d’Administration.
-              </p>
+              <h2 className="text-2xl font-bold text-slate-900 font-display mb-3">Votre formulaire a été soumis avec succès</h2>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-green-200 text-sm font-mono text-green-700 font-semibold">
                 <span aria-hidden="true">🔖</span>
                 Référence : {refNumber}
