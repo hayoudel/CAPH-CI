@@ -5,6 +5,26 @@ import QueryState from '../components/QueryState';
 import { useDomains, useProjects } from '../hooks/queries';
 import type { Domain, Project } from '../types';
 
+import {
+  Scale,
+  BriefcaseBusiness,
+  GraduationCap,
+  HeartPulse,
+  Accessibility,
+  MonitorSmartphone,
+  HandHeart,
+  UsersRound,
+} from 'lucide-react';
+const domainIcons = {
+  droits: Scale,
+  emploi: BriefcaseBusiness,
+  education: GraduationCap,
+  sante: HeartPulse,
+  accessibilite: Accessibility,
+  numerique: MonitorSmartphone,
+  paix: HandHeart,
+  developpement: UsersRound,
+};
 const domainDetails: Record<string, { tagline: string; commitments: string[] }> = {
   droits: {
     tagline: 'Faire respecter les droits et entendre les voix.',
@@ -48,6 +68,9 @@ function ActionsPageContent({ detail, domains, projects }: Props & { domains: Do
 
   const selectedDomain = domains.find(d => d.id === selected);
   const selectedDetails = selected ? domainDetails[selected] : null;
+const SelectedIcon = selectedDomain
+  ? domainIcons[selectedDomain.id as keyof typeof domainIcons] ?? Scale
+  : Scale;
 
   if (detail && selectedDomain && selectedDetails) {
     return (
@@ -62,7 +85,10 @@ function ActionsPageContent({ detail, domains, projects }: Props & { domains: Do
             <div className="grid lg:grid-cols-3 gap-10">
               <div className="lg:col-span-2 space-y-8">
                 <div>
-                  <div className="text-5xl mb-4" aria-hidden="true">{selectedDomain.icon}</div>
+               
+         <div className="text-blue-600 mb-4" aria-hidden="true">
+  <SelectedIcon size={48} strokeWidth={1.8} />
+</div>
                   <p className="text-xl font-bold text-blue-700 font-display mb-5">{selectedDetails.tagline}</p>
                   <h2 className="text-2xl font-bold text-slate-900 font-display mb-4">Notre engagement</h2>
                   <ul className="space-y-3">
@@ -124,19 +150,42 @@ function ActionsPageContent({ detail, domains, projects }: Props & { domains: Do
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {domains.map((d, i) => (
-              <button
-                key={d.id}
-                onClick={() => { setSelected(d.id); navigate('action-detail', d.id); }}
-                className="group text-left p-6 rounded-xl border border-slate-500 hover:border-blue-300 hover:shadow-md transition-all bg-white"
-              >
-                <div className="text-3xl mb-3" aria-hidden="true">{d.icon}</div>
-                <div className="text-xs text-blue-600 font-bold mb-2 font-display tracking-wider">DOMAINE 0{i + 1}</div>
-                <h3 className="font-bold text-slate-900 font-display mb-3">{d.title}</h3>
-                <p className="text-slate-500 text-xs leading-relaxed mb-4">{d.description}</p>
-                <span className="text-blue-600 text-xs font-semibold group-hover:underline">Découvrir ce domaine →</span>
-              </button>
-            ))}
+     
+{domains.map((d, i) => {
+  const Icon = domainIcons[d.id as keyof typeof domainIcons] ?? Scale;
+
+  return (
+    <button
+      key={d.id}
+      onClick={() => {
+        setSelected(d.id);
+        navigate('action-detail', d.id);
+      }}
+      className="group text-left p-6 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all bg-white"
+    >
+      <div className="text-blue-600 mb-3" aria-hidden="true">
+        <Icon size={32} strokeWidth={1.8} />
+      </div>
+
+      <div className="text-xs text-blue-600 font-bold mb-2 font-display tracking-wider">
+        DOMAINE 0{i + 1}
+      </div>
+
+      <h3 className="font-bold text-slate-900 font-display mb-3">
+        {d.title}
+      </h3>
+
+      <p className="text-slate-500 text-xs leading-relaxed mb-4">
+        {d.description}
+      </p>
+
+      <span className="text-blue-600 text-xs font-semibold group-hover:underline">
+        Découvrir ce domaine →
+      </span>
+    </button>
+  );
+})}
+
           </div>
 
           {/* CTA */}

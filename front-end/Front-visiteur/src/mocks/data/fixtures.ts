@@ -73,7 +73,7 @@ export const domains: Domain[] = [
 export const projects: Project[] = [
   {
     id: 'p1',
-    title: '[Prototype — à valider] EMPLOI+CI — Insertion professionnelle des jeunes handicapés',
+    title: ' EMPLOI+CI — Insertion professionnelle des jeunes handicapés',
     domain: 'Emploi et autonomisation économique',
     region: 'Abidjan',
     zone: 'District autonome d’Abidjan',
@@ -94,21 +94,21 @@ export const projects: Project[] = [
     beneficiaries: 500,
     relatedNewsIds: ['n2'],
     media: [
-      { id: 'pm1', type: 'photo', title: '[Prototype — à valider] Séance de formation professionnelle', src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&h=600&fit=crop&auto=format' },
-      { id: 'pm2', type: 'photo', title: '[Prototype — à valider] Remise de diplômes — session juin 2026', src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&auto=format' },
-      { id: 'pm3', type: 'photo', title: '[Prototype — à valider] Forum emploi inclusif — partenaires entreprises', src: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=600&fit=crop&auto=format' },
-      { id: 'pm4', type: 'video', title: '[Prototype — à valider] Reportage EMPLOI+CI — RFI Afrique', src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '12:15' },
-      { id: 'pm5', type: 'video', title: '[Prototype — à valider] Témoignage : Kouassi, bénéficiaire du programme', src: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '4:30' },
+      { id: 'pm1', type: 'photo', title: ' Séance de formation professionnelle', src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&h=600&fit=crop&auto=format' },
+      { id: 'pm2', type: 'photo', title: ' Remise de diplômes — session juin 2026', src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&auto=format' },
+      { id: 'pm3', type: 'photo', title: ' Forum emploi inclusif — partenaires entreprises', src: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=600&fit=crop&auto=format' },
+      { id: 'pm4', type: 'video', title: ' Reportage EMPLOI+CI — RFI Afrique', src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '12:15' },
+      { id: 'pm5', type: 'video', title: ' Témoignage : Kouassi, bénéficiaire du programme', src: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '4:30' },
     ],
     docs: [
-      { id: 'pd1', title: '[Prototype — à valider] Rapport intermédiaire EMPLOI+CI 2025', type: 'Rapport PDF', description: 'Rapport semestriel présentant les résultats, les bénéficiaires touchés et les leçons apprises à mi-parcours du projet.', date: 'Juin 2026', downloadable: true, size: '3,2 Mo' },
-      { id: 'pd2', title: '[Prototype — à valider] Fiche projet EMPLOI+CI — Résumé exécutif', type: 'PDF', description: 'Résumé de 2 pages présentant les objectifs, la cible et les résultats attendus du projet EMPLOI+CI.', date: 'Janvier 2024', downloadable: true, size: '0,8 Mo' },
-      { id: 'pd3', title: '[Prototype — à valider] Catalogue des formations proposées', type: 'PDF', description: 'Liste complète des 14 filières de formation professionnelle disponibles dans le cadre du programme.', date: 'Mars 2026', downloadable: true, size: '1,5 Mo' },
+      { id: 'pd1', title: ' Rapport intermédiaire EMPLOI+CI 2025', type: 'Rapport PDF', description: 'Rapport semestriel présentant les résultats, les bénéficiaires touchés et les leçons apprises à mi-parcours du projet.', date: 'Juin 2026', downloadable: true, size: '3,2 Mo' },
+      { id: 'pd2', title: ' Fiche projet EMPLOI+CI — Résumé exécutif', type: 'PDF', description: 'Résumé de 2 pages présentant les objectifs, la cible et les résultats attendus du projet EMPLOI+CI.', date: 'Janvier 2024', downloadable: true, size: '0,8 Mo' },
+      { id: 'pd3', title: ' Catalogue des formations proposées', type: 'PDF', description: 'Liste complète des 14 filières de formation professionnelle disponibles dans le cadre du programme.', date: 'Mars 2026', downloadable: true, size: '1,5 Mo' },
     ],
   },
   {
     id: 'p2',
-    title: '[Prototype — à valider] ÉDUCATION POUR TOUS — Écoles inclusives à Bouaké',
+    title: ' ÉDUCATION POUR TOUS — Écoles inclusives à Bouaké',
     domain: 'Éducation et formation inclusive',
     region: 'Vallée du Bandama',
     zone: 'Bouaké et communes environnantes',
@@ -129,18 +129,18 @@ export const projects: Project[] = [
     beneficiaries: 1200,
     relatedNewsIds: ['n3'],
     media: [
-      { id: 'p2m1', type: 'photo', title: '[Prototype — à valider] Classe inclusive — École primaire de Bouaké', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop&auto=format' },
-      { id: 'p2m2', type: 'photo', title: '[Prototype — à valider] Formation des enseignants', src: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop&auto=format' },
-      { id: 'p2m3', type: 'video', title: '[Prototype — à valider] Visite de terrain — Écoles inclusives à Bouaké', src: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800&h=600&fit=crop&auto=format', subtitles: false, duration: '6:45' },
+      { id: 'p2m1', type: 'photo', title: ' Classe inclusive — École primaire de Bouaké', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop&auto=format' },
+      { id: 'p2m2', type: 'photo', title: ' Formation des enseignants', src: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop&auto=format' },
+      { id: 'p2m3', type: 'video', title: ' Visite de terrain — Écoles inclusives à Bouaké', src: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800&h=600&fit=crop&auto=format', subtitles: false, duration: '6:45' },
     ],
     docs: [
-      { id: 'p2d1', title: '[Prototype — à valider] Guide de l\'enseignant inclusif', type: 'Guide PDF', description: 'Manuel pratique pour les enseignants accompagnant des élèves en situation de handicap.', date: 'Septembre 2025', downloadable: true, size: '2,1 Mo' },
-      { id: 'p2d2', title: '[Prototype — à valider] Rapport d\'avancement 2025 — Écoles inclusives', type: 'Rapport PDF', description: 'Bilan annuel du programme dans les 30 écoles partenaires.', date: 'Décembre 2025', downloadable: true, size: '4,0 Mo' },
+      { id: 'p2d1', title: ' Guide de l\'enseignant inclusif', type: 'Guide PDF', description: 'Manuel pratique pour les enseignants accompagnant des élèves en situation de handicap.', date: 'Septembre 2025', downloadable: true, size: '2,1 Mo' },
+      { id: 'p2d2', title: ' Rapport d\'avancement 2025 — Écoles inclusives', type: 'Rapport PDF', description: 'Bilan annuel du programme dans les 30 écoles partenaires.', date: 'Décembre 2025', downloadable: true, size: '4,0 Mo' },
     ],
   },
   {
     id: 'p3',
-    title: '[Prototype — à valider] ACCESSIBILITÉ ABIDJAN — Audit et aménagement urbain',
+    title: ' ACCESSIBILITÉ ABIDJAN — Audit et aménagement urbain',
     domain: 'Accessibilité et mobilité',
     region: 'Abidjan',
     zone: '10 communes du District autonome d’Abidjan',
@@ -159,7 +159,7 @@ export const projects: Project[] = [
   },
   {
     id: 'p4',
-    title: '[Prototype — à valider] NUMÉRI-HANDIPLUS — Inclusion numérique au Nord',
+    title: ' NUMÉRI-HANDIPLUS — Inclusion numérique au Nord',
     domain: 'Innovation, numérique et communication inclusive',
     region: 'Savanes',
     zone: 'Korhogo et Ferkessédougou',
@@ -178,7 +178,7 @@ export const projects: Project[] = [
   },
   {
     id: 'p5',
-    title: '[Prototype — à valider] SANTÉ INCLUSIVE — Accès aux soins pour tous à San-Pédro',
+    title: ' SANTÉ INCLUSIVE — Accès aux soins pour tous à San-Pédro',
     domain: 'Santé, réadaptation et protection sociale',
     region: 'Bas-Sassandra',
     zone: 'San-Pédro et 12 localités rurales',
@@ -197,7 +197,7 @@ export const projects: Project[] = [
   },
   {
     id: 'p6',
-    title: '[Prototype — à valider] DROITS & JUSTICE — Accès à la justice pour les PH',
+    title: ' DROITS & JUSTICE — Accès à la justice pour les PH',
     domain: 'Défense des droits et plaidoyer',
     region: 'National',
     zone: 'Territoire national',
@@ -228,7 +228,7 @@ export const newsItems: NewsItem[] = [
   },
   {
     id: 'n2',
-    title: '[Prototype — à valider] Forum national sur l\'emploi inclusif : 3 000 participants à Abidjan',
+    title: ' Forum national sur l\'emploi inclusif : 3 000 participants à Abidjan',
     category: 'Activités institutionnelles',
     date: '3 septembre 2026',
     summary: 'La première édition du Forum national sur l\'emploi inclusif a réuni entreprises, institutions et organisations de personnes handicapées pour construire une Côte d\'Ivoire du travail pour tous.',
@@ -237,7 +237,7 @@ export const newsItems: NewsItem[] = [
   },
   {
     id: 'n3',
-    title: '[Prototype — à valider] Lancement du programme de bourses universitaires pour étudiants handicapés 2026-2027',
+    title: ' Lancement du programme de bourses universitaires pour étudiants handicapés 2026-2027',
     category: 'Formations',
     date: '22 août 2026',
     summary: 'La CAPH-CI, en partenariat avec la Fondation pour l\'Éducation en Afrique, ouvre 150 bourses pour des étudiants en situation de handicap dans les universités ivoiriennes.',
@@ -246,7 +246,7 @@ export const newsItems: NewsItem[] = [
   },
   {
     id: 'n4',
-    title: '[Prototype — à valider] Mission de terrain : les délégués de Man et Daloa forment 200 acteurs locaux',
+    title: ' Mission de terrain : les délégués de Man et Daloa forment 200 acteurs locaux',
     category: 'Actions des délégations',
     date: '10 août 2026',
     summary: 'Les délégations de Man et Daloa ont co-organisé une session de formation à l\'intention des agents communautaires, élus locaux et associations de base sur les droits des personnes handicapées.',
@@ -255,7 +255,7 @@ export const newsItems: NewsItem[] = [
   },
   {
     id: 'n5',
-    title: '[Prototype — à valider] Campagne nationale « Accessibilité pour Tous » : la CAPH-CI interpelle les mairies',
+    title: ' Campagne nationale « Accessibilité pour Tous » : la CAPH-CI interpelle les mairies',
     category: 'Campagnes',
     date: '28 juillet 2026',
     summary: 'La CAPH-CI a adressé un mémorandum aux 14 mairies des grandes villes ivoiriennes pour exiger la mise en accessibilité des espaces publics avant fin 2027.',
@@ -264,7 +264,7 @@ export const newsItems: NewsItem[] = [
   },
   {
     id: 'n6',
-    title: '[Prototype — à valider] Communiqué : la CAPH-CI salue l\'adoption du budget spécial handicap 2026',
+    title: 'Communiqué : la CAPH-CI salue l\'adoption du budget spécial handicap 2026',
     category: 'Communiqués',
     date: '15 juillet 2026',
     summary: 'À l\'issue du vote du budget national 2026, la CAPH-CI se félicite de l\'inscription d\'une ligne budgétaire spécifique de 4,5 milliards FCFA dédiée à l\'inclusion des personnes handicapées.',
@@ -296,7 +296,7 @@ export const delegations: Delegation[] = [
 export const opportunities: Opportunity[] = [
   {
     id: 'o1',
-    title: '[Prototype — à valider] Chargé(e) de programme Emploi inclusif',
+    title: 'Chargé(e) de programme Emploi inclusif',
     organization: 'CAPH-CI',
     category: 'Emploi',
     sector: 'ONG / Société civile',
@@ -306,7 +306,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o2',
-    title: '[Prototype — à valider] Stage en communication et plaidoyer — 6 mois',
+    title: 'Stage en communication et plaidoyer — 6 mois',
     organization: 'CAPH-CI',
     category: 'Stage',
     sector: 'Communication',
@@ -316,7 +316,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o3',
-    title: '[Prototype — à valider] Formation certifiante en accessibilité numérique',
+    title: 'Formation certifiante en accessibilité numérique',
     organization: 'Cabinet CAPH-CI Conseil',
     category: 'Formation',
     sector: 'Numérique',
@@ -326,7 +326,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o4',
-    title: '[Prototype — à valider] Bourse universitaire pour étudiants en situation de handicap 2026-2027',
+    title: 'Bourse universitaire pour étudiants en situation de handicap 2026-2027',
     organization: 'Fondation pour l\'Éducation en Afrique',
     category: 'Bourse',
     sector: 'Éducation',
@@ -336,7 +336,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o5',
-    title: '[Prototype — à valider] Appel à projets — Inclusion numérique des PH en zone rurale',
+    title: 'Appel à projets — Inclusion numérique des PH en zone rurale',
     organization: 'Orange Foundation CI',
     category: 'Appel à projets',
     sector: 'Numérique',
@@ -346,7 +346,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o6',
-    title: '[Prototype — à valider] Opportunité de partenariat RSE — Emploi inclusif',
+    title: 'Opportunité de partenariat RSE — Emploi inclusif',
     organization: 'CAPH-CI',
     category: 'Partenariat',
     sector: 'Entreprise',
@@ -356,7 +356,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o7',
-    title: '[Prototype — à valider] Financement pour associations OPH — Fonds d\'urgence MSHP',
+    title: 'Financement pour associations OPH — Fonds d\'urgence MSHP',
     organization: 'Ministère de la Solidarité',
     category: 'Financement',
     sector: 'Société civile',
@@ -366,7 +366,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o9',
-    title: '[Prototype — à valider] Fonds d\'investissement inclusif — Appel à manifestation d\'intérêt 2026',
+    title: 'Fonds d\'investissement inclusif — Appel à manifestation d\'intérêt 2026',
     organization: 'CAPH-CI / Banque Atlantique CI',
     category: 'Financement',
     sector: 'Économie inclusive',
@@ -376,7 +376,7 @@ export const opportunities: Opportunity[] = [
   },
   {
     id: 'o8',
-    title: '[Prototype — à valider] Appel à candidatures — Jeunes leaders handicapés 2027',
+    title: 'Appel à candidatures — Jeunes leaders handicapés 2027',
     organization: 'Union Africaine',
     category: 'Appel à projets',
     sector: 'Leadership',
@@ -387,25 +387,25 @@ export const opportunities: Opportunity[] = [
 ];
 
 export const ophList: OPH[] = [
-  { id: 'oph1', name: '[Prototype — à valider] Association Ivoirienne des Déficients Visuels (AIDV)', region: 'Abidjan', type: 'Handicap visuel', domain: 'Droits, Éducation', description: 'L\'AIDV accompagne les personnes déficientes visuelles dans leur accès à l\'éducation, à l\'emploi et à la vie sociale depuis 1986.', members: 1200, founded: 1986, contact: 'aidv@email.ci', image: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=400&h=300&fit=crop&auto=format' },
-  { id: 'oph2', name: '[Prototype — à valider] Fédération des Sourds de Côte d\'Ivoire (FSCI)', region: 'Abidjan', type: 'Handicap auditif', domain: 'Éducation, Culture, Emploi', description: 'La FSCI représente la communauté sourde ivoirienne et œuvre pour la reconnaissance de la langue des signes ivoirienne dans l\'éducation.', members: 850, founded: 1992, contact: 'fsci@email.ci', image: 'https://images.unsplash.com/photo-1609234656388-0ff363383899?w=400&h=300&fit=crop&auto=format' },
-  { id: 'oph3', name: '[Prototype — à valider] Union des Paralysés de Côte d\'Ivoire (UPCI)', region: 'Abidjan', type: 'Handicap moteur', domain: 'Accessibilité, Emploi, Sport', description: 'L\'UPCI promeut l\'autonomie des personnes à mobilité réduite : accessibilité, sport adapté, insertion professionnelle.', members: 640, founded: 1998, contact: 'upci@email.ci', image: 'https://images.unsplash.com/photo-1565945887714-d5139f4eb0ce?w=400&h=300&fit=crop&auto=format' },
-  { id: 'oph4', name: '[Prototype — à valider] Association des Femmes Handicapées de CI (AFHCI)', region: 'National', type: 'Transversal', domain: 'Genre, Droits, Santé', description: 'L\'AFHCI défend les droits des femmes et filles handicapées, avec une attention particulière aux violences basées sur le genre.', members: 720, founded: 2005, contact: 'afhci@email.ci', image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop&auto=format' },
-  { id: 'oph5', name: '[Prototype — à valider] Association Ivoirienne des Personnes Handicapées Mentales (AIPHM)', region: 'Abidjan', type: 'Handicap mental', domain: 'Santé, Droits, Inclusion', description: 'L\'AIPHM accompagne les familles et les personnes ayant un handicap mental ou psychosocial dans leur parcours de soins et d\'inclusion.', members: 450, founded: 2001, contact: 'aiphm@email.ci', image: 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=400&h=300&fit=crop&auto=format' },
-  { id: 'oph6', name: '[Prototype — à valider] Association des Jeunes Handicapés de Bouaké (AJHB)', region: 'Vallée du Bandama', type: 'Transversal', domain: 'Emploi, Éducation, Sport', description: 'L\'AJHB accompagne les jeunes handicapés de la région de Bouaké dans leur insertion scolaire, professionnelle et sportive.', members: 280, founded: 2010, contact: 'ajhb@email.ci', image: 'https://images.unsplash.com/photo-1526976668912-1a811878dd37?w=400&h=300&fit=crop&auto=format' },
-  { id: 'oph7', name: '[Prototype — à valider] Centre de Réhabilitation et d\'Appui aux PH de Man (CRAPH-Man)', region: 'Montagnes', type: 'Handicap moteur / physique', domain: 'Santé, Accessibilité, Formation', description: 'Le CRAPH-Man offre des services de rééducation fonctionnelle et de formation aux métiers adaptés dans la région des Montagnes.', members: 190, founded: 2008, contact: 'craph-man@email.ci', image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop&auto=format' },
-  { id: 'oph8', name: '[Prototype — à valider] Réseau des Entrepreneurs Handicapés de CI (REHCI)', region: 'National', type: 'Transversal', domain: 'Entrepreneuriat, Emploi, Finance', description: 'Le REHCI fédère les entrepreneurs en situation de handicap et plaide pour leur accès au financement et aux marchés publics.', members: 310, founded: 2015, contact: 'rehci@email.ci', image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph1', name: ' Association Ivoirienne des Déficients Visuels (AIDV)', region: 'Abidjan', type: 'Handicap visuel', domain: 'Droits, Éducation', description: 'L\'AIDV accompagne les personnes déficientes visuelles dans leur accès à l\'éducation, à l\'emploi et à la vie sociale depuis 1986.', members: 1200, founded: 1986, contact: 'aidv@email.ci', image: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph2', name: ' Fédération des Sourds de Côte d\'Ivoire (FSCI)', region: 'Abidjan', type: 'Handicap auditif', domain: 'Éducation, Culture, Emploi', description: 'La FSCI représente la communauté sourde ivoirienne et œuvre pour la reconnaissance de la langue des signes ivoirienne dans l\'éducation.', members: 850, founded: 1992, contact: 'fsci@email.ci', image: 'https://images.unsplash.com/photo-1609234656388-0ff363383899?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph3', name: ' Union des Paralysés de Côte d\'Ivoire (UPCI)', region: 'Abidjan', type: 'Handicap moteur', domain: 'Accessibilité, Emploi, Sport', description: 'L\'UPCI promeut l\'autonomie des personnes à mobilité réduite : accessibilité, sport adapté, insertion professionnelle.', members: 640, founded: 1998, contact: 'upci@email.ci', image: 'https://images.unsplash.com/photo-1565945887714-d5139f4eb0ce?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph4', name: ' Association des Femmes Handicapées de CI (AFHCI)', region: 'National', type: 'Transversal', domain: 'Genre, Droits, Santé', description: 'L\'AFHCI défend les droits des femmes et filles handicapées, avec une attention particulière aux violences basées sur le genre.', members: 720, founded: 2005, contact: 'afhci@email.ci', image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph5', name: ' Association Ivoirienne des Personnes Handicapées Mentales (AIPHM)', region: 'Abidjan', type: 'Handicap mental', domain: 'Santé, Droits, Inclusion', description: 'L\'AIPHM accompagne les familles et les personnes ayant un handicap mental ou psychosocial dans leur parcours de soins et d\'inclusion.', members: 450, founded: 2001, contact: 'aiphm@email.ci', image: 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph6', name: ' Association des Jeunes Handicapés de Bouaké (AJHB)', region: 'Vallée du Bandama', type: 'Transversal', domain: 'Emploi, Éducation, Sport', description: 'L\'AJHB accompagne les jeunes handicapés de la région de Bouaké dans leur insertion scolaire, professionnelle et sportive.', members: 280, founded: 2010, contact: 'ajhb@email.ci', image: 'https://images.unsplash.com/photo-1526976668912-1a811878dd37?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph7', name: ' Centre de Réhabilitation et d\'Appui aux PH de Man (CRAPH-Man)', region: 'Montagnes', type: 'Handicap moteur / physique', domain: 'Santé, Accessibilité, Formation', description: 'Le CRAPH-Man offre des services de rééducation fonctionnelle et de formation aux métiers adaptés dans la région des Montagnes.', members: 190, founded: 2008, contact: 'craph-man@email.ci', image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop&auto=format' },
+  { id: 'oph8', name: ' Réseau des Entrepreneurs Handicapés de CI (REHCI)', region: 'National', type: 'Transversal', domain: 'Entrepreneuriat, Emploi, Finance', description: 'Le REHCI fédère les entrepreneurs en situation de handicap et plaide pour leur accès au financement et aux marchés publics.', members: 310, founded: 2015, contact: 'rehci@email.ci', image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop&auto=format' },
 ];
 
 export const resources: Resource[] = [
-  { id: 'r1', title: '[Prototype — à valider] Rapport annuel CAPH-CI 2025', category: 'Rapports', type: 'PDF', date: 'Juin 2026', author: 'CAPH-CI', description: 'Bilan complet des activités, projets et résultats de la CAPH-CI pour l\'exercice 2025.', pages: 68, size: '4,2 Mo' },
-  { id: 'r2', title: '[Prototype — à valider] Guide pratique : Droits des personnes handicapées en Côte d\'Ivoire', category: 'Guides pratiques', type: 'PDF', date: 'Mars 2026', author: 'CAPH-CI / MSHP', description: 'Référence complète sur les droits reconnus aux personnes handicapées en Côte d\'Ivoire, textes de loi et recours disponibles.', pages: 42, size: '2,8 Mo' },
-  { id: 'r3', title: '[Prototype — à valider] Convention relative aux droits des personnes handicapées (CDPH)', category: 'Textes juridiques', type: 'PDF', date: 'ONU, 2006', author: 'Nations Unies', description: 'Texte intégral de la Convention internationale sur les droits des personnes handicapées, ratifiée par la Côte d\'Ivoire.', pages: 34, size: '1,2 Mo' },
-  { id: 'r4', title: '[Prototype — à valider] Étude nationale sur la situation des personnes handicapées en CI', category: 'Études', type: 'PDF', date: 'Décembre 2025', author: 'CAPH-CI / ENSEA', description: 'Première étude représentative sur les conditions de vie, l\'accès à l\'éducation, à l\'emploi et aux soins des PH en Côte d\'Ivoire.', pages: 124, size: '8,6 Mo' },
-  { id: 'r5', title: '[Prototype — à valider] Catalogue de services — Cabinet CAPH-CI Conseil 2026', category: 'Catalogues', type: 'PDF', date: 'Janvier 2026', author: 'Cabinet CAPH-CI Conseil', description: 'Présentation complète des services de conseil, formation et certification du Cabinet CAPH-CI Conseil pour les entreprises et institutions.', pages: 20, size: '1,5 Mo' },
-  { id: 'r6', title: '[Prototype — à valider] Module de formation : Sensibilisation au handicap en milieu professionnel', category: 'Supports de formation', type: 'PDF + PPT', date: 'Avril 2026', author: 'Cabinet CAPH-CI Conseil', description: 'Kit complet pour animer une session de sensibilisation au handicap en entreprise ou administration (slides, guide animateur, quiz).', pages: 45, size: '6,1 Mo' },
-  { id: 'r7', title: '[Prototype — à valider] Formulaire d\'adhésion — Organisations membres CAPH-CI', category: 'Formulaires', type: 'DOCX + PDF', date: 'Mis à jour en 2026', author: 'CAPH-CI', description: 'Formulaire officiel à compléter pour demander l\'adhésion d\'une organisation de personnes handicapées à la CAPH-CI.', size: '0,3 Mo' },
-  { id: 'r8', title: '[Prototype — à valider] Charte de l\'inclusion numérique en Côte d\'Ivoire', category: 'Publications', type: 'PDF', date: 'Novembre 2025', author: 'CAPH-CI / ARTCI', description: 'Charte nationale co-rédigée avec l\'ARTCI fixant les engagements pour une inclusion numérique des personnes handicapées en Côte d\'Ivoire.', pages: 16, size: '0,9 Mo' },
+  { id: 'r1', title: 'Rapport annuel CAPH-CI 2025', category: 'Rapports', type: 'PDF', date: 'Juin 2026', author: 'CAPH-CI', description: 'Bilan complet des activités, projets et résultats de la CAPH-CI pour l\'exercice 2025.', pages: 68, size: '4,2 Mo' },
+  { id: 'r2', title: 'Guide pratique : Droits des personnes handicapées en Côte d\'Ivoire', category: 'Guides pratiques', type: 'PDF', date: 'Mars 2026', author: 'CAPH-CI / MSHP', description: 'Référence complète sur les droits reconnus aux personnes handicapées en Côte d\'Ivoire, textes de loi et recours disponibles.', pages: 42, size: '2,8 Mo' },
+  { id: 'r3', title: 'Convention relative aux droits des personnes handicapées (CDPH)', category: 'Textes juridiques', type: 'PDF', date: 'ONU, 2006', author: 'Nations Unies', description: 'Texte intégral de la Convention internationale sur les droits des personnes handicapées, ratifiée par la Côte d\'Ivoire.', pages: 34, size: '1,2 Mo' },
+  { id: 'r4', title: 'Étude nationale sur la situation des personnes handicapées en CI', category: 'Études', type: 'PDF', date: 'Décembre 2025', author: 'CAPH-CI / ENSEA', description: 'Première étude représentative sur les conditions de vie, l\'accès à l\'éducation, à l\'emploi et aux soins des PH en Côte d\'Ivoire.', pages: 124, size: '8,6 Mo' },
+  { id: 'r5', title: 'Catalogue de services — Cabinet CAPH-CI Conseil 2026', category: 'Catalogues', type: 'PDF', date: 'Janvier 2026', author: 'Cabinet CAPH-CI Conseil', description: 'Présentation complète des services de conseil, formation et certification du Cabinet CAPH-CI Conseil pour les entreprises et institutions.', pages: 20, size: '1,5 Mo' },
+  { id: 'r6', title: 'Module de formation : Sensibilisation au handicap en milieu professionnel', category: 'Supports de formation', type: 'PDF + PPT', date: 'Avril 2026', author: 'Cabinet CAPH-CI Conseil', description: 'Kit complet pour animer une session de sensibilisation au handicap en entreprise ou administration (slides, guide animateur, quiz).', pages: 45, size: '6,1 Mo' },
+  { id: 'r7', title: 'Formulaire d\'adhésion — Organisations membres CAPH-CI', category: 'Formulaires', type: 'DOCX + PDF', date: 'Mis à jour en 2026', author: 'CAPH-CI', description: 'Formulaire officiel à compléter pour demander l\'adhésion d\'une organisation de personnes handicapées à la CAPH-CI.', size: '0,3 Mo' },
+  { id: 'r8', title: 'Charte de l\'inclusion numérique en Côte d\'Ivoire', category: 'Publications', type: 'PDF', date: 'Novembre 2025', author: 'CAPH-CI / ARTCI', description: 'Charte nationale co-rédigée avec l\'ARTCI fixant les engagements pour une inclusion numérique des personnes handicapées en Côte d\'Ivoire.', pages: 16, size: '0,9 Mo' },
 ];
 
 export const mediaItems: MediaItem[] = [
@@ -449,23 +449,23 @@ export const mediaItems: MediaItem[] = [
     date: 'Date à confirmer',
     src: '/media/caph-ci-activite-05.jpg',
   },
-  { id: 'm1', type: 'photo', title: '[Prototype — à valider] Forum national sur l\'emploi inclusif — Abidjan 2026', category: 'Activités', date: 'Septembre 2026', src: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm2', type: 'photo', title: '[Prototype — à valider] Remise de diplômes — Programme EMPLOI+CI', category: 'Projets', date: 'Août 2026', src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm3', type: 'photo', title: '[Prototype — à valider] Formation des enseignants — Écoles inclusives Bouaké', category: 'Projets', date: 'Juillet 2026', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm4', type: 'photo', title: '[Prototype — à valider] Assemblée générale CAPH-CI — Yamoussoukro', category: 'Institutionnel', date: 'Juin 2026', src: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm5', type: 'photo', title: '[Prototype — à valider] Signature accord ministère — Abidjan', category: 'Partenariats', date: 'Mai 2026', src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm6', type: 'photo', title: '[Prototype — à valider] Sensibilisation communautaire — Délégation de Man', category: 'Délégations', date: 'Avril 2026', src: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm7', type: 'video', title: '[Prototype — à valider] Interview : La CAPH-CI, 10 ans d\'engagement pour l\'inclusion', category: 'Institutionnel', date: 'Septembre 2026', src: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '8:42' },
-  { id: 'm8', type: 'video', title: '[Prototype — à valider] Reportage : Le programme EMPLOI+CI en action', category: 'Projets', date: 'Août 2026', src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '12:15' },
-  { id: 'm9', type: 'video', title: '[Prototype — à valider] Témoignage : Aissatou, bénéficiaire du programme d\'inclusion', category: 'Témoignages', date: 'Juillet 2026', src: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '4:30' },
-  { id: 'm10', type: 'video', title: '[Prototype — à valider] Campagne 2026 — Ensemble pour une CI inclusive', category: 'Campagnes', date: 'Juin 2026', src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop&auto=format', subtitles: false, duration: '3:20' },
-  { id: 'm11', type: 'photo', title: '[Prototype — à valider] Remise de matériels adaptés — Programme accessibilité Abidjan', category: 'Projets', date: 'Mars 2026', src: 'https://images.unsplash.com/photo-1499540633125-484965b60031?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm12', type: 'photo', title: '[Prototype — à valider] Journée internationale des personnes handicapées — 3 décembre 2025', category: 'Événements', date: 'Décembre 2025', src: 'https://images.unsplash.com/photo-1569025691351-55e47b083bf2?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm1', type: 'photo', title: ' Forum national sur l\'emploi inclusif — Abidjan 2026', category: 'Activités', date: 'Septembre 2026', src: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm2', type: 'photo', title: ' Remise de diplômes — Programme EMPLOI+CI', category: 'Projets', date: 'Août 2026', src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm3', type: 'photo', title: ' Formation des enseignants — Écoles inclusives Bouaké', category: 'Projets', date: 'Juillet 2026', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm4', type: 'photo', title: ' Assemblée générale CAPH-CI — Yamoussoukro', category: 'Institutionnel', date: 'Juin 2026', src: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm5', type: 'photo', title: ' Signature accord ministère — Abidjan', category: 'Partenariats', date: 'Mai 2026', src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm6', type: 'photo', title: ' Sensibilisation communautaire — Délégation de Man', category: 'Délégations', date: 'Avril 2026', src: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm7', type: 'video', title: ' Interview : La CAPH-CI, 10 ans d\'engagement pour l\'inclusion', category: 'Institutionnel', date: 'Septembre 2026', src: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '8:42' },
+  { id: 'm8', type: 'video', title: ' Reportage : Le programme EMPLOI+CI en action', category: 'Projets', date: 'Août 2026', src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '12:15' },
+  { id: 'm9', type: 'video', title: ' Témoignage : Aissatou, bénéficiaire du programme d\'inclusion', category: 'Témoignages', date: 'Juillet 2026', src: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '4:30' },
+  { id: 'm10', type: 'video', title: ' Campagne 2026 — Ensemble pour une CI inclusive', category: 'Campagnes', date: 'Juin 2026', src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop&auto=format', subtitles: false, duration: '3:20' },
+  { id: 'm11', type: 'photo', title: ' Remise de matériels adaptés — Programme accessibilité Abidjan', category: 'Projets', date: 'Mars 2026', src: 'https://images.unsplash.com/photo-1499540633125-484965b60031?w=800&h=600&fit=crop&auto=format' },
+  { id: 'm12', type: 'photo', title: ' Journée internationale des personnes handicapées — 3 décembre 2025', category: 'Événements', date: 'Décembre 2025', src: 'https://images.unsplash.com/photo-1569025691351-55e47b083bf2?w=800&h=600&fit=crop&auto=format' },
 ];
 
 export const agendaEvents: AgendaEvent[] = [
   {
-    id: 'e1', title: '[Prototype — à valider] Conseil d\'administration CAPH-CI — 4e trimestre 2026', type: 'Réunion institutionnelle',
+    id: 'e1', title: ' Conseil d\'administration CAPH-CI — 4e trimestre 2026', type: 'Réunion institutionnelle',
     date: '10 octobre 2026', time: '09h00 – 13h00', location: 'Siège CAPH-CI, Abobo Sogefiha, Abidjan',
     image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=500&fit=crop&auto=format',
     description: 'Réunion du conseil d\'administration pour le bilan du 3e trimestre et la validation des priorités Q4 2026.',
@@ -475,7 +475,7 @@ export const agendaEvents: AgendaEvent[] = [
     practicalInfo: 'Réunion réservée aux membres du Conseil d\'administration. Ordre du jour transmis 7 jours avant la réunion.',
   },
   {
-    id: 'e2', title: '[Prototype — à valider] Journée nationale du Handicap en Côte d\'Ivoire', type: 'Journée nationale',
+    id: 'e2', title: ' Journée nationale du Handicap en Côte d\'Ivoire', type: 'Journée nationale',
     date: '19 novembre 2026', time: '08h00 – 18h00', location: 'Palais de la Culture, Abidjan',
     image: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=500&fit=crop&auto=format',
     description: 'Célébration annuelle de la journée nationale du handicap en présence des autorités gouvernementales, des OPH et du public. Discours officiels, expositions, animations culturelles et témoignages.',
@@ -485,7 +485,7 @@ export const agendaEvents: AgendaEvent[] = [
     practicalInfo: 'Entrée libre et gratuite. Accessible aux personnes à mobilité réduite. Programme complet disponible sur le site.',
   },
   {
-    id: 'e3', title: '[Prototype — à valider] Formation — Accessibilité numérique WCAG 2.2', type: 'Formation',
+    id: 'e3', title: ' Formation — Accessibilité numérique WCAG 2.2', type: 'Formation',
     date: '3-7 novembre 2026', time: '08h30 – 17h00', location: 'Cabinet CAPH-CI Conseil, Abidjan',
     image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=500&fit=crop&auto=format',
     description: 'Formation certifiante de 5 jours sur les standards d\'accessibilité numérique WCAG 2.2, les outils de test d\'accessibilité et la conception inclusive.',
@@ -495,7 +495,7 @@ export const agendaEvents: AgendaEvent[] = [
     practicalInfo: 'Places limitées à 12 participants. Prérequis : notions de développement web. Matériel fourni. Certification délivrée à l\'issue.',
   },
   {
-    id: 'e4', title: '[Prototype — à valider] Assemblée générale ordinaire CAPH-CI 2026', type: 'Assemblée générale',
+    id: 'e4', title: ' Assemblée générale ordinaire CAPH-CI 2026', type: 'Assemblée générale',
     date: '14 novembre 2026', time: '09h00 – 17h00', location: 'CICG, Yamoussoukro',
     image: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=500&fit=crop&auto=format',
     description: 'Assemblée générale annuelle des organisations membres de la CAPH-CI : présentation des bilans 2026, élection du bureau et adoption des orientations stratégiques 2027.',
@@ -505,7 +505,7 @@ export const agendaEvents: AgendaEvent[] = [
     practicalInfo: 'Réservée aux représentants des organisations membres. Prise en charge du transport pour les délégations régionales sur demande.',
   },
   {
-    id: 'e5', title: '[Prototype — à valider] Forum régional des délégations — Zone Ouest', type: 'Forum',
+    id: 'e5', title: ' Forum régional des délégations — Zone Ouest', type: 'Forum',
     date: '18-19 octobre 2026', time: '08h00 – 17h00', location: 'Maison des Jeunes, Man',
     image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=500&fit=crop&auto=format',
     description: 'Rencontre des délégations de Man, Daloa, Séguéla et Odienné pour partager les bonnes pratiques et planifier les actions communes 2027 dans la région Ouest.',
@@ -515,7 +515,7 @@ export const agendaEvents: AgendaEvent[] = [
     practicalInfo: 'Forum ouvert aux délégués et représentants des OPH membres. Hébergement disponible sur demande.',
   },
   {
-    id: 'e6', title: '[Prototype — à valider] Journée internationale des personnes handicapées — 3 décembre 2026', type: 'Journée internationale',
+    id: 'e6', title: ' Journée internationale des personnes handicapées — 3 décembre 2026', type: 'Journée internationale',
     date: '3 décembre 2026', time: '07h00 – 20h00', location: 'National — toutes les délégations',
     image: 'https://images.unsplash.com/photo-1569025691351-55e47b083bf2?w=800&h=500&fit=crop&auto=format',
     description: 'Mobilisation nationale à l\'occasion de la Journée internationale des personnes handicapées : marches symboliques, plaidoyer, expositions, conférences de presse et événements culturels dans toutes les délégations.',

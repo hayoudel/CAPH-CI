@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { FieldErrors, FieldValues } from 'react-hook-form';
+import type { FieldErrors, FieldValues } from 'node_modules/react-hook-form/dist';
 
 /** Attributs ARIA d'un champ en erreur (aria-invalid + aria-describedby). */
 export function a11y(errors: FieldErrors<FieldValues>, name: string, id: string, hintId?: string) {
