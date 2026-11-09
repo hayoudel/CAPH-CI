@@ -60,7 +60,7 @@ export function AppShell({ area }: { area: 'member' | 'staff' }) {
   }
 
   const who = user ? `${user.firstName} ${user.lastName}` : '';
-  const context = area === 'member' ? user?.organizationName : 'Personnel CAPH-CI';
+  const context = area === 'member' ? (user?.organizationRole?.label ?? 'Membre de l’OPH') : 'Personnel CAPH-CI';
 
   return (
     <div className="shell">
