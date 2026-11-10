@@ -10,7 +10,8 @@ import { usePageTitle } from '../../lib/usePageTitle';
 import { Alert } from '../../ui/Alert';
 import { NewFilesPicker, noFiles, uploadNewFiles, type NewFiles } from '../../ui/NewFiles';
 import { Attachments } from '../../ui/Attachments';
-import { Button, LinkButton } from '../../ui/Button';
+import { Button } from '../../ui/Button';
+import { Modal } from '../../ui/Modal';
 import { SelectField, TextAreaField, TextField } from '../../ui/Field';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { History } from '../../ui/History';
@@ -99,6 +100,8 @@ const useCategories = () => useQuery({ queryKey: ['news-categories'], queryFn: (
 export function NewsListPage() {
   usePageTitle('Mes actualités');
   const { can } = useAuth();
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const f = useListParams();
   const query = { status: f.get('status') || undefined, page: f.page, limit: 10 };
   const list = useQuery({ queryKey: ['news', query], queryFn: () => api<Paginated<NewsProposal>>('/news', { query }), placeholderData: (p) => p });
@@ -110,8 +113,10 @@ export function NewsListPage() {
           <h1>Mes actualités</h1>
           <p>Proposez une actualité de votre organisation et suivez son traitement. L’équipe de la CAPH-CI la valide avant publication.</p>
         </div>
-        {can('news.propose') && <div className="page-head__actions"><LinkButton to="/espace/actualites/nouvelle">+ Proposer une actualité</LinkButton></div>}
+        {can('news.propose') && <div className="page-head__actions"><Button onClick={() => setAdding(true)}>+ Proposer une actualité</Button></div>}
       </header>
+      <Flash notice={notice} />
+      {adding && <NewsCreateModal onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
       <div className="stack">
         <div className="panel">
           <div className="filters">
@@ -148,6 +153,31 @@ export function NewsListPage() {
         <Pager page={f.page} pages={list.data?.meta.totalPages ?? 1} onPage={(p) => f.set('page', String(p))} />
       </div>
     </>
+  );
+}
+
+/** Fenêtre « Proposer une actualité » : même formulaire que la page dédiée ; après envoi, elle se ferme et la liste se rafraîchit. */
+function NewsCreateModal({ onClose, onDone }: { onClose: () => void; onDone: (n: Notice) => void }) {
+  const qc = useQueryClient();
+  const cats = useCategories();
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [busy, setBusy] = useState<Intent | null>(null);
+  async function save(v: NewsValues, intent: Intent, files: NewFiles) {
+    setNotice(null); setBusy(intent);
+    let created: NewsProposal;
+    try { created = await api<NewsProposal>('/news', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
+    catch (e) { setNotice(errorNotice(e, 'Envoi impossible')); setBusy(null); return; }
+    const failed = await uploadNewFiles(`/news/${created.id}`, files);
+    void qc.invalidateQueries({ queryKey: ['news'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
+    const f = FLASHES[intent === 'submit' ? 'submitted' : 'draft'];
+    onDone({ kind: 'success', title: f.title, text: failed.length ? `${f.text} Ces fichiers n’ont pas pu être envoyés : ${failed.join(', ')}. Ajoutez-les depuis la page de l’actualité.` : f.text });
+  }
+  return (
+    <Modal title="Proposer une actualité" size="lg" onClose={onClose}>
+      <p className="muted">Enregistrez un brouillon pour continuer plus tard, ou soumettez directement à la validation de la CAPH-CI.</p>
+      <Flash notice={notice} />
+      <NewsForm initial={emptyNews} categories={cats.data ?? []} mode="new" busy={busy} onSave={(v, i, f) => void save(v, i, f)} onCancel={onClose} />
+    </Modal>
   );
 }
 

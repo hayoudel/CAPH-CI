@@ -63,7 +63,8 @@ describe('équipe', () => {
     render(wrap(<TeamPage />));
     expect(await screen.findByText('Fatou Diallo')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Retirer Fatou Diallo/ })).toBeInTheDocument();
-    expect(screen.getByText('Inviter une personne')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Inviter un membre' })).toBeInTheDocument();
+    expect(screen.queryByText('Inviter une personne')).toBeNull(); // le formulaire n’est plus au bas de la page
   });
   it('un simple membre ne voit aucune action', async () => {
     as([]);
@@ -71,7 +72,7 @@ describe('équipe', () => {
     render(wrap(<TeamPage />));
     expect(await screen.findByText('Fatou Diallo')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Retirer/ })).toBeNull();
-    expect(screen.queryByText('Inviter une personne')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Inviter un membre' })).toBeNull();
   });
   it('le Suppléant gère l’équipe mais ne peut pas toucher à un autre Suppléant', async () => {
     as(['organization.members.manage'], 'OPH_DEPUTY');
@@ -96,6 +97,7 @@ describe('équipe', () => {
     as(['organization.members.manage']);
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(json(members));
     render(wrap(<TeamPage />));
+    await userEvent.click(await screen.findByRole('button', { name: 'Inviter un membre' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Envoyer l’invitation' }));
     expect(screen.getByText('Saisissez le prénom.')).toBeInTheDocument();
     expect(screen.getByText('Saisissez le nom.')).toBeInTheDocument();

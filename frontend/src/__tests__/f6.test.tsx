@@ -123,16 +123,20 @@ describe('bulle de notification du menu', () => {
 });
 
 describe('Inviter un membre', () => {
-  it('le bouton amène au formulaire d’invitation et y place le curseur', async () => {
+  it('le bouton ouvre une fenêtre modale avec le formulaire, sans défilement de la page', async () => {
     auth({ user: { organizationId: 'o1', organizationRole: { code: 'OPH_PRESIDENT' } }, can: (p: string) => p === 'organization.members.manage' });
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(json([]));
     const scroll = vi.fn();
     Element.prototype.scrollIntoView = scroll;
     render(wrap(<TeamPage />));
     const u = userEvent.setup();
+    expect(screen.queryByRole('dialog')).toBeNull();
     await u.click(await screen.findByRole('button', { name: 'Inviter un membre' }));
-    expect(scroll).toHaveBeenCalled();
-    expect(screen.getByLabelText(/Prénom/)).toHaveFocus();
+    const dialog = await screen.findByRole('dialog', { name: 'Inviter une personne' });
+    expect(within(dialog).getByLabelText(/Prénom/)).toBeInTheDocument();
+    expect(scroll).not.toHaveBeenCalled();
+    await u.click(screen.getByRole('button', { name: 'Fermer la fenêtre' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
   it('le bouton est absent sans la permission', async () => {
     auth({ user: { organizationId: 'o1', organizationRole: { code: 'OPH_VIEWER' } }, can: () => false });

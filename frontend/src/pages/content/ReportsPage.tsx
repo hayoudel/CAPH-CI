@@ -9,7 +9,8 @@ import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { Alert } from '../../ui/Alert';
 import { Attachments } from '../../ui/Attachments';
-import { Button, LinkButton } from '../../ui/Button';
+import { Button } from '../../ui/Button';
+import { Modal } from '../../ui/Modal';
 import { Checkbox, SelectField, TextAreaField, TextField } from '../../ui/Field';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { Pager } from '../../ui/Pager';
@@ -90,9 +91,32 @@ const payload = (v: ReportValues, creating: boolean) => ({
   ...(creating ? { certifyAuthority: true } : {}),
 });
 
+/** Fenêtre « Transmettre un rapport » : même formulaire que la page dédiée ; après envoi, elle se ferme et la liste se rafraîchit. */
+function ReportCreateModal({ onClose, onDone }: { onClose: () => void; onDone: (n: Notice) => void }) {
+  const qc = useQueryClient();
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const m = useMutation({
+    mutationFn: (v: ReportValues) => api<Report>('/reports', { method: 'POST', body: payload(v, true) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['reports'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      onDone({ kind: 'success', title: 'Rapport transmis à la CAPH-CI', text: 'Ouvrez-le dans la liste pour joindre des fichiers (5 maximum).' });
+    },
+    onError: (e) => setNotice(errorNotice(e, 'Transmission impossible')),
+  });
+  return (
+    <Modal title="Transmettre un rapport" onClose={onClose}>
+      <p className="muted">Remplissez les informations ci-dessous. Vous pourrez joindre des fichiers juste après, depuis le rapport.</p>
+      <Flash notice={notice} />
+      <ReportForm initial={emptyReport} creating busy={m.isPending} onSubmit={(v) => { setNotice(null); m.mutate(v); }} onCancel={onClose} />
+    </Modal>
+  );
+}
+
 export function ReportsPage() {
   usePageTitle('Rapports');
   const { can } = useAuth();
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const f = useListParams();
   const query = { status: f.get('status') || undefined, page: f.page, limit: 10 };
   const list = useQuery({ queryKey: ['reports', query], queryFn: () => api<Paginated<Report>>('/reports', { query }), placeholderData: (p) => p });
@@ -104,8 +128,10 @@ export function ReportsPage() {
           <h1>Rapports</h1>
           <p>Les rapports que votre organisation a transmis à la CAPH-CI et leur état de traitement.</p>
         </div>
-        {can('report.create') && <div className="page-head__actions"><LinkButton to="/espace/rapports/nouveau">+ Transmettre un rapport</LinkButton></div>}
+        {can('report.create') && <div className="page-head__actions"><Button onClick={() => setAdding(true)}>+ Transmettre un rapport</Button></div>}
       </header>
+      <Flash notice={notice} />
+      {adding && <ReportCreateModal onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
       <div className="stack">
         <div className="panel">
           <div className="filters">

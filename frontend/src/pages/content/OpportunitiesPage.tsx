@@ -60,9 +60,9 @@ export function OpportunitiesPage() {
               onChange={(e) => f.set('status', e.target.value)} />
             {manage && <SelectField label="Validation" value={f.get('review')} placeholder="Tous" options={REVIEW_OPTIONS} onChange={(e) => f.set('review', e.target.value)} />}
           </div>
-          <div className="row">
-            <Button type="submit">Rechercher</Button>
+          <div className="row row--end">
             {hasFilter && <Button variant="secondary" onClick={() => { setText(''); f.reset(); }}>Effacer la recherche</Button>}
+            <Button type="submit">Rechercher</Button>
           </div>
         </form>
 

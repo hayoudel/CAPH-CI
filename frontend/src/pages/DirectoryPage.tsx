@@ -53,9 +53,9 @@ export function DirectoryPage() {
           <SelectField label="Type de handicap" value={params.get('disabilityTypeId') ?? ''} placeholder="Tous les types"
             options={(filters.data?.disabilityTypes ?? []).map((r) => ({ value: r.id, label: r.label }))} onChange={(e) => setParam('disabilityTypeId', e.target.value)} />
         </div>
-        <div className="row">
-          <Button type="submit">Rechercher</Button>
+        <div className="row row--end">
           {hasFilter && <Button variant="secondary" onClick={reset}>Effacer la recherche</Button>}
+          <Button type="submit">Rechercher</Button>
         </div>
       </form>
 

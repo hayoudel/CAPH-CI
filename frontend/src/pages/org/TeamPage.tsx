@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { api } from '../../api/client';
 import type { TeamMember } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
@@ -9,6 +9,7 @@ import { Alert } from '../../ui/Alert';
 import { Button } from '../../ui/Button';
 import { SelectField, TextField } from '../../ui/Field';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
+import { Modal } from '../../ui/Modal';
 import { Spinner } from '../../ui/Spinner';
 
 const DEPUTY = { value: 'OPH_DEPUTY', label: 'Suppléant : agit à la place du Président en son absence' };
@@ -40,21 +41,16 @@ export function TeamPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof typeof empty, string>>>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
-  const firstName = useRef<HTMLInputElement>(null);
-  const inviteForm = useRef<HTMLFormElement>(null);
+  const [inviting, setInviting] = useState(false);
+  const [formNotice, setFormNotice] = useState<Notice | null>(null);
 
-  /** Fait défiler en douceur jusqu'au formulaire (sans animation si l'utilisateur l'a demandé) puis place le curseur dans le premier champ. */
-  function goToInvite() {
-    const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    inviteForm.current?.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
-    firstName.current?.focus({ preventScroll: true });
-  }
+  function openInvite() { setForm(empty); setErrors({}); setFormNotice(null); setInviting(true); }
 
   const refresh = () => qc.invalidateQueries({ queryKey: key });
   const invite = useMutation({
     mutationFn: (f: typeof empty) => api(`/organizations/${orgId}/members`, { method: 'POST', body: { ...f, jobTitle: f.jobTitle || undefined } }),
-    onSuccess: () => { setNotice({ kind: 'success', title: 'Invitation envoyée', text: `Un e-mail a été envoyé à ${form.email} pour activer son compte.` }); setForm(empty); refresh(); },
-    onError: (e) => setNotice(errorNotice(e, 'Invitation impossible')),
+    onSuccess: () => { setInviting(false); setNotice({ kind: 'success', title: 'Invitation envoyée', text: `Un e-mail a été envoyé à ${form.email} pour activer son compte.` }); setForm(empty); refresh(); },
+    onError: (e) => setFormNotice(errorNotice(e, 'Invitation impossible')),
   });
   const changeRole = useMutation({
     mutationFn: (v: { id: string; roleCode: string }) => api(`/organizations/${orgId}/members/${v.id}`, { method: 'PATCH', body: { roleCode: v.roleCode } }),
@@ -74,7 +70,7 @@ export function TeamPage() {
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    setNotice(null);
+    setFormNotice(null);
     const next: typeof errors = {};
     if (!form.firstName.trim()) next.firstName = 'Saisissez le prénom.';
     if (!form.lastName.trim()) next.lastName = 'Saisissez le nom.';
@@ -82,7 +78,7 @@ export function TeamPage() {
     else if (!EMAIL.test(form.email.trim())) next.email = 'Adresse e-mail invalide. Exemple : nom@association.ci';
     setErrors(next);
     if (Object.keys(next).length) {
-      setNotice({ kind: 'error', title: 'Le formulaire contient des erreurs', text: 'Corrigez les champs signalés.' });
+      setFormNotice({ kind: 'error', title: 'Le formulaire contient des erreurs', text: 'Corrigez les champs signalés.' });
       return;
     }
     invite.mutate({ ...form, email: form.email.trim(), firstName: form.firstName.trim(), lastName: form.lastName.trim() });
@@ -98,7 +94,7 @@ export function TeamPage() {
           <h1>Mon équipe</h1>
           <p>{manage ? 'Les personnes de votre organisation qui utilisent cet espace. Vous pouvez en inviter d’autres.' : 'Les personnes de votre organisation qui utilisent cet espace.'}</p>
         </div>
-        {manage && <div className="page-head__actions"><Button onClick={goToInvite}>Inviter un membre</Button></div>}
+        {manage && <div className="page-head__actions"><Button onClick={openInvite}>Inviter un membre</Button></div>}
       </div>
 
       <Flash notice={notice} />
@@ -148,21 +144,24 @@ export function TeamPage() {
         )}
       </section>
 
-      {manage && (
-        <form ref={inviteForm} id="invitation" className="panel" onSubmit={submit} noValidate aria-labelledby="inviter" style={{ scrollMarginTop: 'var(--space-5)' }}>
-          <h2 id="inviter" className="panel__title">Inviter une personne</h2>
+      {manage && inviting && (
+        <Modal title="Inviter une personne" onClose={() => setInviting(false)}>
           <p className="muted">Elle recevra un e-mail pour choisir son mot de passe. Votre organisation n’a qu’un seul Président.</p>
-          <div className="form-grid">
-            <TextField ref={firstName} label="Prénom" required autoComplete="off" value={form.firstName} onChange={(e) => set('firstName', e.target.value)} error={errors.firstName} />
-            <TextField label="Nom" required autoComplete="off" value={form.lastName} onChange={(e) => set('lastName', e.target.value)} error={errors.lastName} />
-            <TextField label="Adresse e-mail" type="email" required autoComplete="off" value={form.email} onChange={(e) => set('email', e.target.value)} error={errors.email} />
-            <TextField label="Fonction" autoComplete="off" value={form.jobTitle} onChange={(e) => set('jobTitle', e.target.value)} hint="Facultatif. Exemple : Secrétaire" />
-          </div>
-          <SelectField label="Ce que cette personne pourra faire" value={form.roleCode} options={roleOptions} onChange={(e) => set('roleCode', e.target.value)} />
-          <div className="form-actions">
-            <Button type="submit" loading={invite.isPending}>{invite.isPending ? 'Envoi…' : 'Envoyer l’invitation'}</Button>
-          </div>
-        </form>
+          <Flash notice={formNotice} />
+          <form id="invitation" onSubmit={submit} noValidate className="stack">
+            <div className="form-grid">
+              <TextField label="Prénom" required autoComplete="off" value={form.firstName} onChange={(e) => set('firstName', e.target.value)} error={errors.firstName} />
+              <TextField label="Nom" required autoComplete="off" value={form.lastName} onChange={(e) => set('lastName', e.target.value)} error={errors.lastName} />
+              <TextField label="Adresse e-mail" type="email" required autoComplete="off" value={form.email} onChange={(e) => set('email', e.target.value)} error={errors.email} />
+              <TextField label="Fonction" autoComplete="off" value={form.jobTitle} onChange={(e) => set('jobTitle', e.target.value)} hint="Facultatif. Exemple : Secrétaire" />
+            </div>
+            <SelectField label="Ce que cette personne pourra faire" value={form.roleCode} options={roleOptions} onChange={(e) => set('roleCode', e.target.value)} />
+            <div className="form-actions">
+              <Button type="submit" loading={invite.isPending}>{invite.isPending ? 'Envoi…' : 'Envoyer l’invitation'}</Button>
+              <Button variant="secondary" onClick={() => setInviting(false)}>Annuler</Button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );

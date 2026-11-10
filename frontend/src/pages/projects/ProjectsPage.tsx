@@ -9,7 +9,8 @@ import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { Alert } from '../../ui/Alert';
 import { Attachments } from '../../ui/Attachments';
-import { Button, LinkButton } from '../../ui/Button';
+import { Button } from '../../ui/Button';
+import { Modal } from '../../ui/Modal';
 import { TextAreaField, TextField } from '../../ui/Field';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { History } from '../../ui/History';
@@ -139,9 +140,35 @@ function ProjectCard({ p, showProgress }: { p: Project; showProgress: boolean })
   );
 }
 
+/** Fenêtre « Proposer un projet » : même formulaire que la page dédiée ; après envoi, elle se ferme et la liste se rafraîchit. */
+function ProjectCreateModal({ onClose, onDone }: { onClose: () => void; onDone: (n: Notice) => void }) {
+  const qc = useQueryClient();
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [busy, setBusy] = useState<Intent | null>(null);
+  async function save(v: ProjectValues, intent: Intent, files: NewFiles) {
+    setNotice(null); setBusy(intent);
+    let created: Project;
+    try { created = await api<Project>('/projects', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
+    catch (e) { setNotice(errorNotice(e, 'Envoi impossible')); setBusy(null); return; }
+    const failed = await uploadNewFiles(`/projects/${created.id}`, files);
+    void qc.invalidateQueries({ queryKey: ['projects'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
+    const f = FLASHES[intent === 'submit' ? 'submitted' : 'draft'];
+    onDone({ kind: 'success', title: f.title, text: failed.length ? `${f.text} Ces fichiers n’ont pas pu être envoyés : ${failed.join(', ')}. Ajoutez-les depuis la page du projet.` : f.text });
+  }
+  return (
+    <Modal title="Proposer un projet" size="lg" onClose={onClose}>
+      <p className="muted">Enregistrez un brouillon pour continuer plus tard, ou soumettez-le à la validation de la CAPH-CI : il n’est jamais validé automatiquement.</p>
+      <Flash notice={notice} />
+      <ProjectForm initial={emptyProject} creating busy={busy} onSave={(v, i, f) => void save(v, i, f)} onCancel={onClose} />
+    </Modal>
+  );
+}
+
 export function ProjectsPage() {
   usePageTitle('Projets');
   const { can } = useAuth();
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const f = useListParams();
   const filter = f.get('filter') || 'ALL';
   const [search, setSearch] = useState(f.get('q'));
@@ -159,8 +186,10 @@ export function ProjectsPage() {
           <h1>Projets</h1>
           <p>Consultez les projets des organisations et suivez ceux de la vôtre. Chaque nouveau projet est validé par la CAPH-CI avant d’être partagé.</p>
         </div>
-        {can('project.propose') && <div className="page-head__actions"><LinkButton to="/espace/projets/nouveau">+ Proposer un projet</LinkButton></div>}
+        {can('project.propose') && <div className="page-head__actions"><Button onClick={() => setAdding(true)}>+ Proposer un projet</Button></div>}
       </header>
+      <Flash notice={notice} />
+      {adding && <ProjectCreateModal onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
       <div className="stack">
         <ul className="chips" aria-label="Filtrer les projets">
           {Object.entries(PROJECT_FILTERS).map(([value, label]) => (
@@ -168,8 +197,8 @@ export function ProjectsPage() {
           ))}
         </ul>
         <form className="panel" role="search" onSubmit={(e) => { e.preventDefault(); f.set('q', search.trim()); }}>
-          <div className="filters">
-            <TextField label="Rechercher un projet" type="search" value={search} onChange={(e) => setSearch(e.target.value)} hint="Par nom, zone ou organisation." />
+          <div className="filters filters--search">
+            <TextField label="Rechercher un projet" type="search" placeholder="Nom, zone ou organisation" value={search} onChange={(e) => setSearch(e.target.value)} />
             <div><Button type="submit" variant="secondary">Rechercher</Button></div>
           </div>
         </form>

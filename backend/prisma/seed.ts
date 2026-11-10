@@ -239,7 +239,7 @@ async function seedDemo() {
   });
 
   const members: [string, string, string, string, string][] = [
-    ['awa.kone@horizon-inclusif.example', 'Awa', 'Koné', 'OPH_PRESIDENT', 'Présidente'],
+    ['amari.lattro@horizon-inclusif.example', 'Amari', 'Lattro', 'OPH_PRESIDENT', 'Présidente'],
     ['koffi.yao@horizon-inclusif.example', 'Koffi', 'Yao', 'OPH_CONTRIBUTOR', 'Chargé de communication'],
     ['fatou.diallo@horizon-inclusif.example', 'Fatou', 'Diallo', 'OPH_VIEWER', 'Membre'],
   ];

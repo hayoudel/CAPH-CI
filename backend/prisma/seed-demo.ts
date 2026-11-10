@@ -83,9 +83,9 @@ type Actor = { orgId: string; userId: string; name: string };
 async function ensureOrgs(): Promise<Record<string, Actor>> {
   const out: Record<string, Actor> = {};
   const horizon = await prisma.organization.findUnique({ where: { name: 'Association Horizon Inclusif' } });
-  const awa = await prisma.user.findUnique({ where: { email: 'awa.kone@horizon-inclusif.example' } });
-  if (!horizon || !awa) throw new Error('Association Horizon Inclusif introuvable : lancez d’abord le seed de base avec SEED_DEMO=true (npx prisma db seed).');
-  out.horizon = { orgId: horizon.id, userId: awa.id, name: horizon.name };
+  const amari = await prisma.user.findUnique({ where: { email: 'amari.lattro@horizon-inclusif.example' } });
+  if (!horizon || !amari) throw new Error('Association Horizon Inclusif introuvable : lancez d’abord le seed de base avec SEED_DEMO=true (npx prisma db seed).');
+  out.horizon = { orgId: horizon.id, userId: amari.id, name: horizon.name };
   const deputy = await ensureUser('mariam.traore@horizon-inclusif.example', 'Mariam', 'Traoré', 'Vice-présidente');
   await ensureMember(deputy.id, horizon.id, 'OPH_DEPUTY');
   for (const o of ORGS) {

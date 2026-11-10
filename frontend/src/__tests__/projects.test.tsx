@@ -43,14 +43,14 @@ describe('page Projets', () => {
     expect(await screen.findByRole('link', { name: 'Atelier numérique' })).toBeInTheDocument();
     expect(screen.getByText('Association Test')).toBeInTheDocument();
     expect(screen.queryByText(/Avancement/)).toBeNull(); // aucun pourcentage inventé
-    expect(screen.queryByRole('link', { name: '+ Proposer un projet' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '+ Proposer un projet' })).toBeNull();
     expect(within(screen.getByRole('list', { name: 'Filtrer les projets' })).getAllByRole('button')).toHaveLength(5);
   });
   it('montre le bouton au Président / Suppléant, et un filtre vide un message clair', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [], meta: { page: 1, limit: 12, total: 0, totalPages: 1 } }));
     auth((p) => p === 'project.propose');
     render(wrap(<ProjectsPage />));
-    expect(await screen.findByRole('link', { name: '+ Proposer un projet' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '+ Proposer un projet' })).toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole('button', { name: 'Projets terminés' }));
     expect(await screen.findByText('Aucun projet terminé pour le moment.')).toBeInTheDocument();
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain('filter=COMPLETED');
@@ -61,5 +61,36 @@ describe('page Projets', () => {
     render(wrap(<ProjectsPage />));
     expect(await screen.findByText(/Avancement : 40 %/)).toBeInTheDocument();
     expect(screen.getByText(/24 jeunes formés/)).toBeInTheDocument();
+  });
+});
+
+describe('ajout d’un projet en fenêtre modale', () => {
+  it('ouvre le formulaire dans une fenêtre, se ferme avec ×, Annuler ou un clic à côté', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [], meta: { page: 1, limit: 12, total: 0, totalPages: 1 } }));
+    auth((p) => p === 'project.propose');
+    render(wrap(<ProjectsPage />));
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: '+ Proposer un projet' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Proposer un projet' });
+    expect(within(dialog).getByLabelText(/Nom du projet/)).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Fermer la fenêtre' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    await u.click(screen.getByRole('button', { name: '+ Proposer un projet' }));
+    await u.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Annuler' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    await u.click(screen.getByRole('button', { name: '+ Proposer un projet' }));
+    const backdrop = (await screen.findByRole('dialog')).parentElement as HTMLElement;
+    await u.click(backdrop);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+  it('affiche les erreurs de validation dans la fenêtre sans la fermer', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [], meta: { page: 1, limit: 12, total: 0, totalPages: 1 } }));
+    auth((p) => p === 'project.propose');
+    render(wrap(<ProjectsPage />));
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: '+ Proposer un projet' }));
+    await u.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Soumettre à la validation' }));
+    expect(await screen.findByText('Le formulaire contient des erreurs')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

@@ -49,9 +49,9 @@ export function DocumentsPage() {
             <SelectField label="Catégorie" value={f.get('category')} placeholder="Toutes les catégories"
               options={Object.entries(DOCUMENT_CATEGORIES).map(([value, label]) => ({ value, label }))} onChange={(e) => f.set('category', e.target.value)} />
           </div>
-          <div className="row">
-            <Button type="submit">Rechercher</Button>
+          <div className="row row--end">
             {hasFilter && <Button variant="secondary" onClick={() => { setText(''); f.reset(); }}>Effacer la recherche</Button>}
+            <Button type="submit">Rechercher</Button>
           </div>
         </form>
 
