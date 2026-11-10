@@ -4,6 +4,7 @@ import { useNavigation } from '../context/NavigationContext';
 import QueryState from '../components/QueryState';
 import { useDomains, useNews, useProjects } from '../hooks/queries';
 import type { Domain, NewsItem, Project } from '../types';
+import { Play } from 'lucide-react';
 
 const statusColor = (s: string) =>
   s === 'En cours' ? 'bg-green-100 text-green-700' : s === 'Terminé' ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-700';
@@ -31,6 +32,7 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
     const videos = project.media?.filter(m => m.type === 'video') ?? [];
     const allMedia = [...photos, ...videos];
     const lightboxItem = allMedia.find(m => m.id === lightboxId);
+
     const relatedNews = newsItems.filter(item => project.relatedNewsIds.includes(item.id));
 
     return (
@@ -51,26 +53,51 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
             aria-label={lightboxItem.title}
           >
             <div className="max-w-4xl w-full" onClick={e => e.stopPropagation()}>
+
               <div className="relative rounded-xl overflow-hidden bg-black">
-                <img src={lightboxItem.src} alt={lightboxItem.title} className="w-full max-h-[72vh] object-contain" />
-                {lightboxItem.type === 'video' && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
-                      <span className="text-3xl ml-1.5" aria-hidden="true">▶</span>
-                    </div>
+                {lightboxItem.type === 'video' ? (
+                  <video
+                    key={lightboxItem.id}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full max-h-[72vh] object-contain"
+                    onError={(e) => {
+                      console.error(
+                        "Erreur de lecture vidéo :",
+                        lightboxItem.src,
+                        e.currentTarget.error
+                      );
+                    }}
+                  >
+                    <source src={lightboxItem.src} type="video/mp4" />
+                    Votre navigateur ne prend pas en charge la lecture vidéo.
+                  </video>
+                ) : (
+                  <img
+                    src={lightboxItem.src}
+                    alt={lightboxItem.title}
+                    className="w-full max-h-[72vh] object-contain"
+                  />
+                )}
+
+                {lightboxItem.type === 'video' && lightboxItem.subtitles && (
+                  <div className="absolute top-3 right-3 pointer-events-none">
+                    <span className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-bold">
+                      CC
+                    </span>
                   </div>
                 )}
-                {lightboxItem.subtitles && (
-                  <div className="absolute bottom-3 right-3">
-                    <span className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-bold">CC</span>
-                  </div>
-                )}
-                {lightboxItem.duration && (
-                  <div className="absolute bottom-3 left-3">
-                    <span className="px-2 py-1 rounded bg-black/60 text-white text-xs">{lightboxItem.duration}</span>
+
+                {lightboxItem.duration && lightboxItem.type === 'video' && (
+                  <div className="absolute bottom-16 left-3 pointer-events-none">
+                    <span className="px-2 py-1 rounded bg-black/60 text-white text-xs">
+                      {lightboxItem.duration}
+                    </span>
                   </div>
                 )}
               </div>
+
               <div className="mt-4 flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-white font-bold font-display">{lightboxItem.title}</h3>
@@ -165,141 +192,149 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
 
                 {/* Media gallery */}
                 <section aria-labelledby="media-title">
-                    <div className="flex items-center justify-between mb-5">
-                      <h2 id="media-title" className="text-xl font-bold text-slate-900 font-display">Photos et vidéos</h2>
-                      <div className="flex rounded-lg border border-slate-200 overflow-hidden text-sm">
-                        <button
-                          onClick={() => setMediaTab('photos')}
-                          className={`px-4 py-1.5 font-medium transition-colors ${mediaTab === 'photos' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
-                        >
-                          Photos ({photos.length})
-                        </button>
-                        <button
-                          onClick={() => setMediaTab('videos')}
-                          className={`px-4 py-1.5 font-medium transition-colors ${mediaTab === 'videos' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
-                        >
-                          Vidéos ({videos.length})
-                        </button>
-                      </div>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 id="media-title" className="text-xl font-bold text-slate-900 font-display">Photos et vidéos</h2>
+                    <div className="flex rounded-lg border border-slate-200 overflow-hidden text-sm">
+                      <button
+                        onClick={() => setMediaTab('photos')}
+                        className={`px-4 py-1.5 font-medium transition-colors ${mediaTab === 'photos' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                      >
+                        Photos ({photos.length})
+                      </button>
+                      <button
+                        onClick={() => setMediaTab('videos')}
+                        className={`px-4 py-1.5 font-medium transition-colors ${mediaTab === 'videos' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                      >
+                        Vidéos ({videos.length})
+                      </button>
                     </div>
+                  </div>
 
-                    {mediaTab === 'photos' && photos.length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {photos.map(photo => (
-                          <button
-                            key={photo.id}
-                            onClick={() => setLightboxId(photo.id)}
-                            className="group relative rounded-xl overflow-hidden aspect-video bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500"
-                            aria-label={`Agrandir la photo : ${photo.title}`}
-                          >
-                            <img src={photo.src} alt={photo.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">
-                              <div className="absolute bottom-0 left-0 right-0 p-3">
-                                <p className="text-white text-xs font-medium line-clamp-2">{photo.title}</p>
-                              </div>
-                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center">
-                                  <svg className="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                  </svg>
-                                </div>
+                  {mediaTab === 'photos' && photos.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {photos.map(photo => (
+                        <button
+                          key={photo.id}
+                          onClick={() => setLightboxId(photo.id)}
+                          className="group relative rounded-xl overflow-hidden aspect-video bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500"
+                          aria-label={`Agrandir la photo : ${photo.title}`}
+                        >
+                          <img src={photo.src} alt={photo.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">
+                            <div className="absolute bottom-0 left-0 right-0 p-3">
+                              <p className="text-white text-xs font-medium line-clamp-2">{photo.title}</p>
+                            </div>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                              <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center">
+                                <svg className="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                </svg>
                               </div>
                             </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-                    {mediaTab === 'videos' && videos.length > 0 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        {videos.map(video => (
-                          <button
-                            key={video.id}
-                            onClick={() => setLightboxId(video.id)}
-                            className="group text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all focus-visible:ring-2 focus-visible:ring-blue-500"
-                            aria-label={`Lire la vidéo : ${video.title}`}
-                          >
-                            <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                              <img src={video.src} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              <div className="absolute inset-0 bg-black/25 flex items-center justify-center" aria-hidden="true">
-                                <div className="w-14 h-14 rounded-full bg-white/90 group-hover:bg-white flex items-center justify-center transition-colors shadow-lg">
-                                  <span className="text-2xl ml-1">▶</span>
-                                </div>
+                  {mediaTab === 'videos' && videos.length > 0 && (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {videos.map(video => (
+                        <button
+                          key={video.id}
+                          onClick={() => {
+
+                            setLightboxId(video.id);
+                          }}
+                          className="group text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
+                          aria-label={`Lire la vidéo : ${video.title}`}
+                        >
+                          <div className="relative aspect-video bg-slate-100 overflow-hidden">
+                            <video
+                              src={video.src}
+                              preload="metadata"
+                              className="w-full h-full object-cover"
+                              muted
+                            />
+                            <div className="absolute inset-0 bg-black/25 flex items-center justify-center" aria-hidden="true">
+                              <div className="w-14 h-14 rounded-full bg-white/90 group-hover:bg-white flex items-center justify-center transition-colors shadow-lg">
+                                <Play size={20} className="text-blue-600 fill-blue-600" />
                               </div>
-                              {video.subtitles && (
-                                <div className="absolute bottom-2 right-2">
-                                  <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-xs font-bold">CC</span>
-                                </div>
-                              )}
-                              {video.duration && (
-                                <div className="absolute bottom-2 left-2">
-                                  <span className="px-2 py-0.5 rounded bg-black/60 text-white text-xs">{video.duration}</span>
-                                </div>
-                              )}
                             </div>
-                            <div className="p-4">
-                              <h3 className="font-bold text-slate-900 font-display text-sm line-clamp-2">{video.title}</h3>
-                              {video.subtitles && <p className="text-slate-400 text-xs mt-1">✓ Sous-titres disponibles</p>}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {mediaTab === 'videos' && videos.length === 0 && (
-                      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                        <p className="text-sm font-medium text-slate-700">Aucune vidéo publiée pour le moment</p>
-                        <p className="text-xs text-slate-500 mt-1">Les reportages et témoignages liés au projet seront ajoutés ici.</p>
-                      </div>
-                    )}
+                            {video.subtitles && (
+                              <div className="absolute bottom-2 right-2">
+                                <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-xs font-bold">CC</span>
+                              </div>
+                            )}
+                            {video.duration && (
+                              <div className="absolute bottom-2 left-2">
+                                <span className="px-2 py-0.5 rounded bg-black/60 text-white text-xs">{video.duration}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-4">
+                            <h3 className="font-bold text-slate-900 font-display text-sm line-clamp-2">{video.title}</h3>
+                            {video.subtitles && <p className="text-slate-400 text-xs mt-1">✓ Sous-titres disponibles</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {mediaTab === 'videos' && videos.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                      <p className="text-sm font-medium text-slate-700">Aucune vidéo publiée pour le moment</p>
+                      <p className="text-xs text-slate-500 mt-1">Les reportages et témoignages liés au projet seront ajoutés ici.</p>
+                    </div>
+                  )}
                 </section>
 
                 {/* Documents */}
-                  <section aria-labelledby="documents-title">
-                    <h2 id="documents-title" className="text-xl font-bold text-slate-900 font-display mb-5">Documents du projet</h2>
-                    <div className="space-y-3">
-                      {project.docs?.map(doc => (
-                        <div key={doc.id} className="flex items-start gap-4 p-4 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors bg-white">
-                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center" aria-hidden="true">
-                            <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-start justify-between gap-2">
-                              <div>
-                                <h3 className="font-semibold text-slate-900 text-sm font-display">{doc.title}</h3>
-                                <div className="flex items-center gap-3 mt-0.5">
-                                  <span className="text-xs text-blue-600 font-medium">{doc.type}</span>
-                                  <span className="text-xs text-slate-400">{doc.date}</span>
-                                  {doc.size && <span className="text-xs text-slate-400">{doc.size}</span>}
-                                </div>
-                              </div>
-                              <div className="flex gap-2 flex-shrink-0">
-                                <button className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-colors">
-                                  Consulter
-                                </button>
-                                {doc.downloadable && (
-                                  <button className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors flex items-center gap-1.5">
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                    </svg>
-                                    Télécharger
-                                  </button>
-                                )}
+                <section aria-labelledby="documents-title">
+                  <h2 id="documents-title" className="text-xl font-bold text-slate-900 font-display mb-5">Documents du projet</h2>
+                  <div className="space-y-3">
+                    {project.docs?.map(doc => (
+                      <div key={doc.id} className="flex items-start gap-4 p-4 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors bg-white">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center" aria-hidden="true">
+                          <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <h3 className="font-semibold text-slate-900 text-sm font-display">{doc.title}</h3>
+                              <div className="flex items-center gap-3 mt-0.5">
+                                <span className="text-xs text-blue-600 font-medium">{doc.type}</span>
+                                <span className="text-xs text-slate-400">{doc.date}</span>
+                                {doc.size && <span className="text-xs text-slate-400">{doc.size}</span>}
                               </div>
                             </div>
-                            <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">{doc.description}</p>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-colors">
+                                Consulter
+                              </button>
+                              {doc.downloadable && (
+                                <button className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  </svg>
+                                  Télécharger
+                                </button>
+                              )}
+                            </div>
                           </div>
+                          <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">{doc.description}</p>
                         </div>
-                      ))}
-                      {!project.docs?.length && (
-                        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                          <p className="text-sm font-medium text-slate-700">Aucun document public disponible</p>
-                          <p className="text-xs text-slate-500 mt-1">Les rapports, fiches et publications seront mis en ligne prochainement.</p>
-                        </div>
-                      )}
-                    </div>
-                  </section>
+                      </div>
+                    ))}
+                    {!project.docs?.length && (
+                      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                        <p className="text-sm font-medium text-slate-700">Aucun document public disponible</p>
+                        <p className="text-xs text-slate-500 mt-1">Les rapports, fiches et publications seront mis en ligne prochainement.</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
 
                 <section aria-labelledby="news-title">
                   <div className="flex items-end justify-between gap-4 mb-5">
@@ -366,7 +401,7 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
                           <img src={m.src} alt={m.title} className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
                           {m.type === 'video' && (
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center" aria-hidden="true">
-                              <span className="text-white text-xs">▶</span>
+                              <Play size={20} className="text-blue-600 fill-blue-600" />
                             </div>
                           )}
                         </button>
@@ -419,125 +454,125 @@ function ProjectsPageContent({ detail, projects, domains, newsItems }: Props & {
       />
       <section className="py-10 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4">
-           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
 
-      {/* COLONNE GAUCHE : RECHERCHE */}
-      <aside>
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">Recherche multicritère</p>
-              <h2 className="text-xl font-bold text-slate-900 font-display">Trouver un projet</h2>
-            </div>
-            {hasFilters && (
-              <button onClick={resetFilters} className="self-start md:self-auto text-sm font-semibold text-blue-700 hover:underline">Réinitialiser les filtres</button>
-            )}
-          </div>
-         <div className="grid grid-cols-3 lg:grid-cols-1 gap-2">
-            <div className="col-span-3 lg:col-span-1">
-              <label htmlFor="search-projects" className="block text-xs font-semibold text-slate-700 mb-1.5">Mot-clé</label>
-              <input
-                id="search-projects"
-                type="search"
-                placeholder="Titre, zone, partenaire…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none"
-              />
-            </div>
-           {[
-  { label: 'Domaine', value: domainFilter, change: setDomainFilter, options: domains.map(d => d.title), empty: 'Tous les domaines' },
-  { label: 'Région', value: regionFilter, change: setRegionFilter, options: regions, empty: 'Toutes les régions' },
-  { label: 'Année', value: yearFilter, change: setYearFilter, options: years.map(String), empty: 'Toutes les années' },
-  { label: 'Public cible', value: targetFilter, change: setTargetFilter, options: targets, empty: 'Tous les publics' },
-  { label: 'Partenaire', value: partnerFilter, change: setPartnerFilter, options: partners, empty: 'Tous les partenaires' },
-  { label: 'Statut', value: statusFilter, change: setStatusFilter, options: ['En cours', 'Terminé', 'Planifié'], empty: 'Tous les statuts' },
-].map(filter => (
-  <label key={filter.label} className="block min-w-0 text-[10px] sm:text-xs font-semibold text-slate-700">
-    {filter.label}
+            {/* COLONNE GAUCHE : RECHERCHE */}
+            <aside>
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">Recherche multicritère</p>
+                  <h2 className="text-xl font-bold text-slate-900 font-display">Trouver un projet</h2>
+                </div>
+                {hasFilters && (
+                  <button onClick={resetFilters} className="self-start md:self-auto text-sm font-semibold text-blue-700 hover:underline">Réinitialiser les filtres</button>
+                )}
+              </div>
+              <div className="grid grid-cols-3 lg:grid-cols-1 gap-2">
+                <div className="col-span-3 lg:col-span-1">
+                  <label htmlFor="search-projects" className="block text-xs font-semibold text-slate-700 mb-1.5">Mot-clé</label>
+                  <input
+                    id="search-projects"
+                    type="search"
+                    placeholder="Titre, zone, partenaire…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none"
+                  />
+                </div>
+                {[
+                  { label: 'Domaine', value: domainFilter, change: setDomainFilter, options: domains.map(d => d.title), empty: 'Tous les domaines' },
+                  { label: 'Région', value: regionFilter, change: setRegionFilter, options: regions, empty: 'Toutes les régions' },
+                  { label: 'Année', value: yearFilter, change: setYearFilter, options: years.map(String), empty: 'Toutes les années' },
+                  { label: 'Public cible', value: targetFilter, change: setTargetFilter, options: targets, empty: 'Tous les publics' },
+                  { label: 'Partenaire', value: partnerFilter, change: setPartnerFilter, options: partners, empty: 'Tous les partenaires' },
+                  { label: 'Statut', value: statusFilter, change: setStatusFilter, options: ['En cours', 'Terminé', 'Planifié'], empty: 'Tous les statuts' },
+                ].map(filter => (
+                  <label key={filter.label} className="block min-w-0 text-[10px] sm:text-xs font-semibold text-slate-700">
+                    {filter.label}
 
-    <select
-      value={filter.value}
-      onChange={e => filter.change(e.target.value)}
-      className="mt-1 w-full min-w-0 px-1.5 py-2 rounded-lg border border-slate-300 text-[10px] sm:text-xs font-normal text-slate-700 bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none"
-    >
-      <option value="">{filter.empty}</option>
+                    <select
+                      value={filter.value}
+                      onChange={e => filter.change(e.target.value)}
+                      className="mt-1 w-full min-w-0 px-1.5 py-2 rounded-lg border border-slate-300 text-[10px] sm:text-xs font-normal text-slate-700 bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none"
+                    >
+                      <option value="">{filter.empty}</option>
 
-      {filter.options.map(option => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
-  </label>
-))}
-          </div>
-          <p className="text-slate-600 text-sm mt-5" role="status">
-            <span className="font-bold text-slate-900">{filtered.length}</span> projet{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
-          </p>
-      </aside>
-        
-    
-  <div className="min-w-0">
-      <div className="py-12 bg-white">
-        <div>
-        <div className="max-w-7xl mx-auto px-4">
-          {filtered.length === 0 ? (
-            <div className="text-center py-20 text-slate-400">
-              <svg className="w-12 h-12 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
-              </svg>
-              <p className="font-medium text-slate-600">Aucun projet ne correspond à votre recherche.</p>
-              <button onClick={resetFilters} className="mt-4 text-sm font-semibold text-blue-700 hover:underline">Effacer les filtres</button>
-            </div>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => navigate('project-detail', p.id)}
-                  className="group text-left rounded-xl overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute top-3 left-3 flex gap-2">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColor(p.status)}`}>{p.status}</span>
-                    </div>
-                    {p.media && p.media.length > 0 && (
-                      <div className="absolute top-3 right-3">
-                        <span className="px-2 py-1 rounded-full text-xs bg-black/60 text-white font-medium inline-flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10H3V8Zm13.5 5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
-                          </svg>
-                          {p.media.length}
-                        </span>
+                      {filter.options.map(option => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
+              <p className="text-slate-600 text-sm mt-5" role="status">
+                <span className="font-bold text-slate-900">{filtered.length}</span> projet{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
+              </p>
+            </aside>
+
+
+            <div className="min-w-0">
+              <div className="py-12 bg-white">
+                <div>
+                  <div className="max-w-7xl mx-auto px-4">
+                    {filtered.length === 0 ? (
+                      <div className="text-center py-20 text-slate-400">
+                        <svg className="w-12 h-12 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
+                        </svg>
+                        <p className="font-medium text-slate-600">Aucun projet ne correspond à votre recherche.</p>
+                        <button onClick={resetFilters} className="mt-4 text-sm font-semibold text-blue-700 hover:underline">Effacer les filtres</button>
+                      </div>
+                    ) : (
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filtered.map(p => (
+                          <button
+                            key={p.id}
+                            onClick={() => navigate('project-detail', p.id)}
+                            className="group text-left rounded-xl overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                          >
+                            <div className="relative h-48 bg-slate-100 overflow-hidden">
+                              <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              <div className="absolute top-3 left-3 flex gap-2">
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColor(p.status)}`}>{p.status}</span>
+                              </div>
+                              {p.media && p.media.length > 0 && (
+                                <div className="absolute top-3 right-3">
+                                  <span className="px-2 py-1 rounded-full text-xs bg-black/60 text-white font-medium inline-flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10H3V8Zm13.5 5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                                    </svg>
+                                    {p.media.length}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs text-blue-600 font-medium">{p.domain}</span>
+                                <span className="text-slate-300">·</span>
+                                <span className="text-xs text-slate-500">{p.region}</span>
+                              </div>
+                              <h3 className="font-bold text-slate-900 font-display text-sm line-clamp-2 mb-2">{p.title}</h3>
+                              <p className="text-slate-500 text-xs line-clamp-2 mb-4">{p.description}</p>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-lg font-bold text-blue-600 font-display">{p.beneficiaries.toLocaleString('fr-FR')}</div>
+                                  <div className="text-slate-400 text-xs">bénéficiaires</div>
+                                </div>
+                                <span className="text-blue-600 text-xs font-medium group-hover:underline">Voir le projet →</span>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs text-blue-600 font-medium">{p.domain}</span>
-                      <span className="text-slate-300">·</span>
-                      <span className="text-xs text-slate-500">{p.region}</span>
-                    </div>
-                    <h3 className="font-bold text-slate-900 font-display text-sm line-clamp-2 mb-2">{p.title}</h3>
-                    <p className="text-slate-500 text-xs line-clamp-2 mb-4">{p.description}</p>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-lg font-bold text-blue-600 font-display">{p.beneficiaries.toLocaleString('fr-FR')}</div>
-                        <div className="text-slate-400 text-xs">bénéficiaires</div>
-                      </div>
-                      <span className="text-blue-600 text-xs font-medium group-hover:underline">Voir le projet →</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                </div>
+              </div>
             </div>
-          )}
           </div>
-          </div>
-        </div>
-        </div>
-         </div>
         </div>
       </section>
     </>

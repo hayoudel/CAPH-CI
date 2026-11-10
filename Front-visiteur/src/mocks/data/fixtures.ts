@@ -95,10 +95,9 @@ export const projects: Project[] = [
     relatedNewsIds: ['n2'],
     media: [
       { id: 'pm1', type: 'photo', title: ' Séance de formation professionnelle', src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&h=600&fit=crop&auto=format' },
-      { id: 'pm2', type: 'photo', title: ' Remise de diplômes — session juin 2026', src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&auto=format' },
-      { id: 'pm3', type: 'photo', title: ' Forum emploi inclusif — partenaires entreprises', src: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=600&fit=crop&auto=format' },
-      { id: 'pm4', type: 'video', title: ' Reportage EMPLOI+CI — RFI Afrique', src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '12:15' },
-      { id: 'pm5', type: 'video', title: ' Témoignage : Kouassi, bénéficiaire du programme', src: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '4:30' },
+      { id: 'pm2', type: 'photo', title: ' Remise de diplômes — session juin 2026', src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&h=600&fit=crop&auto=format' },
+      { id: 'pm4', type: 'video', title: ' Témoignage : Kouassi, bénéficiaire du programme', src: '/media/CAPH-CI—Vidéo-témoignage.mp4', subtitles: true, duration: '12:15' },
+      { id: 'pm5', type: 'video', title: ' Témoignage : Kouassi, bénéficiaire du programme', src: '/media/CAPH-CI—Vidéo-témoignage.mp4', subtitles: true, duration: '4:30' },
     ],
     docs: [
       { id: 'pd1', title: ' Rapport intermédiaire EMPLOI+CI 2025', type: 'Rapport PDF', description: 'Rapport semestriel présentant les résultats, les bénéficiaires touchés et les leçons apprises à mi-parcours du projet.', date: 'Juin 2026', downloadable: true, size: '3,2 Mo' },
@@ -131,7 +130,7 @@ export const projects: Project[] = [
     media: [
       { id: 'p2m1', type: 'photo', title: ' Classe inclusive — École primaire de Bouaké', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop&auto=format' },
       { id: 'p2m2', type: 'photo', title: ' Formation des enseignants', src: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop&auto=format' },
-      { id: 'p2m3', type: 'video', title: ' Visite de terrain — Écoles inclusives à Bouaké', src: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800&h=600&fit=crop&auto=format', subtitles: false, duration: '6:45' },
+      { id: 'p2m3', type: 'video', title: ' Une ONG et la CAPHCI offrent la magie de Noël aux enfants handicapés d Abobo', src: '/media/Côte d’Ivoire _ Une ONG et la CAPHCI offrent la magie de Noël aux enfants handicapés d Abobo.mp4', },
     ],
     docs: [
       { id: 'p2d1', title: ' Guide de l\'enseignant inclusif', type: 'Guide PDF', description: 'Manuel pratique pour les enseignants accompagnant des élèves en situation de handicap.', date: 'Septembre 2025', downloadable: true, size: '2,1 Mo' },
@@ -226,24 +225,7 @@ export const newsItems: NewsItem[] = [
     image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=500&fit=crop&auto=format',
     content: '',
   },
-  {
-    id: 'n2',
-    title: ' Forum national sur l\'emploi inclusif : 3 000 participants à Abidjan',
-    category: 'Activités institutionnelles',
-    date: '3 septembre 2026',
-    summary: 'La première édition du Forum national sur l\'emploi inclusif a réuni entreprises, institutions et organisations de personnes handicapées pour construire une Côte d\'Ivoire du travail pour tous.',
-    image: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=500&fit=crop&auto=format',
-    content: '',
-  },
-  {
-    id: 'n3',
-    title: ' Lancement du programme de bourses universitaires pour étudiants handicapés 2026-2027',
-    category: 'Formations',
-    date: '22 août 2026',
-    summary: 'La CAPH-CI, en partenariat avec la Fondation pour l\'Éducation en Afrique, ouvre 150 bourses pour des étudiants en situation de handicap dans les universités ivoiriennes.',
-    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=500&fit=crop&auto=format',
-    content: '',
-  },
+ 
   {
     id: 'n4',
     title: ' Mission de terrain : les délégués de Man et Daloa forment 200 acteurs locaux',
@@ -268,7 +250,7 @@ export const newsItems: NewsItem[] = [
     category: 'Communiqués',
     date: '15 juillet 2026',
     summary: 'À l\'issue du vote du budget national 2026, la CAPH-CI se félicite de l\'inscription d\'une ligne budgétaire spécifique de 4,5 milliards FCFA dédiée à l\'inclusion des personnes handicapées.',
-    image: 'https://images.unsplash.com/photo-1569025691351-55e47b083bf2?w=800&h=500&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=500&fit=crop&auto=format',
     content: '',
   },
 ];
@@ -449,18 +431,22 @@ export const mediaItems: MediaItem[] = [
     date: 'Date à confirmer',
     src: '/media/caph-ci-activite-05.jpg',
   },
-  { id: 'm1', type: 'photo', title: ' Forum national sur l\'emploi inclusif — Abidjan 2026', category: 'Activités', date: 'Septembre 2026', src: 'https://images.unsplash.com/photo-1491895200222-0fc4a4c35e18?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm2', type: 'photo', title: ' Remise de diplômes — Programme EMPLOI+CI', category: 'Projets', date: 'Août 2026', src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&auto=format' },
+  {
+    id: 'caph-video-1',
+    type: 'video',
+    title: 'Témoignage d un Leader d organisation de personne handicapées ',
+    category: 'Partenariats',
+    date: 'Date à confirmer',
+    src: '/media/CAPH-CI—Vidéo-témoignage.mp4',
+  },
+  
   { id: 'm3', type: 'photo', title: ' Formation des enseignants — Écoles inclusives Bouaké', category: 'Projets', date: 'Juillet 2026', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop&auto=format' },
   { id: 'm4', type: 'photo', title: ' Assemblée générale CAPH-CI — Yamoussoukro', category: 'Institutionnel', date: 'Juin 2026', src: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=600&fit=crop&auto=format' },
   { id: 'm5', type: 'photo', title: ' Signature accord ministère — Abidjan', category: 'Partenariats', date: 'Mai 2026', src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=600&fit=crop&auto=format' },
   { id: 'm6', type: 'photo', title: ' Sensibilisation communautaire — Délégation de Man', category: 'Délégations', date: 'Avril 2026', src: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm7', type: 'video', title: ' Interview : La CAPH-CI, 10 ans d\'engagement pour l\'inclusion', category: 'Institutionnel', date: 'Septembre 2026', src: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '8:42' },
-  { id: 'm8', type: 'video', title: ' Reportage : Le programme EMPLOI+CI en action', category: 'Projets', date: 'Août 2026', src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '12:15' },
-  { id: 'm9', type: 'video', title: ' Témoignage : Aissatou, bénéficiaire du programme d\'inclusion', category: 'Témoignages', date: 'Juillet 2026', src: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&h=600&fit=crop&auto=format', subtitles: true, duration: '4:30' },
-  { id: 'm10', type: 'video', title: ' Campagne 2026 — Ensemble pour une CI inclusive', category: 'Campagnes', date: 'Juin 2026', src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop&auto=format', subtitles: false, duration: '3:20' },
+  { id: 'm7', type: 'video', title: ' Interview : La CAPH-CI, 10 ans d\'engagement pour l\'inclusion', category: 'Institutionnel', date: 'Septembre 2026', src: '/media/Côte d’Ivoire _ Une ONG et la CAPHCI offrent la magie de Noël aux enfants handicapés d Abobo.mp4', subtitles: true },
   { id: 'm11', type: 'photo', title: ' Remise de matériels adaptés — Programme accessibilité Abidjan', category: 'Projets', date: 'Mars 2026', src: 'https://images.unsplash.com/photo-1499540633125-484965b60031?w=800&h=600&fit=crop&auto=format' },
-  { id: 'm12', type: 'photo', title: ' Journée internationale des personnes handicapées — 3 décembre 2025', category: 'Événements', date: 'Décembre 2025', src: 'https://images.unsplash.com/photo-1569025691351-55e47b083bf2?w=800&h=600&fit=crop&auto=format' },
+  
 ];
 
 export const agendaEvents: AgendaEvent[] = [

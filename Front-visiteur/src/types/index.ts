@@ -18,6 +18,8 @@ export type ProjectMedia = {
   src: string;
   subtitles?: boolean;
   duration?: string;
+
+
 };
 
 export type ProjectDoc = {
@@ -137,6 +139,7 @@ export type MediaItem = {
   src: string;
   subtitles?: boolean;
   duration?: string;
+
 };
 
 export type AgendaEvent = {

@@ -26,17 +26,17 @@ function MediaPageContent({ mediaItems }: { mediaItems: MediaItem[] }) {
     const matchSearch = !search || m.title.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchProject && matchSearch;
   });
-const selectedIndex = filtered.findIndex(photo => photo.id === selected);
+  const selectedIndex = filtered.findIndex(photo => photo.id === selected);
 
-const showPrevious = () => {
-  const previousIndex = (selectedIndex - 1 + filtered.length) % filtered.length;
-  setSelected(filtered[previousIndex].id);
-};
+  const showPrevious = () => {
+    const previousIndex = (selectedIndex - 1 + filtered.length) % filtered.length;
+    setSelected(filtered[previousIndex].id);
+  };
 
-const showNext = () => {
-  const nextIndex = (selectedIndex + 1) % filtered.length;
-  setSelected(filtered[nextIndex].id);
-};
+  const showNext = () => {
+    const nextIndex = (selectedIndex + 1) % filtered.length;
+    setSelected(filtered[nextIndex].id);
+  };
   const selectedItem = mediaItems.find(m => m.id === selected);
 
   // Visionneuse accessible : Échap ferme, ←/→ naviguent, focus placé puis restitué.
@@ -92,92 +92,111 @@ const showNext = () => {
         </div>
       </div>
 
+
       {/* Lightbox */}
-     {/* Lightbox */}
-{selected && selectedItem && (
-  <div
-    className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4"
-    onClick={() => setSelected(null)}
-    role="dialog"
-    aria-modal="true"
-    aria-label={selectedItem.title}
-  >
-    <div
-      className="max-w-4xl w-full bg-white rounded-2xl overflow-hidden"
-      onClick={e => e.stopPropagation()}
-    >
-      <div className="relative">
-
-        <img
-          src={selectedItem.src}
-          alt={selectedItem.title}
-          className="w-full h-80 object-cover"
-        />
-
-        {/* Bouton précédent */}
-        <button
-          onClick={showPrevious}
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-blue-600 transition-colors"
-          aria-label="Photo précédente"
+      {selected && selectedItem && (
+        <div
+          className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelected(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={selectedItem.title}
         >
-          &#10094;
-        </button>
+          <div
+            className="max-w-4xl w-full bg-white rounded-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
 
-        {/* Bouton suivant */}
-        <button
-          onClick={showNext}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-blue-600 transition-colors"
-          aria-label="Photo suivante"
-        >
-          &#10095;
-        </button>
+            <div className="relative bg-black">
+              {selectedItem.type === 'video' ? (
+                <video
+                  key={selectedItem.id}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full max-h-[75vh] object-contain"
+                  onError={(e) => {
+                    console.error(
+                      'Erreur de lecture vidéo :',
+                      selectedItem.src,
+                      e.currentTarget.error
+                    );
+                  }}
+                >
+                  <source src={selectedItem.src} />
+                  Votre navigateur ne prend pas en charge la lecture vidéo.
+                </video>
+              ) : (
+                <img
+                  src={selectedItem.src}
+                  alt={selectedItem.title}
+                  className="w-full h-80 object-cover"
+                />
+              )}
 
-        {selectedItem.type === 'video' && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
-              <span className="text-2xl ml-1" aria-hidden="true">▶</span>
+              {/* Bouton précédent */}
+              {filtered.length > 1 && (
+                <button
+                  onClick={showPrevious}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-blue-600 transition-colors"
+                  aria-label="Média précédent"
+                >
+                  &#10094;
+                </button>
+              )}
+
+              {/* Bouton suivant */}
+              {filtered.length > 1 && (
+                <button
+                  onClick={showNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-blue-600 transition-colors"
+                  aria-label="Média suivant"
+                >
+                  &#10095;
+                </button>
+              )}
+
+              {selectedItem.type === 'video' && selectedItem.subtitles && (
+                <div className="absolute bottom-3 right-3 pointer-events-none">
+                  <span className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-bold">
+                    CC
+                  </span>
+                </div>
+              )}
+            </div>
+
+
+            <div className="p-6 flex items-start justify-between">
+              <div>
+                <div className="flex gap-2 mb-2">
+                  <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                    {selectedItem.category}
+                  </span>
+                  <span className="text-slate-400 text-xs">{selectedItem.date}</span>
+                  {selectedItem.duration && (
+                    <span className="text-slate-400 text-xs">{selectedItem.duration}</span>
+                  )}
+                </div>
+
+                <h3 className="font-bold text-slate-900 font-display">
+                  {selectedItem.title}
+                </h3>
+              </div>
+
+              <button
+                ref={closeRef}
+                onClick={() => setSelected(null)}
+                className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                aria-label="Fermer"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
-        )}
-
-        {selectedItem.subtitles && (
-          <div className="absolute bottom-3 right-3">
-            <span className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-bold">CC</span>
-          </div>
-        )}
-      </div>
-
-      <div className="p-6 flex items-start justify-between">
-        <div>
-          <div className="flex gap-2 mb-2">
-            <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-              {selectedItem.category}
-            </span>
-            <span className="text-slate-400 text-xs">{selectedItem.date}</span>
-            {selectedItem.duration && (
-              <span className="text-slate-400 text-xs">{selectedItem.duration}</span>
-            )}
-          </div>
-
-          <h3 className="font-bold text-slate-900 font-display">
-            {selectedItem.title}
-          </h3>
         </div>
-
-        <button
-          ref={closeRef}
-          onClick={() => setSelected(null)}
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600"
-          aria-label="Fermer"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       <section className="py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4">
@@ -260,23 +279,29 @@ const showNext = () => {
                   className="group text-left rounded-xl overflow-hidden border border-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
                   aria-label={`Voir la vidéo : ${video.title}`}
                 >
-                  <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                    <img src={video.src} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center" aria-hidden="true">
-                      <div className="w-12 h-12 rounded-full bg-white/90 group-hover:bg-white flex items-center justify-center transition-colors shadow-lg">
-                        <span className="text-lg ml-0.5">▶</span>
+                  <div className="relative aspect-video bg-black overflow-hidden">
+
+                    <video
+                      src={video.src}
+                      preload="metadata"
+                      className="w-full h-full object-cover"
+                      muted
+                    />
+
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center pointer-events-none">
+                      <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                        <span className="text-xl text-blue-600">▶</span>
                       </div>
                     </div>
-                    {video.subtitles && (
-                      <div className="absolute bottom-2 right-2">
-                        <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-xs font-bold" title="Sous-titres disponibles">CC</span>
-                      </div>
-                    )}
+
                     {video.duration && (
                       <div className="absolute bottom-2 left-2">
-                        <span className="px-2 py-0.5 rounded bg-black/60 text-white text-xs">{video.duration}</span>
+                        <span className="px-2 py-0.5 rounded bg-black/70 text-white text-xs">
+                          {video.duration}
+                        </span>
                       </div>
                     )}
+
                   </div>
                   <div className="p-4">
                     <div className="flex items-center gap-2 mb-1.5">
