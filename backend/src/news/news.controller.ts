@@ -40,7 +40,7 @@ export class NewsController {
   submit(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.submit(u, id); }
 
   @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT) @RequirePermissions(P.NEWS_PROPOSE)
-  @ApiOperation({ summary: 'Supprimer un brouillon' })
+  @ApiOperation({ summary: 'Supprimer une proposition non encore examinée (brouillon, soumise ou à corriger)' })
   async remove(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { await this.svc.removeDraft(u, id); }
 
   @Post(':id/cover') @RequirePermissions(P.NEWS_PROPOSE) @UseInterceptors(uploadOne()) @ApiConsumes('multipart/form-data') @ApiBody(fileBody({}))

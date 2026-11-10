@@ -1,4 +1,5 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { assertOwnerOrManager } from '../common/utils/review';
 import { NewsStatus, Prisma } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
@@ -42,7 +43,7 @@ export class NewsService {
       newsDate: n.newsDate, hasCover: !!n.coverFileId, isDemo: n.isDemo,
       status: n.status, statusLabel: LABELS[n.status], reviewerNote: n.reviewerNote, createdAt: n.createdAt, submittedAt: n.submittedAt, reviewedAt: n.reviewedAt, updatedAt: n.updatedAt,
       history: n.history.map((h) => ({ id: h.id, status: h.toStatus, statusLabel: LABELS[h.toStatus], note: h.note, date: h.createdAt })),
-      author: `${n.author.firstName} ${n.author.lastName}`, canEdit: EDITABLE.includes(n.status),
+      author: `${n.author.firstName} ${n.author.lastName}`, canEdit: EDITABLE.includes(n.status), authorId: n.authorId,
       attachments: n.attachments.map((a) => ({ id: a.id, originalName: a.file.originalName, mimeType: a.file.mimeType, sizeBytes: a.file.sizeBytes })),
     };
   }
@@ -68,6 +69,7 @@ export class NewsService {
   }
   private async findOwnEditable(u: AuthenticatedUser, id: string) {
     const n = await this.findOwn(u, id);
+    assertOwnerOrManager(u, false, { organizationId: u.organizationId, authorId: n.authorId });
     if (!EDITABLE.includes(n.status)) {
       throw new ConflictException({ code: 'NOT_EDITABLE', message: 'Cette proposition a été traitée et ne peut plus être modifiée.' });
     }
@@ -146,14 +148,15 @@ export class NewsService {
     return this.view(await this.findOwn(u, id));
   }
 
-  /** Seul un brouillon peut être supprimé. */
+  /** Supprimable tant que la CAPH-CI n'a pas tranché : brouillon, soumise ou à corriger. */
   async removeDraft(u: AuthenticatedUser, id: string) {
     const cur = await this.findOwn(u, id);
-    if (cur.status !== 'DRAFT') throw new ConflictException({ code: 'NOT_A_DRAFT', message: 'Seul un brouillon peut être supprimé.' });
+    assertOwnerOrManager(u, false, { organizationId: u.organizationId, authorId: cur.authorId });
+    if (!EDITABLE.includes(cur.status)) throw new ConflictException({ code: 'NOT_EDITABLE', message: 'Cette proposition a été traitée et ne peut plus être supprimée.' });
     await this.prisma.newsProposal.delete({ where: { id } });
     for (const a of cur.attachments) await this.files.discard(a.file.id);
     if (cur.coverFileId) await this.files.discard(cur.coverFileId);
-    await this.audit.log({ action: 'news.draft_deleted', actorId: u.id, actorLabel: u.email, entityType: 'NewsProposal', entityId: id });
+    await this.audit.log({ action: 'news.deleted', actorId: u.id, actorLabel: u.email, entityType: 'NewsProposal', entityId: id });
   }
 
   async setCover(u: AuthenticatedUser, id: string, file: Express.Multer.File | undefined) {

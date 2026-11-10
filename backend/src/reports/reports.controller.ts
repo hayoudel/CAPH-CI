@@ -31,6 +31,10 @@ export class ReportsController {
   @ApiOperation({ summary: 'Modifier un rapport reçu ou à corriger (une correction le renvoie à la CAPH-CI)' })
   update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateReportDto) { return this.svc.update(u, id, dto); }
 
+  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT) @RequirePermissions(P.REPORT_CREATE)
+  @ApiOperation({ summary: 'Supprimer un rapport tant qu’il n’est pas en traitement (reçu ou correction demandée)' })
+  async remove(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { await this.svc.remove(u, id); }
+
   @Post(':id/attachments') @RequirePermissions(P.REPORT_CREATE) @UseInterceptors(uploadOne()) @ApiConsumes('multipart/form-data') @ApiBody(fileBody({}))
   @ApiOperation({ summary: 'Joindre un fichier (PDF, JPG ou PNG ; 5 maximum)' })
   attach(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @UploadedFile() file: Express.Multer.File) { return this.svc.addAttachment(u, id, file); }

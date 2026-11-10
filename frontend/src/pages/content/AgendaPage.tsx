@@ -6,8 +6,10 @@ import { EVENT_MODES, EVENT_STATUSES, EVENT_TYPES, formatDay } from '../../lib/f
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { useAuth } from '../../auth/AuthContext';
+import { mayModify } from '../../lib/ownership';
 import { Alert } from '../../ui/Alert';
 import { Button } from '../../ui/Button';
+import { ConfirmDelete, ItemActions } from '../../ui/ConfirmDelete';
 import { Flash, type Notice } from '../../ui/Flash';
 import { ReviewActions, ReviewInfo, REVIEW_OPTIONS } from '../../ui/Review';
 import { AddEventModal } from './AddModals';
@@ -30,10 +32,14 @@ function when(e: AgendaEvent) {
 export function AgendaPage() {
   usePageTitle('Agenda');
   const f = useListParams();
-  const { can } = useAuth();
+  const { can, user } = useAuth();
   const manage = can('event.manage');
   const canAdd = manage || can('event.propose');
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<AgendaEvent | null>(null);
+  const [deleting, setDeleting] = useState<AgendaEvent | null>(null);
+  /** Le personnel gère tout ; une OPH ne gère que ce que son organisation a ajouté. */
+  const mine = (e: AgendaEvent) => canAdd && (manage || (!!user?.organizationId && e.organization?.id === user.organizationId && mayModify(user, e.createdById)));
   const [notice, setNotice] = useState<Notice | null>(null);
   const past = f.get('when') === 'past';
   const query = { past: past || undefined, type: f.get('type') || undefined, review: f.get('review') || undefined, page: f.page, limit: 10 };
@@ -51,6 +57,8 @@ export function AgendaPage() {
       </header>
       <Flash notice={notice} />
       {adding && <AddEventModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
+      {editing && <AddEventModal proposer={!manage} edit={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Événement" title={deleting.title} path={`/events/${deleting.id}`} invalidate={['events']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
       <div className="stack">
         <div className="panel">
           <div className="filters">
@@ -88,6 +96,7 @@ export function AgendaPage() {
                   {e.description && <p style={{ marginBottom: 0 }}>{e.description}</p>}
                   <ReviewInfo item={e} />
                   <ReviewActions item={e} path="/events" canReview={manage} onNotice={setNotice} />
+                  {mine(e) && <ItemActions title={e.title} onEdit={() => { setNotice(null); setEditing(e); }} onDelete={() => { setNotice(null); setDeleting(e); }} />}
                 </article>
               </li>
             ))}

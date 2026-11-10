@@ -6,11 +6,13 @@ import { DOCUMENT_CATEGORIES, formatDate, formatSize } from '../../lib/format';
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { useAuth } from '../../auth/AuthContext';
+import { mayModify } from '../../lib/ownership';
 import { Alert } from '../../ui/Alert';
 import { Flash, type Notice } from '../../ui/Flash';
 import { ReviewInfo } from '../../ui/Review';
 import { AddDocumentModal } from './AddModals';
 import { Button } from '../../ui/Button';
+import { ConfirmDelete, ItemActions } from '../../ui/ConfirmDelete';
 import { DownloadButton } from '../../ui/DownloadButton';
 import { SelectField, TextField } from '../../ui/Field';
 import { Pager } from '../../ui/Pager';
@@ -22,7 +24,12 @@ export function DocumentsPage() {
   const { can } = useAuth();
   const manage = can('document.manage');
   const canAdd = manage || can('document.propose');
+  const { user } = useAuth();
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<LibraryDocument | null>(null);
+  const [deleting, setDeleting] = useState<LibraryDocument | null>(null);
+  /** Le personnel gère tout ; une OPH ne gère que ce que son organisation a ajouté. */
+  const mine = (d: LibraryDocument) => canAdd && (manage || (!!user?.organizationId && d.organization?.id === user.organizationId && mayModify(user, d.createdById)));
   const [notice, setNotice] = useState<Notice | null>(null);
   const [text, setText] = useState(f.get('q'));
   const query = { q: f.get('q') || undefined, category: f.get('category') || undefined, page: f.page, limit: 10 };
@@ -42,6 +49,8 @@ export function DocumentsPage() {
       </header>
       <Flash notice={notice} />
       {adding && <AddDocumentModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
+      {editing && <AddDocumentModal proposer={!manage} edit={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Document" title={deleting.title} path={`/documents/${deleting.id}`} invalidate={['documents']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
       <div className="stack">
         <form className="panel" role="search" aria-label="Rechercher un document" onSubmit={submit}>
           <div className="filters">
@@ -75,6 +84,7 @@ export function DocumentsPage() {
                   {d.description && <p>{d.description}</p>}
                   <ReviewInfo item={d} />
                   <DownloadButton path={`/documents/${d.id}/file`} name={d.file.originalName} label={`Télécharger « ${d.title} »`} />
+                  {mine(d) && <ItemActions title={d.title} onEdit={() => { setNotice(null); setEditing(d); }} onDelete={() => { setNotice(null); setDeleting(d); }} />}
                 </article>
               </li>
             ))}

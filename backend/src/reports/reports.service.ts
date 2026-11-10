@@ -1,4 +1,5 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { assertOwnerOrManager } from '../common/utils/review';
 import { Prisma, ReportStatus } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
@@ -45,7 +46,7 @@ export class ReportsService {
       periodStart: r.periodStart, periodEnd: r.periodEnd, status: r.status, statusLabel: STATUS_LABELS[r.status],
       reviewerNote: r.status === 'CORRECTION_REQUESTED' || r.reviewerNote ? r.reviewerNote : null,
       submittedAt: r.submittedAt, processedAt: r.processedAt, author: `${r.author.firstName} ${r.author.lastName}`,
-      canEdit: EDITABLE.includes(r.status), isDemo: r.isDemo,
+      canEdit: EDITABLE.includes(r.status), authorId: r.authorId, isDemo: r.isDemo,
       attachments: r.attachments.map((a) => ({ id: a.id, originalName: a.file.originalName, mimeType: a.file.mimeType, sizeBytes: a.file.sizeBytes })),
     };
   }
@@ -58,6 +59,7 @@ export class ReportsService {
   private async findEditable(u: AuthenticatedUser, id: string) {
     this.requireOrg(u);
     const r = await this.find(u, id);
+    assertOwnerOrManager(u, false, { organizationId: u.organizationId, authorId: r.authorId });
     if (!EDITABLE.includes(r.status)) {
       throw new ConflictException({ code: 'NOT_EDITABLE', message: 'Ce rapport est en cours de traitement et ne peut plus être modifié.' });
     }
@@ -106,6 +108,14 @@ export class ReportsService {
     });
     await this.audit.log({ action: 'report.updated', actorId: u.id, actorLabel: u.email, entityType: 'Report', entityId: id });
     return this.view(r);
+  }
+
+  /** Un rapport peut être supprimé tant que la CAPH-CI ne l'a pas pris en charge (reçu ou correction demandée). */
+  async remove(u: AuthenticatedUser, id: string) {
+    const cur = await this.findEditable(u, id);
+    await this.prisma.report.delete({ where: { id } }); // les pièces jointes (liens) partent avec lui
+    for (const a of cur.attachments) await this.files.discard(a.file.id);
+    await this.audit.log({ action: 'report.deleted', actorId: u.id, actorLabel: u.email, entityType: 'Report', entityId: id });
   }
 
   async addAttachment(u: AuthenticatedUser, id: string, file: Express.Multer.File | undefined) {

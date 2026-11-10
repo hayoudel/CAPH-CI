@@ -4,13 +4,13 @@ import { AuditService } from '../audit/audit.service';
 import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import { pageArgs, paginated } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { creationReview, decisionData, reviewScope } from '../common/utils/review';
+import { creationReview, decisionData, reviewScope, assertOwnerOrManager, backToPending } from '../common/utils/review';
 import { CreateEventDto, ListEventsQueryDto, UpdateEventDto } from './dto/events.dto';
 
 const NOT_FOUND = { code: 'EVENT_NOT_FOUND', message: 'Événement introuvable.' };
 const select = {
   id: true, type: true, title: true, description: true, startsAt: true, endsAt: true, mode: true, location: true, status: true, archivedAt: true,
-  reviewStatus: true, reviewNote: true, isDemo: true, organization: { select: { id: true, name: true } },
+  reviewStatus: true, reviewNote: true, isDemo: true, createdById: true, organization: { select: { id: true, name: true } },
   region: { select: { id: true, name: true } },
 } as const;
 
@@ -77,12 +77,24 @@ export class EventsService {
   }
 
   async update(u: AuthenticatedUser, id: string, dto: UpdateEventDto) {
-    const cur = await this.find(id);
+    const manage = this.manages(u);
+    const cur = await this.find(id, manage ? {} : this.memberScope(u)); // l'envoi en attente d'une autre OPH reste introuvable (404)
+    assertOwnerOrManager(u, manage, cur);
     this.check(dto.startsAt ?? cur.startsAt, dto.endsAt ?? cur.endsAt);
     await this.checkRegion(dto.regionId);
-    const e = await this.prisma.event.update({ where: { id }, data: dto, select });
+    // Modifié par une OPH, un événement déjà validé ou refusé repasse « en attente de validation ».
+    const data = manage || cur.reviewStatus === 'PENDING' ? dto : { ...dto, ...backToPending };
+    const e = await this.prisma.event.update({ where: { id }, data, select });
     await this.audit.log({ action: 'event.updated', actorId: u.id, actorLabel: u.email, entityType: 'Event', entityId: id });
     return e;
+  }
+
+  /** « Supprimer » : l'événement disparaît pour tous ; le personnel peut le restaurer. */
+  async remove(u: AuthenticatedUser, id: string) {
+    const cur = await this.find(id, this.manages(u) ? {} : this.memberScope(u));
+    assertOwnerOrManager(u, this.manages(u), cur);
+    await this.prisma.event.update({ where: { id }, data: { archivedAt: new Date() } });
+    await this.audit.log({ action: 'event.deleted', actorId: u.id, actorLabel: u.email, entityType: 'Event', entityId: id });
   }
 
   /** Décision du personnel sur un événement proposé par une OPH. */

@@ -5,13 +5,13 @@ import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import { pageArgs, paginated } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FileAssetService } from '../storage/file-asset.service';
-import { creationReview, reviewScope } from '../common/utils/review';
+import { assertOwnerOrManager, creationReview, reviewScope } from '../common/utils/review';
 import { CreateDocumentDto, ListDocumentsQueryDto, UpdateDocumentDto } from './dto/documents.dto';
 
 const NOT_FOUND = { code: 'DOCUMENT_NOT_FOUND', message: 'Document introuvable.' };
 const select = {
   id: true, title: true, description: true, category: true, accessLevel: true, isFeatured: true, publishedAt: true, archivedAt: true,
-  reviewStatus: true, reviewNote: true, organization: { select: { id: true, name: true } },
+  reviewStatus: true, reviewNote: true, createdById: true, organization: { select: { id: true, name: true } },
   file: { select: { originalName: true, mimeType: true, sizeBytes: true } },
 } as const;
 
@@ -76,10 +76,21 @@ export class DocumentsService {
   }
 
   async update(u: AuthenticatedUser, id: string, dto: UpdateDocumentDto) {
-    await this.find(u, id);
-    const doc = await this.prisma.internalDocument.update({ where: { id }, data: dto, select });
+    const cur = await this.find(u, id);
+    assertOwnerOrManager(u, this.manages(u), cur);
+    // Une OPH change le titre, la description et la catégorie ; l'accès réservé et la mise à la une restent au personnel.
+    const data = this.manages(u) ? dto : { title: dto.title, description: dto.description, category: dto.category };
+    const doc = await this.prisma.internalDocument.update({ where: { id }, data, select });
     await this.audit.log({ action: 'document.updated', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: id });
     return doc;
+  }
+
+  /** « Supprimer » : le document disparaît pour tous ; le personnel peut le restaurer. */
+  async remove(u: AuthenticatedUser, id: string) {
+    const cur = await this.find(u, id);
+    assertOwnerOrManager(u, this.manages(u), cur);
+    await this.prisma.internalDocument.update({ where: { id }, data: { archivedAt: new Date() } });
+    await this.audit.log({ action: 'document.deleted', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: id });
   }
 
   async setArchived(u: AuthenticatedUser, id: string, archived: boolean) {

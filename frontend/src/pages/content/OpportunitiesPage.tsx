@@ -7,12 +7,14 @@ import { formatDate, formatSize, OPPORTUNITY_STATUSES, OPPORTUNITY_TYPES } from 
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { useAuth } from '../../auth/AuthContext';
+import { mayModify } from '../../lib/ownership';
 import { useBase } from '../../lib/useBase';
 import { Alert } from '../../ui/Alert';
 import { Flash, type Notice } from '../../ui/Flash';
 import { ReviewActions, ReviewInfo, REVIEW_OPTIONS } from '../../ui/Review';
 import { AddOpportunityModal } from './AddModals';
 import { Button } from '../../ui/Button';
+import { ConfirmDelete, ItemActions } from '../../ui/ConfirmDelete';
 import { DownloadButton } from '../../ui/DownloadButton';
 import { SelectField, TextField } from '../../ui/Field';
 import { Pager } from '../../ui/Pager';
@@ -25,10 +27,14 @@ export function OpportunitiesPage() {
   usePageTitle('Opportunités');
   const f = useListParams();
   const base = useBase();
-  const { can } = useAuth();
+  const { can, user } = useAuth();
   const manage = can('opportunity.manage');
   const canAdd = manage || can('opportunity.propose');
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Opportunity | null>(null);
+  const [deleting, setDeleting] = useState<Opportunity | null>(null);
+  /** Le personnel gère tout ; une OPH ne gère que ce que son organisation a ajouté. */
+  const mine = (o: Opportunity) => canAdd && (manage || (!!user?.organizationId && o.organization?.id === user.organizationId && mayModify(user, o.createdById)));
   const [notice, setNotice] = useState<Notice | null>(null);
   const [text, setText] = useState(f.get('q'));
   const status = f.get('status') || 'OPEN';
@@ -49,6 +55,8 @@ export function OpportunitiesPage() {
       </header>
       <Flash notice={notice} />
       {adding && <AddOpportunityModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
+      {editing && <AddOpportunityModal proposer={!manage} edit={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Opportunité" title={deleting.title} path={`/opportunities/${deleting.id}`} invalidate={['opportunities']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
       <div className="stack">
         <form className="panel" role="search" aria-label="Rechercher une opportunité" onSubmit={submit}>
           <div className="filters">
@@ -88,6 +96,7 @@ export function OpportunitiesPage() {
                   <p style={{ margin: 0 }}>{o.summary}</p>
                   <ReviewInfo item={o} />
                   <ReviewActions item={o} path="/opportunities" canReview={manage} onNotice={setNotice} />
+                  {mine(o) && <ItemActions title={o.title} onEdit={() => { setNotice(null); setEditing(o); }} onDelete={() => { setNotice(null); setDeleting(o); }} />}
                 </article>
               </li>
             ))}

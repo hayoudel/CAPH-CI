@@ -1,4 +1,5 @@
 import {
+  Delete,
   Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Res, UploadedFile, UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -40,8 +41,13 @@ export class DocumentsController {
     return this.svc.create(u, dto, file);
   }
 
-  @Patch(':id') @RequirePermissions(P.DOCUMENT_MANAGE)
+  @Patch(':id') @RequireAnyPermission(P.DOCUMENT_MANAGE, P.DOCUMENT_PROPOSE)
+  @ApiOperation({ summary: 'Modifier un document (OPH : seulement ceux de son organisation)' })
   update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateDocumentDto) { return this.svc.update(u, id, dto); }
+
+  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT) @RequireAnyPermission(P.DOCUMENT_MANAGE, P.DOCUMENT_PROPOSE)
+  @ApiOperation({ summary: 'Supprimer un document (OPH : seulement ceux de son organisation)' })
+  async remove(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { await this.svc.remove(u, id); }
 
   @Post(':id/archive') @HttpCode(HttpStatus.OK) @RequirePermissions(P.DOCUMENT_MANAGE)
   archive(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.setArchived(u, id, true); }

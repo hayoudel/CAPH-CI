@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { NewsCategory, NewsProposal, Paginated } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
+import { mayModify } from '../../lib/ownership';
 import { decisionBadge, formatDate, NEWS_STATUSES } from '../../lib/format';
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
@@ -12,6 +13,7 @@ import { NewFilesPicker, noFiles, uploadNewFiles, type NewFiles } from '../../ui
 import { Attachments } from '../../ui/Attachments';
 import { Button } from '../../ui/Button';
 import { Modal } from '../../ui/Modal';
+import { ConfirmDelete, ItemActions } from '../../ui/ConfirmDelete';
 import { SelectField, TextAreaField, TextField } from '../../ui/Field';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { History } from '../../ui/History';
@@ -99,8 +101,10 @@ const useCategories = () => useQuery({ queryKey: ['news-categories'], queryFn: (
 
 export function NewsListPage() {
   usePageTitle('Mes actualités');
-  const { can } = useAuth();
+  const { can, user } = useAuth();
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<NewsProposal | null>(null);
+  const [deleting, setDeleting] = useState<NewsProposal | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const f = useListParams();
   const query = { status: f.get('status') || undefined, page: f.page, limit: 10 };
@@ -117,6 +121,8 @@ export function NewsListPage() {
       </header>
       <Flash notice={notice} />
       {adding && <NewsCreateModal onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
+      {editing && <NewsEditModal news={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Actualité" title={deleting.title} path={`/news/${deleting.id}`} invalidate={['news']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
       <div className="stack">
         <div className="panel">
           <div className="filters">
@@ -145,6 +151,7 @@ export function NewsListPage() {
                   {n.summary && <p style={{ margin: 0 }}>{n.summary}</p>}
                   {n.status === 'CORRECTION' && <p style={{ margin: 0 }}><strong>La CAPH-CI vous demande de corriger cette proposition.</strong></p>}
                   {n.status === 'DRAFT' && <p style={{ margin: 0 }}><strong>Brouillon non envoyé :</strong> terminez-le puis soumettez-le à la validation.</p>}
+                  {n.canEdit && can('news.propose') && mayModify(user, n.authorId) && <ItemActions title={n.title} onEdit={() => { setNotice(null); setEditing(n); }} onDelete={() => { setNotice(null); setDeleting(n); }} />}
                 </article>
               </li>
             ))}
@@ -177,6 +184,33 @@ function NewsCreateModal({ onClose, onDone }: { onClose: () => void; onDone: (n:
       <p className="muted">Enregistrez un brouillon pour continuer plus tard, ou soumettez directement à la validation de la CAPH-CI.</p>
       <Flash notice={notice} />
       <NewsForm initial={emptyNews} categories={cats.data ?? []} mode="new" busy={busy} onSave={(v, i, f) => void save(v, i, f)} onCancel={onClose} />
+    </Modal>
+  );
+}
+
+/** Fenêtre « Modifier la proposition » : brouillon, déjà soumise ou à corriger. */
+function NewsEditModal({ news, onClose, onDone }: { news: NewsProposal; onClose: () => void; onDone: (n: Notice) => void }) {
+  const qc = useQueryClient();
+  const cats = useCategories();
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [busy, setBusy] = useState<Intent | null>(null);
+  const mode: Mode = news.status === 'DRAFT' ? 'draft' : news.status === 'CORRECTION' ? 'correction' : 'submitted';
+  async function save(v: NewsValues, intent: Intent) {
+    setNotice(null); setBusy(intent);
+    try {
+      await api<NewsProposal>(`/news/${news.id}`, { method: 'PATCH', body: payload(v) });
+      if (news.status === 'DRAFT' && intent === 'submit') await api<NewsProposal>(`/news/${news.id}/submit`, { method: 'POST' });
+      void qc.invalidateQueries({ queryKey: ['news'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      onDone(news.status === 'DRAFT' && intent === 'draft' ? { kind: 'success', ...FLASHES.draft }
+        : news.status === 'DRAFT' || news.status === 'CORRECTION' ? { kind: 'success', title: 'Actualité soumise à la validation', text: 'Votre proposition a été envoyée à la CAPH-CI.' }
+        : { kind: 'success', title: 'Modifications enregistrées' });
+    } catch (e) { setNotice(errorNotice(e, 'Enregistrement impossible')); setBusy(null); }
+  }
+  const initial: NewsValues = { categoryId: news.category?.id ?? '', title: news.title, summary: news.summary ?? '', description: news.description, newsDate: news.newsDate ? news.newsDate.slice(0, 10) : '' };
+  return (
+    <Modal title="Modifier la proposition" size="lg" onClose={onClose}>
+      <Flash notice={notice} />
+      <NewsForm initial={initial} categories={cats.data ?? []} mode={mode} busy={busy} onSave={(v, i) => void save(v, i)} onCancel={onClose} />
     </Modal>
   );
 }
@@ -221,7 +255,7 @@ const FLASHES = {
 
 export function NewsDetailPage() {
   const { id } = useParams();
-  const { can } = useAuth();
+  const { can, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -270,7 +304,7 @@ export function NewsDetailPage() {
     );
   }
   const n = q.data;
-  const mayEdit = n.canEdit && can('news.propose');
+  const mayEdit = n.canEdit && can('news.propose') && mayModify(user, n.authorId);
   const mode: Mode = n.status === 'DRAFT' ? 'draft' : n.status === 'CORRECTION' ? 'correction' : 'submitted';
   return (
     <div className="stack">
@@ -313,11 +347,11 @@ export function NewsDetailPage() {
             <div className="form-actions" style={{ marginTop: 'var(--space-4)' }}>
               {n.status === 'DRAFT' && <Button loading={busy === 'submit'} onClick={() => void submitDraft()}>Soumettre à la validation</Button>}
               <Button variant="secondary" onClick={() => { setNotice(null); setEditing(true); }}>Modifier la proposition</Button>
-              {n.status === 'DRAFT' && !confirmDelete && <Button variant="ghost" onClick={() => setConfirmDelete(true)}>Supprimer ce brouillon</Button>}
-              {n.status === 'DRAFT' && confirmDelete && (
+              {!confirmDelete && <Button variant="ghost" onClick={() => setConfirmDelete(true)}>{n.status === 'DRAFT' ? 'Supprimer ce brouillon' : 'Supprimer cette proposition'}</Button>}
+              {confirmDelete && (
                 <>
                   <Button variant="danger" loading={busy === 'delete'} onClick={() => void deleteDraft()}>Confirmer la suppression</Button>
-                  <Button variant="ghost" onClick={() => setConfirmDelete(false)}>Garder le brouillon</Button>
+                  <Button variant="ghost" onClick={() => setConfirmDelete(false)}>{n.status === 'DRAFT' ? 'Garder le brouillon' : 'Garder la proposition'}</Button>
                 </>
               )}
             </div>

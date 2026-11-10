@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsString, MaxLength, MinLength } from 'class-validator';
@@ -39,3 +40,23 @@ export function creationReview(u: AuthenticatedUser, manage: boolean, needsValid
 export const decisionData = (u: AuthenticatedUser, status: ReviewStatus, note?: string) => ({
   reviewStatus: status, reviewedAt: new Date(), reviewedById: u.id, reviewNote: status === 'REJECTED' ? note ?? null : null,
 });
+
+/** Un membre ne modifie ni ne supprime que ce que SON organisation a ajouté ; le personnel gestionnaire peut tout. */
+/** Président ou Suppléant de l'OPH : ils gardent la main sur tout ce que leur organisation a ajouté. */
+export const isOrgLead = (u: AuthenticatedUser) => ['OPH_PRESIDENT', 'OPH_DEPUTY'].includes(u.organizationRole?.code ?? '');
+
+/** Personnel autorisé, ou membre de l'organisation propriétaire qui est soit l'auteur, soit Président/Suppléant. */
+export function assertOwnerOrManager(u: AuthenticatedUser, manage: boolean, row: { organizationId?: string | null; organization?: { id: string } | null; createdById?: string | null; authorId?: string | null }) {
+  if (manage) return;
+  const owner = row.organizationId ?? row.organization?.id ?? null;
+  if (!u.organizationId || owner !== u.organizationId) {
+    throw new ForbiddenException({ code: 'NOT_OWNER', message: 'Vous ne pouvez modifier ou supprimer que ce que votre organisation a ajouté.' });
+  }
+  const author = row.createdById ?? row.authorId ?? null;
+  if (!isOrgLead(u) && author !== u.id) {
+    throw new ForbiddenException({ code: 'NOT_AUTHOR', message: 'Seuls l’auteur, le Président ou son Suppléant peuvent modifier ou supprimer cet élément.' });
+  }
+}
+
+/** Après une modification faite par une OPH, un contenu déjà validé ou refusé repasse « en attente de validation ». */
+export const backToPending = { reviewStatus: 'PENDING' as const, reviewedAt: null, reviewedById: null, reviewNote: null };

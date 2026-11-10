@@ -5,13 +5,13 @@ import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import { pageArgs, paginated } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FileAssetService } from '../storage/file-asset.service';
-import { creationReview, decisionData, reviewScope } from '../common/utils/review';
+import { creationReview, decisionData, reviewScope, assertOwnerOrManager, backToPending } from '../common/utils/review';
 import { CreateOpportunityDto, ListOpportunitiesQueryDto, UpdateOpportunityDto } from './dto/opportunities.dto';
 
 const NOT_FOUND = { code: 'OPPORTUNITY_NOT_FOUND', message: 'Opportunité introuvable.' };
 const select = {
   id: true, reference: true, title: true, summary: true, body: true, type: true, status: true, deadline: true, audience: true,
-  modality: true, visibility: true, archivedAt: true, reviewStatus: true, reviewNote: true, isDemo: true, organization: { select: { id: true, name: true } }, createdAt: true, sheetFile: { select: { originalName: true, mimeType: true, sizeBytes: true } },
+  modality: true, visibility: true, archivedAt: true, reviewStatus: true, reviewNote: true, isDemo: true, createdById: true, organization: { select: { id: true, name: true } }, createdAt: true, sheetFile: { select: { originalName: true, mimeType: true, sizeBytes: true } },
 } as const;
 
 type Row = Prisma.OpportunityGetPayload<{ select: typeof select }>;
@@ -96,10 +96,22 @@ export class OpportunitiesService {
   }
 
   async update(u: AuthenticatedUser, id: string, dto: UpdateOpportunityDto) {
-    await this.find(id, {});
-    const r = await this.prisma.opportunity.update({ where: { id }, data: dto, select });
+    const manage = this.manages(u);
+    const cur = await this.find(id, manage ? {} : this.memberScope(u)); // l'envoi en attente d'une autre OPH reste introuvable (404)
+    assertOwnerOrManager(u, manage, cur);
+    // Modifiée par une OPH, une opportunité déjà validée ou refusée repasse « en attente de validation ».
+    const data = manage || cur.reviewStatus === 'PENDING' ? dto : { ...dto, ...backToPending };
+    const r = await this.prisma.opportunity.update({ where: { id }, data, select });
     await this.audit.log({ action: 'opportunity.updated', actorId: u.id, actorLabel: u.email, entityType: 'Opportunity', entityId: id });
     return this.view(r);
+  }
+
+  /** « Supprimer » : l'opportunité disparaît pour tous ; le personnel peut la restaurer. */
+  async remove(u: AuthenticatedUser, id: string) {
+    const cur = await this.find(id, this.manages(u) ? {} : this.memberScope(u));
+    assertOwnerOrManager(u, this.manages(u), cur);
+    await this.prisma.opportunity.update({ where: { id }, data: { archivedAt: new Date() } });
+    await this.audit.log({ action: 'opportunity.deleted', actorId: u.id, actorLabel: u.email, entityType: 'Opportunity', entityId: id });
   }
 
   /** Décision du personnel sur une opportunité proposée par une OPH. */

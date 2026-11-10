@@ -7,10 +7,10 @@ const cls = (v: Variant, block?: boolean) => `btn btn--${v}${block ? ' btn--bloc
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> { variant?: Variant; block?: boolean; loading?: boolean }
 
 /** Pendant un envoi, le bouton reste actif pour les lecteurs d'écran mais ignore les clics multiples. */
-export function Button({ variant = 'primary', block, loading, children, onClick, type = 'button', ...rest }: ButtonProps) {
+export function Button({ variant = 'primary', block, loading, children, onClick, type = 'button', className, ...rest }: ButtonProps) {
   return (
     <button
-      {...rest} type={type} className={cls(variant, block)} aria-busy={loading || undefined}
+      {...rest} type={type} className={className ? `${cls(variant, block)} ${className}` : cls(variant, block)} aria-busy={loading || undefined}
       aria-disabled={loading || rest.disabled || undefined}
       onClick={(e) => { if (loading) { e.preventDefault(); return; } onClick?.(e); }}
     >

@@ -7,6 +7,7 @@ import { Checkbox, SelectField, TextAreaField, TextField } from '../../ui/Field'
 import { checkFile } from '../../ui/Attachments';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { Modal } from '../../ui/Modal';
+import type { AgendaEvent, LibraryDocument, Opportunity } from '../../api/types';
 
 const toOptions = (r: Record<string, string>) => Object.entries(r).map(([value, label]) => ({ value, label }));
 type Errors = Record<string, string>;
@@ -40,11 +41,30 @@ function ProposerNote({ proposer }: { proposer?: boolean }) {
   return proposer ? <p className="muted">{WAIT_NOTE}</p> : null;
 }
 
+/** Message de retour après une modification : une OPH qui modifie un contenu déjà jugé le renvoie à la validation. */
+const editedNotice = (proposer: boolean | undefined, was: string | undefined, title: string, what: string): Notice =>
+  proposer && was && was !== 'PENDING'
+    ? { kind: 'success', title: 'Modification enregistrée : en attente de validation', text: `« ${title} » sera de nouveau examiné par la CAPH-CI avant d’être visible des autres organisations.` }
+    : { kind: 'success', title: `${what} modifié`, text: title };
+
+function EditWarning({ proposer, was, what }: { proposer?: boolean; was?: string; what: string }) {
+  if (!proposer || !was || was === 'PENDING') return null;
+  return <p className="muted">Ce contenu est déjà examiné par la CAPH-CI. Après votre modification, {what} repassera « en attente de validation » et ne sera plus visible des autres organisations jusqu’à la nouvelle validation.</p>;
+}
+
+/** Date ISO → valeur d'un champ « datetime-local » (heure locale). */
+const toLocalInput = (iso: string | null | undefined) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 /* ───────────── Document ───────────── */
-export function AddDocumentModal({ onClose, onDone, proposer }: Props) {
+export function AddDocumentModal({ onClose, onDone, proposer, edit }: Props & { edit?: LibraryDocument }) {
   const qc = useQueryClient();
   const fileId = useId();
-  const [f, setF] = useState({ title: '', description: '', category: 'GUIDE', accessLevel: 'MEMBERS', isFeatured: false });
+  const [f, setF] = useState({ title: edit?.title ?? '', description: edit?.description ?? '', category: edit?.category ?? 'GUIDE', accessLevel: edit?.accessLevel ?? 'MEMBERS', isFeatured: edit?.isFeatured ?? false });
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -52,6 +72,12 @@ export function AddDocumentModal({ onClose, onDone, proposer }: Props) {
 
   const create = useMutation({
     mutationFn: () => {
+      if (edit) {
+        return api(`/documents/${edit.id}`, { method: 'PATCH', body: {
+          title: f.title.trim(), description: f.description.trim(), category: f.category,
+          ...(proposer ? {} : { accessLevel: f.accessLevel, isFeatured: f.isFeatured }),
+        } });
+      }
       const body = new FormData();
       body.append('title', f.title.trim());
       if (f.description.trim()) body.append('description', f.description.trim());
@@ -62,7 +88,7 @@ export function AddDocumentModal({ onClose, onDone, proposer }: Props) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['documents'] }); qc.invalidateQueries({ queryKey: ['dashboard'] });
-      onDone({ kind: 'success', title: 'Document publié', text: f.title.trim() }); // document interne : aucune validation
+      onDone(edit ? editedNotice(proposer, undefined, f.title.trim(), 'Document') : { kind: 'success', title: 'Document publié', text: f.title.trim() }); // document interne : aucune validation
     },
     onError: (e) => { const s = serverErrors(e); setErrors(s.fields); setNotice(s.notice); },
   });
@@ -72,8 +98,10 @@ export function AddDocumentModal({ onClose, onDone, proposer }: Props) {
     const next: Errors = {};
     if (f.title.trim().length < 3) next.title = 'Saisissez un titre d’au moins 3 caractères.';
     if (f.description.length > 1000) next.description = 'La description ne peut pas dépasser 1 000 caractères.';
-    if (!file) next.file = 'Choisissez le fichier à publier.';
-    else { const p = checkFile(file); if (p) next.file = p; }
+    if (!edit) {
+      if (!file) next.file = 'Choisissez le fichier à publier.';
+      else { const p = checkFile(file); if (p) next.file = p; }
+    }
     setErrors(next);
     if (Object.keys(next).length) { setNotice({ kind: 'error', title: 'Le formulaire contient des erreurs', text: 'Corrigez les champs signalés.' }); return; }
     setNotice(null);
@@ -81,7 +109,7 @@ export function AddDocumentModal({ onClose, onDone, proposer }: Props) {
   }
 
   return (
-    <Modal title="Ajouter un document" onClose={onClose}>
+    <Modal title={edit ? 'Modifier le document' : 'Ajouter un document'} onClose={onClose}>
       <form onSubmit={submit} noValidate>
         <Flash notice={notice} />
         <TextField label="Titre" required value={f.title} onChange={(e) => set('title', e.target.value)} error={errors.title} />
@@ -93,31 +121,31 @@ export function AddDocumentModal({ onClose, onDone, proposer }: Props) {
               options={[{ value: 'MEMBERS', label: 'Tous les membres' }, { value: 'CONTRIBUTORS', label: 'Présidents et contributeurs seulement' }]} />
           )}
         </div>
-        <div className="field">
+        {!edit && <div className="field">
           <label className="field__label" htmlFor={fileId}>Fichier<span className="field__req" aria-hidden="true"> *</span><span className="sr-only"> (obligatoire)</span></label>
           <input id={fileId} className="file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
             aria-invalid={errors.file ? true : undefined} aria-describedby={`${fileId}-h`} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           <div className="field__hint" id={`${fileId}-h`}>PDF, JPG ou PNG, 10 Mo au plus.</div>
           {errors.file && <p className="field__error">{errors.file}</p>}
-        </div>
+        </div>}
         {!proposer && <Checkbox label="Mettre ce document à la une du tableau de bord" checked={f.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />}
-        <Footer pending={create.isPending} label="Publier le document" onCancel={onClose} />
+        <Footer pending={create.isPending} label={edit ? 'Enregistrer les modifications' : 'Publier le document'} onCancel={onClose} />
       </form>
     </Modal>
   );
 }
 
 /* ───────────── Opportunité ───────────── */
-export function AddOpportunityModal({ onClose, onDone, proposer }: Props) {
+export function AddOpportunityModal({ onClose, onDone, proposer, edit }: Props & { edit?: Opportunity }) {
   const qc = useQueryClient();
-  const [f, setF] = useState({ type: 'CALL_FOR_PROJECTS', title: '', summary: '', body: '', deadline: '', audience: '', modality: '', visibility: 'MEMBERS' });
+  const [f, setF] = useState({ type: edit?.type ?? 'CALL_FOR_PROJECTS', title: edit?.title ?? '', summary: edit?.summary ?? '', body: edit?.body ?? '', deadline: edit?.deadline?.slice(0, 10) ?? '', audience: edit?.audience ?? '', modality: edit?.modality ?? '', visibility: edit?.visibility ?? 'MEMBERS' });
   const [errors, setErrors] = useState<Errors>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const set = (k: string, v: string) => setF((x) => ({ ...x, [k]: v }));
 
   const create = useMutation({
-    mutationFn: () => api('/opportunities', {
-      method: 'POST',
+    mutationFn: () => api(edit ? `/opportunities/${edit.id}` : '/opportunities', {
+      method: edit ? 'PATCH' : 'POST',
       body: {
         type: f.type, title: f.title.trim(), summary: f.summary.trim(), visibility: f.visibility,
         body: f.body.trim() || undefined, deadline: f.deadline || undefined,
@@ -126,7 +154,7 @@ export function AddOpportunityModal({ onClose, onDone, proposer }: Props) {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['opportunities'] }); qc.invalidateQueries({ queryKey: ['dashboard'] });
-      onDone(sentNotice(proposer, 'Opportunité publiée', f.title.trim()));
+      onDone(edit ? editedNotice(proposer, edit.reviewStatus, f.title.trim(), 'Opportunité') : sentNotice(proposer, 'Opportunité publiée', f.title.trim()));
     },
     onError: (e) => { const s = serverErrors(e); setErrors(s.fields); setNotice(s.notice); },
   });
@@ -145,9 +173,9 @@ export function AddOpportunityModal({ onClose, onDone, proposer }: Props) {
   }
 
   return (
-    <Modal title="Ajouter une opportunité" onClose={onClose}>
+    <Modal title={edit ? 'Modifier l’opportunité' : 'Ajouter une opportunité'} onClose={onClose}>
       <form onSubmit={submit} noValidate>
-        <ProposerNote proposer={proposer} />
+        {edit ? <EditWarning proposer={proposer} was={edit.reviewStatus} what="elle" /> : <ProposerNote proposer={proposer} />}
         <Flash notice={notice} />
         <SelectField label="Type" required value={f.type} options={toOptions(OPPORTUNITY_TYPES)} onChange={(e) => set('type', e.target.value)} />
         <TextField label="Titre" required value={f.title} onChange={(e) => set('title', e.target.value)} error={errors.title} />
@@ -160,23 +188,23 @@ export function AddOpportunityModal({ onClose, onDone, proposer }: Props) {
           <TextField label="Pour qui" value={f.audience} onChange={(e) => set('audience', e.target.value)} hint="Facultatif." />
           <TextField label="Comment candidater" value={f.modality} onChange={(e) => set('modality', e.target.value)} hint="Facultatif. Exemple : dépôt en ligne." />
         </div>
-        <Footer pending={create.isPending} label={proposer ? 'Envoyer pour validation' : 'Publier l’opportunité'} onCancel={onClose} />
+        <Footer pending={create.isPending} label={edit ? 'Enregistrer les modifications' : proposer ? 'Envoyer pour validation' : 'Publier l’opportunité'} onCancel={onClose} />
       </form>
     </Modal>
   );
 }
 
 /* ───────────── Événement ───────────── */
-export function AddEventModal({ onClose, onDone, proposer }: Props) {
+export function AddEventModal({ onClose, onDone, proposer, edit }: Props & { edit?: AgendaEvent }) {
   const qc = useQueryClient();
-  const [f, setF] = useState({ type: 'MEETING', title: '', description: '', startsAt: '', endsAt: '', mode: 'ONSITE', location: '' });
+  const [f, setF] = useState({ type: edit?.type ?? 'MEETING', title: edit?.title ?? '', description: edit?.description ?? '', startsAt: toLocalInput(edit?.startsAt), endsAt: toLocalInput(edit?.endsAt), mode: edit?.mode ?? 'ONSITE', location: edit?.location ?? '' });
   const [errors, setErrors] = useState<Errors>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const set = (k: string, v: string) => setF((x) => ({ ...x, [k]: v }));
 
   const create = useMutation({
-    mutationFn: () => api('/events', {
-      method: 'POST',
+    mutationFn: () => api(edit ? `/events/${edit.id}` : '/events', {
+      method: edit ? 'PATCH' : 'POST',
       body: {
         type: f.type, title: f.title.trim(), mode: f.mode,
         description: f.description.trim() || undefined, location: f.location.trim() || undefined,
@@ -185,7 +213,7 @@ export function AddEventModal({ onClose, onDone, proposer }: Props) {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['events'] }); qc.invalidateQueries({ queryKey: ['dashboard'] });
-      onDone(sentNotice(proposer, 'Événement ajouté à l’agenda', f.title.trim()));
+      onDone(edit ? editedNotice(proposer, edit.reviewStatus, f.title.trim(), 'Événement') : sentNotice(proposer, 'Événement ajouté à l’agenda', f.title.trim()));
     },
     onError: (e) => { const s = serverErrors(e); setErrors(s.fields); setNotice(s.notice); },
   });
@@ -204,9 +232,9 @@ export function AddEventModal({ onClose, onDone, proposer }: Props) {
   }
 
   return (
-    <Modal title="Ajouter un événement" onClose={onClose}>
+    <Modal title={edit ? 'Modifier l’événement' : 'Ajouter un événement'} onClose={onClose}>
       <form onSubmit={submit} noValidate>
-        <ProposerNote proposer={proposer} />
+        {edit ? <EditWarning proposer={proposer} was={edit.reviewStatus} what="il" /> : <ProposerNote proposer={proposer} />}
         <Flash notice={notice} />
         <SelectField label="Type d’événement" required value={f.type} options={toOptions(EVENT_TYPES)} onChange={(e) => set('type', e.target.value)} />
         <TextField label="Titre" required value={f.title} onChange={(e) => set('title', e.target.value)} error={errors.title} />
@@ -217,7 +245,7 @@ export function AddEventModal({ onClose, onDone, proposer }: Props) {
           <SelectField label="Format" value={f.mode} options={toOptions(EVENT_MODES)} onChange={(e) => set('mode', e.target.value)} />
           <TextField label="Lieu ou lien" value={f.location} onChange={(e) => set('location', e.target.value)} hint="Facultatif. Exemple : Abidjan Plateau." />
         </div>
-        <Footer pending={create.isPending} label={proposer ? 'Envoyer pour validation' : 'Ajouter à l’agenda'} onCancel={onClose} />
+        <Footer pending={create.isPending} label={edit ? 'Enregistrer les modifications' : proposer ? 'Envoyer pour validation' : 'Ajouter à l’agenda'} onCancel={onClose} />
       </form>
     </Modal>
   );

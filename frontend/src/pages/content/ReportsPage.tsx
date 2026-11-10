@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { Paginated, Report } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
+import { mayModify } from '../../lib/ownership';
 import { formatDate, REPORT_TYPE_LABELS } from '../../lib/format';
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
@@ -11,6 +12,7 @@ import { Alert } from '../../ui/Alert';
 import { Attachments } from '../../ui/Attachments';
 import { Button } from '../../ui/Button';
 import { Modal } from '../../ui/Modal';
+import { ConfirmDelete, ItemActions } from '../../ui/ConfirmDelete';
 import { Checkbox, SelectField, TextAreaField, TextField } from '../../ui/Field';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { Pager } from '../../ui/Pager';
@@ -112,9 +114,32 @@ function ReportCreateModal({ onClose, onDone }: { onClose: () => void; onDone: (
   );
 }
 
+/** Fenêtre « Modifier le rapport » : possible tant que la CAPH-CI ne l'a pas pris en charge. */
+function ReportEditModal({ report, onClose, onDone }: { report: Report; onClose: () => void; onDone: (n: Notice) => void }) {
+  const qc = useQueryClient();
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const m = useMutation({
+    mutationFn: (v: ReportValues) => api<Report>(`/reports/${report.id}`, { method: 'PATCH', body: payload(v, false) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['reports'] }); void qc.invalidateQueries({ queryKey: ['report', report.id] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      onDone({ kind: 'success', title: 'Rapport modifié', text: report.status === 'CORRECTION_REQUESTED' ? 'Il a été renvoyé à la CAPH-CI.' : report.title });
+    },
+    onError: (e) => setNotice(errorNotice(e, 'Enregistrement impossible')),
+  });
+  const initial: ReportValues = { type: report.type, title: report.title, summary: report.summary, periodStart: report.periodStart?.slice(0, 10) ?? '', periodEnd: report.periodEnd?.slice(0, 10) ?? '', certify: true };
+  return (
+    <Modal title="Modifier le rapport" onClose={onClose}>
+      <Flash notice={notice} />
+      <ReportForm initial={initial} creating={false} busy={m.isPending} onSubmit={(v) => { setNotice(null); m.mutate(v); }} onCancel={onClose} />
+    </Modal>
+  );
+}
+
 export function ReportsPage() {
   usePageTitle('Rapports');
-  const { can } = useAuth();
+  const { can, user } = useAuth();
+  const [editing, setEditing] = useState<Report | null>(null);
+  const [deleting, setDeleting] = useState<Report | null>(null);
   const [adding, setAdding] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const f = useListParams();
@@ -132,6 +157,8 @@ export function ReportsPage() {
       </header>
       <Flash notice={notice} />
       {adding && <ReportCreateModal onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
+      {editing && <ReportEditModal report={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Rapport" title={deleting.title} path={`/reports/${deleting.id}`} invalidate={['reports']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} note="Le rapport et ses pièces jointes seront définitivement supprimés." />}
       <div className="stack">
         <div className="panel">
           <div className="filters">
@@ -158,6 +185,7 @@ export function ReportsPage() {
                     Transmis le {formatDate(r.submittedAt)} par {r.author}
                   </p>
                   {r.status === 'CORRECTION_REQUESTED' && <p style={{ margin: 0 }}><strong>La CAPH-CI vous demande de corriger ce rapport.</strong></p>}
+                  {r.canEdit && can('report.create') && mayModify(user, r.authorId) && <ItemActions title={r.title} onEdit={() => { setNotice(null); setEditing(r); }} onDelete={() => { setNotice(null); setDeleting(r); }} />}
                 </article>
               </li>
             ))}
@@ -194,10 +222,12 @@ export function ReportNewPage() {
 
 export function ReportDetailPage() {
   const { id } = useParams();
-  const { can } = useAuth();
+  const { can, user } = useAuth();
   const location = useLocation();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(
     (location.state as { flash?: string } | null)?.flash === 'created'
       ? { kind: 'success', title: 'Rapport transmis à la CAPH-CI', text: 'Vous pouvez maintenant joindre des fichiers (5 maximum).' } : null);
@@ -224,7 +254,7 @@ export function ReportDetailPage() {
     );
   }
   const r = q.data;
-  const mayEdit = r.canEdit && can('report.create');
+  const mayEdit = r.canEdit && can('report.create') && mayModify(user, r.authorId);
   const initial: ReportValues = { type: r.type, title: r.title, summary: r.summary, periodStart: r.periodStart?.slice(0, 10) ?? '', periodEnd: r.periodEnd?.slice(0, 10) ?? '', certify: true };
   return (
     <div className="stack">
@@ -234,6 +264,7 @@ export function ReportDetailPage() {
         <p><span className="badge badge--grey">{REPORT_TYPE_LABELS[r.type]}</span> <span className={statusBadge(r.status)}>{r.statusLabel}</span></p>
       </header>
       <Flash notice={notice} />
+      {deleting && <ConfirmDelete what="Rapport" title={r.title} path={`/reports/${r.id}`} invalidate={['reports']} onClose={() => setDeleting(false)} onDone={() => navigate('/espace/rapports', { replace: true })} note="Le rapport et ses pièces jointes seront définitivement supprimés." />}
       {r.status === 'CORRECTION_REQUESTED' && (
         <Alert kind="error" title="La CAPH-CI demande une correction">
           {r.reviewerNote ?? 'Merci de corriger ce rapport.'} {mayEdit && 'Modifiez le rapport : il sera renvoyé automatiquement à l’enregistrement.'}
@@ -255,7 +286,12 @@ export function ReportDetailPage() {
             {(r.periodStart || r.periodEnd) && <><dt>Période</dt><dd>{r.periodStart ? `du ${formatDate(r.periodStart)}` : ''} {r.periodEnd ? `au ${formatDate(r.periodEnd)}` : ''}</dd></>}
             <dt>Résumé</dt><dd className="prose">{r.summary}</dd>
           </dl>
-          {mayEdit && <Button variant="secondary" onClick={() => { setNotice(null); setEditing(true); }}>Modifier le rapport</Button>}
+          {mayEdit && (
+            <div className="form-actions">
+              <Button variant="secondary" onClick={() => { setNotice(null); setEditing(true); }}>Modifier le rapport</Button>
+              <Button variant="ghost" onClick={() => { setNotice(null); setDeleting(true); }}>Supprimer le rapport</Button>
+            </div>
+          )}
         </section>
       )}
       <Attachments basePath={`/reports/${r.id}`} queryKey={key} items={r.attachments} editable={mayEdit} />

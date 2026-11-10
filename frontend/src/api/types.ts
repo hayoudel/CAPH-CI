@@ -144,12 +144,12 @@ export interface FileInfo { originalName: string; mimeType: string; sizeBytes: n
 export interface ReviewFields { isDemo?: boolean; reviewStatus: 'PENDING' | 'APPROVED' | 'REJECTED'; reviewNote: string | null; organization: { id: string; name: string } | null }
 export interface LibraryDocument extends ReviewFields {
   id: string; title: string; description: string | null; category: string; accessLevel: string;
-  isFeatured: boolean; publishedAt: string; file: FileInfo;
+  isFeatured: boolean; publishedAt: string; file: FileInfo; createdById?: string | null;
 }
 export interface Opportunity extends ReviewFields {
   id: string; reference: string; title: string; summary: string; body: string | null; type: string;
   status: string; effectiveStatus: 'OPEN' | 'CLOSED' | 'ENDED'; deadline: string | null; audience: string | null;
-  modality: string | null; hasSheet: boolean; sheet: FileInfo | null; createdAt: string;
+  createdById?: string | null; modality: string | null; visibility?: 'PUBLIC' | 'MEMBERS'; hasSheet: boolean; sheet: FileInfo | null; createdAt: string;
 }
 export interface Communication {
   id: string; isDemo?: boolean; kind: 'INTERNAL' | 'EXTERNAL'; category: string | null; title: string; excerpt?: string; body?: string;
@@ -157,7 +157,7 @@ export interface Communication {
 }
 export interface AgendaEvent extends ReviewFields {
   id: string; type: string; title: string; description: string | null; startsAt: string; endsAt: string | null;
-  mode: string; location: string | null; status: string; region: { id: string; name: string } | null;
+  createdById?: string | null; mode: string; location: string | null; status: string; region: { id: string; name: string } | null;
 }
 
 // ── Lot F5b : rapports et propositions d'actualités ──
@@ -165,7 +165,7 @@ export interface Attachment { id: string; originalName: string; mimeType: string
 export interface Report {
   id: string; isDemo?: boolean; organization: { id: string; name: string }; type: 'ACTIVITY' | 'FINANCIAL' | 'OTHER'; title: string; summary: string;
   periodStart: string | null; periodEnd: string | null; status: string; statusLabel: string; reviewerNote: string | null;
-  submittedAt: string; processedAt: string | null; author: string; canEdit: boolean; attachments: Attachment[];
+  submittedAt: string; processedAt: string | null; author: string; authorId?: string; canEdit: boolean; attachments: Attachment[];
 }
 export interface NewsCategory { id: string; code: string; label: string }
 export interface StatusHistoryEntry { id: string; status: string; statusLabel: string; note: string | null; date: string }
@@ -173,7 +173,7 @@ export interface NewsProposal {
   id: string; isDemo?: boolean; reference: string; organization: { id: string; name: string }; category: NewsCategory | null; title: string; summary: string | null; description: string;
   newsDate: string | null; hasCover: boolean; status: string; statusLabel: string; reviewerNote: string | null;
   createdAt: string; submittedAt: string | null; reviewedAt: string | null; updatedAt: string;
-  history: StatusHistoryEntry[]; author: string; canEdit: boolean; attachments: Attachment[];
+  history: StatusHistoryEntry[]; author: string; authorId?: string; canEdit: boolean; attachments: Attachment[];
 }
 
 export interface Project {

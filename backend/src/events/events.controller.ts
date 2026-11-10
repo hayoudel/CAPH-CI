@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PERMISSIONS as P } from '../common/constants/permissions';
 import { AuthenticatedUser, CurrentUser } from '../common/decorators/current-user.decorator';
@@ -32,8 +32,13 @@ export class EventsController {
   @ApiOperation({ summary: 'Refuser un événement proposé par une OPH (motif obligatoire)' })
   reject(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectContentDto) { return this.svc.review(u, id, 'REJECTED', dto.note); }
 
-  @Patch(':id') @RequirePermissions(P.EVENT_MANAGE)
+  @Patch(':id') @RequireAnyPermission(P.EVENT_MANAGE, P.EVENT_PROPOSE)
+  @ApiOperation({ summary: 'Modifier un événement (OPH : seulement les siens ; un événement validé repasse en attente de validation)' })
   update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateEventDto) { return this.svc.update(u, id, dto); }
+
+  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT) @RequireAnyPermission(P.EVENT_MANAGE, P.EVENT_PROPOSE)
+  @ApiOperation({ summary: 'Supprimer un événement (OPH : seulement les siens)' })
+  async remove(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { await this.svc.remove(u, id); }
 
   @Post(':id/cancel') @HttpCode(HttpStatus.OK) @RequirePermissions(P.EVENT_MANAGE)
   cancel(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.setState(u, id, 'cancel'); }

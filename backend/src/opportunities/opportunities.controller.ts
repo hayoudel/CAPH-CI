@@ -1,4 +1,5 @@
 import {
+  Delete,
   Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Res, UploadedFile, UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -43,8 +44,13 @@ export class OpportunitiesController {
   @ApiOperation({ summary: 'Refuser une opportunité proposée par une OPH (motif obligatoire)' })
   reject(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectContentDto) { return this.svc.review(u, id, 'REJECTED', dto.note); }
 
-  @Patch(':id') @RequirePermissions(P.OPPORTUNITY_MANAGE)
+  @Patch(':id') @RequireAnyPermission(P.OPPORTUNITY_MANAGE, P.OPPORTUNITY_PROPOSE)
+  @ApiOperation({ summary: 'Modifier une opportunité (OPH : seulement les siennes ; une opportunité validée repasse en attente de validation)' })
   update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateOpportunityDto) { return this.svc.update(u, id, dto); }
+
+  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT) @RequireAnyPermission(P.OPPORTUNITY_MANAGE, P.OPPORTUNITY_PROPOSE)
+  @ApiOperation({ summary: 'Supprimer une opportunité (OPH : seulement les siennes)' })
+  async remove(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { await this.svc.remove(u, id); }
 
   @Post(':id/sheet') @RequirePermissions(P.OPPORTUNITY_MANAGE) @UseInterceptors(uploadOne()) @ApiConsumes('multipart/form-data') @ApiBody(fileBody({}))
   @ApiOperation({ summary: 'Joindre ou remplacer la fiche (PDF, JPG ou PNG)' })

@@ -438,7 +438,6 @@ describe('Contenus et espace membre (B5)', () => {
       expect(sub.body.status).toBe('SUBMITTED');
       expect(sub.body.submittedAt).not.toBeNull();
       expect((await post(`/news/${d.body.id}/submit`, AWA)).status).toBe(409); // déjà soumise
-      expect((await del(`/news/${d.body.id}`, AWA)).status).toBe(409); // seul un brouillon se supprime
 
       // le personnel la voit, la prend en charge, puis décide
       expect((await get(`/admin/news/${d.body.id}`, COMM)).status).toBe(200);
@@ -694,6 +693,98 @@ describe('Contenus et espace membre (B5)', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  describe('Modifier et supprimer ses propres ajouts', () => {
+    const PRESB = `test-presb-${stamp}@test.example`;
+    const oppBody = { type: 'CALL_FOR_PROJECTS', title: `Mod opp ${T}`, summary: 'Une opportunité proposée par une OPH.', visibility: 'MEMBERS', deadline: iso(30) };
+
+    it('document : l’organisation change titre, description et catégorie (pas l’accès réservé), puis le supprime ; les autres ne peuvent rien', async () => {
+      const doc = (await upload('/documents', AWA, { title: `Mod doc ${T}`, category: 'GUIDE' }, PDF)).body;
+      expect((await patch(`/documents/${doc.id}`, PRESB, { title: `Piraté ${T}` })).status).toBe(403);
+      expect((await del(`/documents/${doc.id}`, PRESB)).status).toBe(403);
+      const upd = await patch(`/documents/${doc.id}`, AWA, { title: `Doc modifié ${T}`, category: 'FORM', accessLevel: 'CONTRIBUTORS', isFeatured: true });
+      expect(upd.status).toBe(200);
+      expect(upd.body.title).toBe(`Doc modifié ${T}`);
+      expect(upd.body.category).toBe('FORM');
+      expect(upd.body.accessLevel).toBe('MEMBERS'); // réglage réservé au personnel : ignoré
+      expect(upd.body.isFeatured).toBe(false);
+      expect((await patch(`/documents/${doc.id}`, FATOU, { title: `Nope ${T}` })).status).toBe(403); // Consultation : aucun droit d'ajout
+      expect((await del(`/documents/${doc.id}`, AWA)).status).toBe(204);
+      expect((await get(`/documents/${doc.id}`, AWA)).status).toBe(404);
+      expect((await get(`/documents/${doc.id}`, COMM)).status).toBe(200); // le personnel le retrouve (archivé)
+    });
+
+    it('opportunité : modifier une opportunité validée la remet « en attente » ; suppression par son organisation seulement', async () => {
+      const opp = (await post('/opportunities', AWA, oppBody)).body;
+      expect((await patch(`/opportunities/${opp.id}`, PRESB, { title: `Piraté ${T}` })).status).toBe(404); // invisible pour l'autre OPH
+      const first = await patch(`/opportunities/${opp.id}`, AWA, { summary: 'Résumé corrigé avant validation.' });
+      expect(first.status).toBe(200);
+      expect(first.body.reviewStatus).toBe('PENDING');
+      expect((await post(`/opportunities/${opp.id}/approve`, `test-opp-${stamp}@test.example`)).body.reviewStatus).toBe('APPROVED');
+      expect((await patch(`/opportunities/${opp.id}`, PRESB, { title: `Piraté ${T}` })).status).toBe(403); // visible mais pas à elle
+      expect((await del(`/opportunities/${opp.id}`, PRESB)).status).toBe(403);
+      const again = await patch(`/opportunities/${opp.id}`, AWA, { title: `Mod opp 2 ${T}` });
+      expect(again.status).toBe(200);
+      expect(again.body.reviewStatus).toBe('PENDING'); // repasse en validation
+      expect((await get(`/opportunities/${opp.id}`, PRESB)).status).toBe(404);
+      expect((await del(`/opportunities/${opp.id}`, AWA)).status).toBe(204);
+      expect((await get(`/opportunities/${opp.id}`, AWA)).status).toBe(404);
+    });
+
+    it('événement : même règle, et les dates restent contrôlées', async () => {
+      const ev = (await post('/events', AWA, { type: 'MEETING', title: `Mod évén ${T}`, startsAt: iso(7) })).body;
+      expect((await patch(`/events/${ev.id}`, AWA, { endsAt: iso(1) })).status).toBe(422);
+      expect((await post(`/events/${ev.id}/approve`, COMM)).body.reviewStatus).toBe('APPROVED');
+      const upd = await patch(`/events/${ev.id}`, AWA, { location: 'Salle des fêtes' });
+      expect(upd.status).toBe(200);
+      expect(upd.body.reviewStatus).toBe('PENDING');
+      expect((await del(`/events/${ev.id}`, PRESB)).status).toBe(404);
+      expect((await del(`/events/${ev.id}`, AWA)).status).toBe(204);
+      expect((await get(`/events/${ev.id}`, AWA)).status).toBe(404);
+    });
+
+    it('rapport : supprimable tant qu’il n’est pas en traitement, jamais par une autre organisation', async () => {
+      const mk = async () => (await post('/reports', AWA, { type: 'ACTIVITY', title: `Mod rapport ${T}`, summary: 'Résumé de nos activités du semestre écoulé.', certifyAuthority: true })).body;
+      const a = await mk();
+      expect((await del(`/reports/${a.id}`, PRESB)).status).toBe(404);
+      expect((await del(`/reports/${a.id}`, FATOU)).status).toBe(403);
+      expect((await del(`/reports/${a.id}`, AWA)).status).toBe(204);
+      expect((await get(`/reports/${a.id}`, AWA)).status).toBe(404);
+      const b = await mk();
+      expect((await post(`/reports/${b.id}/review`, ADMIN, { status: 'IN_PROCESS' })).status).toBe(200);
+      const refused = await del(`/reports/${b.id}`, AWA);
+      expect(refused.status).toBe(409);
+      expect((await patch(`/reports/${b.id}`, AWA, { title: `Tard ${T}` })).status).toBe(409);
+    });
+
+    it('actualité : supprimable tant que la CAPH-CI n’a pas tranché', async () => {
+      const mk = async () => (await post('/news', AWA, { title: `Mod actu ${T}`, description: 'Une description assez longue pour passer.', summary: 'Un résumé assez long.', submit: true })).body;
+      const a = await mk();
+      expect(a.status).toBe('SUBMITTED');
+      expect((await del(`/news/${a.id}`, PRESB)).status).toBe(404);
+      expect((await del(`/news/${a.id}`, AWA)).status).toBe(204);
+      const b = await mk();
+      expect((await post(`/admin/news/${b.id}/review`, COMM, { status: 'APPROVED' })).status).toBe(200);
+      expect((await del(`/news/${b.id}`, AWA)).status).toBe(409);
+    });
+  });
+
+  describe('Qui peut modifier ou supprimer : l’auteur, le Président ou son Suppléant', () => {
+    it('un Contributeur ne touche pas à l’ajout d’un collègue, mais le Président le peut', async () => {
+      const body = { title: `Auteur actu ${T}`, description: 'Une description assez longue pour passer.', summary: 'Un résumé assez long.', submit: true };
+      const byAwa = (await post('/news', AWA, body)).body;
+      const nope = await patch(`/news/${byAwa.id}`, KOFFI, { title: `Piraté ${T}` });
+      expect(nope.status).toBe(403);
+      expect(nope.body.code ?? nope.body.error?.code).toBe('NOT_AUTHOR');
+      expect((await del(`/news/${byAwa.id}`, KOFFI)).status).toBe(403);
+      expect((await patch(`/news/${byAwa.id}`, AWA, { title: `Corrigé ${T}` })).status).toBe(200);
+      const byKoffi = (await post('/news', KOFFI, body)).body;
+      expect((await patch(`/news/${byKoffi.id}`, KOFFI, { title: `Mon texte ${T}` })).status).toBe(200); // l’auteur
+      expect((await del(`/news/${byKoffi.id}`, AWA)).status).toBe(204); // le Président garde la main
+      expect((await del(`/news/${byAwa.id}`, AWA)).status).toBe(204);
+    });
+  });
+
   describe('Tableau de bord et journal d’audit', () => {
     it('membre : synthèse de son organisation selon ses droits', async () => {
       expect((await http().get('/api/v1/dashboard')).status).toBe(401);
