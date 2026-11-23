@@ -1,37 +1,37 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { assertOwnerOrManager } from '../common/utils/review';
-import { Prisma, ReportStatus } from '@prisma/client';
+import { Prisma, StatutRapport } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import { pageArgs, paginated } from '../common/dto/pagination.dto';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { FileAssetService } from '../storage/file-asset.service';
-import { CreateReportDto, ListReportsQueryDto, ReviewReportDto, UpdateReportDto } from './dto/reports.dto';
+import { CreateRapportDto, ListRapportsQueryDto, ReviewRapportDto, UpdateRapportDto } from './dto/rapports.dto';
 
 const NOT_FOUND = { code: 'REPORT_NOT_FOUND', message: 'Rapport introuvable.' };
 const MAX_ATTACHMENTS = 5;
-const EDITABLE: ReportStatus[] = ['RECEIVED', 'CORRECTION_REQUESTED'];
-const STATUS_LABELS: Record<ReportStatus, string> = {
+const EDITABLE: StatutRapport[] = ['RECEIVED', 'CORRECTION_REQUESTED'];
+const STATUS_LABELS: Record<StatutRapport, string> = {
   RECEIVED: 'Reçu', IN_PROCESS: 'En traitement', PROCESSED: 'Traité', CORRECTION_REQUESTED: 'Correction demandée',
 };
 const include = {
   organization: { select: { id: true, name: true } },
   author: { select: { firstName: true, lastName: true, email: true } },
   attachments: { include: { file: true }, orderBy: { createdAt: 'asc' } },
-} satisfies Prisma.ReportInclude;
-type Row = Prisma.ReportGetPayload<{ include: typeof include }>;
+} satisfies Prisma.RapportInclude;
+type Row = Prisma.RapportGetPayload<{ include: typeof include }>;
 
 /** Rapports transmis par les organisations à la CAPH-CI, et leur traitement par le personnel. */
 @Injectable()
-export class ReportsService {
+export class RapportsService {
   constructor(
     private readonly prisma: PrismaService, private readonly files: FileAssetService,
     private readonly audit: AuditService, private readonly mail: MailService,
   ) {}
 
   /** Une organisation ne voit que ses rapports ; le personnel voit ceux de son périmètre (délégations). */
-  private scope(u: AuthenticatedUser): Prisma.ReportWhereInput {
+  private scope(u: AuthenticatedUser): Prisma.RapportWhereInput {
     if (u.organizationId) return { organizationId: u.organizationId };
     return u.isGlobalScope ? {} : { organization: { delegationId: { in: u.delegationIds } } };
   }
@@ -52,7 +52,7 @@ export class ReportsService {
   }
 
   private async find(u: AuthenticatedUser, id: string) {
-    const r = await this.prisma.report.findFirst({ where: { id, ...this.scope(u) }, include });
+    const r = await this.prisma.rapport.findFirst({ where: { id, ...this.scope(u) }, include });
     if (!r) throw new NotFoundException(NOT_FOUND);
     return r;
   }
@@ -71,8 +71,8 @@ export class ReportsService {
     }
   }
 
-  async list(u: AuthenticatedUser, q: ListReportsQueryDto) {
-    const where: Prisma.ReportWhereInput = {
+  async list(u: AuthenticatedUser, q: ListRapportsQueryDto) {
+    const where: Prisma.RapportWhereInput = {
       AND: [
         this.scope(u), q.status ? { status: q.status } : {}, q.type ? { type: q.type } : {},
         q.organizationId && !u.organizationId ? { organizationId: q.organizationId } : {},
@@ -80,19 +80,19 @@ export class ReportsService {
       ],
     };
     const [total, rows] = await Promise.all([
-      this.prisma.report.count({ where }),
-      this.prisma.report.findMany({ where, include, orderBy: { submittedAt: 'desc' }, ...pageArgs(q) }),
+      this.prisma.rapport.count({ where }),
+      this.prisma.rapport.findMany({ where, include, orderBy: { submittedAt: 'desc' }, ...pageArgs(q) }),
     ]);
     return paginated(rows.map((r) => this.view(r)), total, q);
   }
 
   async get(u: AuthenticatedUser, id: string) { return this.view(await this.find(u, id)); }
 
-  async create(u: AuthenticatedUser, dto: CreateReportDto) {
+  async create(u: AuthenticatedUser, dto: CreateRapportDto) {
     const organizationId = this.requireOrg(u);
     this.checkPeriod(dto.periodStart, dto.periodEnd);
     const { certifyAuthority: _c, ...data } = dto;
-    const r = await this.prisma.report.create({
+    const r = await this.prisma.rapport.create({
       data: { ...data, organizationId, authorId: u.id, certifiedAuthorityAt: new Date() }, include,
     });
     await this.audit.log({ action: 'report.submitted', actorId: u.id, actorLabel: u.email, entityType: 'Report', entityId: r.id, metadata: { organizationId } });
@@ -100,10 +100,10 @@ export class ReportsService {
   }
 
   /** Corriger un rapport « correction demandée » le renvoie automatiquement à la CAPH-CI. */
-  async update(u: AuthenticatedUser, id: string, dto: UpdateReportDto) {
+  async update(u: AuthenticatedUser, id: string, dto: UpdateRapportDto) {
     const cur = await this.findEditable(u, id);
     this.checkPeriod(dto.periodStart ?? cur.periodStart, dto.periodEnd ?? cur.periodEnd);
-    const r = await this.prisma.report.update({
+    const r = await this.prisma.rapport.update({
       where: { id }, data: { ...dto, ...(cur.status === 'CORRECTION_REQUESTED' ? { status: 'RECEIVED', submittedAt: new Date() } : {}) }, include,
     });
     await this.audit.log({ action: 'report.updated', actorId: u.id, actorLabel: u.email, entityType: 'Report', entityId: id });
@@ -113,7 +113,7 @@ export class ReportsService {
   /** Un rapport peut être supprimé tant que la CAPH-CI ne l'a pas pris en charge (reçu ou correction demandée). */
   async remove(u: AuthenticatedUser, id: string) {
     const cur = await this.findEditable(u, id);
-    await this.prisma.report.delete({ where: { id } }); // les pièces jointes (liens) partent avec lui
+    await this.prisma.rapport.delete({ where: { id } }); // les pièces jointes (liens) partent avec lui
     for (const a of cur.attachments) await this.files.discard(a.file.id);
     await this.audit.log({ action: 'report.deleted', actorId: u.id, actorLabel: u.email, entityType: 'Report', entityId: id });
   }
@@ -124,7 +124,7 @@ export class ReportsService {
       throw new UnprocessableEntityException({ code: 'TOO_MANY_FILES', message: `${MAX_ATTACHMENTS} pièces jointes au maximum par rapport.` });
     }
     const asset = await this.files.create(file, u.id);
-    await this.prisma.reportAttachment.create({ data: { reportId: id, fileId: asset.id } });
+    await this.prisma.rapportPieceJointe.create({ data: { rapportId: id, fileId: asset.id } });
     await this.audit.log({ action: 'report.attachment_added', actorId: u.id, actorLabel: u.email, entityType: 'Report', entityId: id });
     return this.view(await this.find(u, id));
   }
@@ -133,7 +133,7 @@ export class ReportsService {
     const cur = await this.findEditable(u, id);
     const att = cur.attachments.find((a) => a.id === attId);
     if (!att) throw new NotFoundException({ code: 'ATTACHMENT_NOT_FOUND', message: 'Pièce jointe introuvable.' });
-    await this.prisma.reportAttachment.delete({ where: { id: attId } });
+    await this.prisma.rapportPieceJointe.delete({ where: { id: attId } });
     await this.files.discard(att.file.id);
     await this.audit.log({ action: 'report.attachment_removed', actorId: u.id, actorLabel: u.email, entityType: 'Report', entityId: id });
     return this.view(await this.find(u, id));
@@ -149,10 +149,10 @@ export class ReportsService {
     return this.files.read(a.file);
   }
 
-  async review(u: AuthenticatedUser, id: string, dto: ReviewReportDto) {
+  async review(u: AuthenticatedUser, id: string, dto: ReviewRapportDto) {
     if (u.organizationId) throw new ForbiddenException({ code: 'FORBIDDEN', message: "Vous n'avez pas l'autorisation d'effectuer cette action." });
     const cur = await this.find(u, id);
-    const allowed: Record<ReportStatus, ReportStatus[]> = {
+    const allowed: Record<StatutRapport, StatutRapport[]> = {
       RECEIVED: ['IN_PROCESS', 'PROCESSED', 'CORRECTION_REQUESTED'], IN_PROCESS: ['PROCESSED', 'CORRECTION_REQUESTED'],
       PROCESSED: [], CORRECTION_REQUESTED: [],
     };
@@ -162,7 +162,7 @@ export class ReportsService {
     if (dto.status === 'CORRECTION_REQUESTED' && !dto.note) {
       throw new UnprocessableEntityException({ code: 'NOTE_REQUIRED', message: 'Indiquez ce que l’organisation doit corriger.' });
     }
-    const res = await this.prisma.report.updateMany({
+    const res = await this.prisma.rapport.updateMany({
       where: { id, status: cur.status },
       data: { status: dto.status, reviewerNote: dto.note ?? null, reviewedById: u.id, ...(dto.status === 'PROCESSED' ? { processedAt: new Date() } : {}) },
     });

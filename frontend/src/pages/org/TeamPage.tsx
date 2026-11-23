@@ -35,7 +35,7 @@ export function TeamPage() {
   const orgId = user!.organizationId!;
   const qc = useQueryClient();
   const key = ['org', orgId, 'members'];
-  const list = useQuery({ queryKey: key, queryFn: () => api<TeamMember[]>(`/organizations/${orgId}/members`) });
+  const list = useQuery({ queryKey: key, queryFn: () => api<TeamMember[]>(`/organisations/${orgId}/members`) });
 
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState<Partial<Record<keyof typeof empty, string>>>({});
@@ -48,22 +48,22 @@ export function TeamPage() {
 
   const refresh = () => qc.invalidateQueries({ queryKey: key });
   const invite = useMutation({
-    mutationFn: (f: typeof empty) => api(`/organizations/${orgId}/members`, { method: 'POST', body: { ...f, jobTitle: f.jobTitle || undefined } }),
+    mutationFn: (f: typeof empty) => api(`/organisations/${orgId}/members`, { method: 'POST', body: { ...f, jobTitle: f.jobTitle || undefined } }),
     onSuccess: () => { setInviting(false); setNotice({ kind: 'success', title: 'Invitation envoyée', text: `Un e-mail a été envoyé à ${form.email} pour activer son compte.` }); setForm(empty); refresh(); },
     onError: (e) => setFormNotice(errorNotice(e, 'Invitation impossible')),
   });
   const changeRole = useMutation({
-    mutationFn: (v: { id: string; roleCode: string }) => api(`/organizations/${orgId}/members/${v.id}`, { method: 'PATCH', body: { roleCode: v.roleCode } }),
+    mutationFn: (v: { id: string; roleCode: string }) => api(`/organisations/${orgId}/members/${v.id}`, { method: 'PATCH', body: { roleCode: v.roleCode } }),
     onSuccess: () => { setNotice({ kind: 'success', title: 'Rôle modifié' }); refresh(); },
     onError: (e) => setNotice(errorNotice(e, 'Modification impossible')),
   });
   const remove = useMutation({
-    mutationFn: (id: string) => api(`/organizations/${orgId}/members/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => api(`/organisations/${orgId}/members/${id}`, { method: 'DELETE' }),
     onSuccess: () => { setRemoving(null); setNotice({ kind: 'success', title: 'Personne retirée de l’équipe', text: 'Son compte a été désactivé.' }); refresh(); },
     onError: (e) => { setRemoving(null); setNotice(errorNotice(e, 'Retrait impossible')); },
   });
   const resend = useMutation({
-    mutationFn: (id: string) => api(`/organizations/${orgId}/members/${id}/resend-invitation`, { method: 'POST' }),
+    mutationFn: (id: string) => api(`/organisations/${orgId}/members/${id}/resend-invitation`, { method: 'POST' }),
     onSuccess: () => setNotice({ kind: 'success', title: 'Invitation renvoyée' }),
     onError: (e) => setNotice(errorNotice(e, 'Envoi impossible')),
   });

@@ -13,7 +13,7 @@ import { NewsService } from './news.service';
 
 @ApiTags('Actualités (organisations)')
 @ApiBearerAuth()
-@Controller('news')
+@Controller('actualites')
 export class NewsController {
   constructor(private readonly svc: NewsService) {}
 
@@ -69,7 +69,7 @@ export class NewsController {
 
 @ApiTags('Actualités (personnel CAPH-CI)')
 @ApiBearerAuth()
-@Controller('admin/news')
+@Controller('admin/actualites')
 export class AdminNewsController {
   constructor(private readonly svc: NewsService) {}
 
@@ -96,7 +96,7 @@ export class AdminNewsController {
 
 @ApiTags('Site public')
 @Public()
-@Controller('public/news')
+@Controller('public/actualites')
 export class PublicNewsController {
   constructor(private readonly svc: NewsService) {}
 

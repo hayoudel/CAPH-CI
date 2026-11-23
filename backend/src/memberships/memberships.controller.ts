@@ -16,7 +16,7 @@ const CODE_HEADER = { name: 'x-tracking-code', required: true, description: 'Cod
 /** Parcours d'adhésion côté demandeur : aucune connexion, l'accès au dossier se fait par code de suivi. */
 @ApiTags('Adhésion (demandeur)')
 @Public()
-@Controller('memberships')
+@Controller('adhesions')
 export class MembershipsController {
   constructor(private readonly memberships: MembershipsService) {}
 

@@ -1,18 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../../api/client';
-import type { AgendaEvent, Paginated } from '../../api/types';
+import type { Evenement, Paginated } from '../../api/types';
 import { EVENT_MODES, EVENT_STATUSES, EVENT_TYPES, formatDay } from '../../lib/format';
 import { useListParams } from '../../lib/useListParams';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { useAuth } from '../../auth/AuthContext';
+import { useRegions } from '../../lib/useRegions';
 import { mayModify } from '../../lib/ownership';
 import { Alert } from '../../ui/Alert';
 import { Button } from '../../ui/Button';
 import { ConfirmDelete, ItemActions } from '../../ui/ConfirmDelete';
 import { Flash, type Notice } from '../../ui/Flash';
 import { ReviewActions, ReviewInfo, REVIEW_OPTIONS } from '../../ui/Review';
-import { AddEventModal } from './AddModals';
+import { AjoutEvenementModal } from './AddModals';
 import { SelectField } from '../../ui/Field';
 import { Pager } from '../../ui/Pager';
 import { Spinner } from '../../ui/Spinner';
@@ -21,7 +22,7 @@ import { DemoBadge } from '../../ui/DemoBadge';
 const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
-function when(e: AgendaEvent) {
+function when(e: Evenement) {
   const start = new Date(e.startsAt);
   const end = e.endsAt ? new Date(e.endsAt) : null;
   if (!end) return `${formatDay(start)} à ${time.format(start)}`;
@@ -29,36 +30,37 @@ function when(e: AgendaEvent) {
   return `Du ${formatDay(start)} à ${time.format(start)} au ${formatDay(end)} à ${time.format(end)}`;
 }
 
-export function AgendaPage() {
-  usePageTitle('Agenda');
+export function EvenementsPage() {
+  usePageTitle('Événements');
   const f = useListParams();
   const { can, user } = useAuth();
   const manage = can('event.manage');
   const canAdd = manage || can('event.propose');
   const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState<AgendaEvent | null>(null);
-  const [deleting, setDeleting] = useState<AgendaEvent | null>(null);
+  const [editing, setEditing] = useState<Evenement | null>(null);
+  const [deleting, setDeleting] = useState<Evenement | null>(null);
   /** Le personnel gère tout ; une OPH ne gère que ce que son organisation a ajouté. */
-  const mine = (e: AgendaEvent) => canAdd && (manage || (!!user?.organizationId && e.organization?.id === user.organizationId && mayModify(user, e.createdById)));
+  const mine = (e: Evenement) => canAdd && (manage || (!!user?.organizationId && e.organization?.id === user.organizationId && mayModify(user, e.createdById)));
   const [notice, setNotice] = useState<Notice | null>(null);
+  const regions = useRegions();
   const past = f.get('when') === 'past';
-  const query = { past: past || undefined, type: f.get('type') || undefined, review: f.get('review') || undefined, page: f.page, limit: 10 };
-  const list = useQuery({ queryKey: ['events', query], queryFn: () => api<Paginated<AgendaEvent>>('/events', { query }), placeholderData: (p) => p });
+  const query = { past: past || undefined, type: f.get('type') || undefined, regionId: f.get('regionId') || undefined, review: f.get('review') || undefined, page: f.page, limit: 10 };
+  const list = useQuery({ queryKey: ['events', query], queryFn: () => api<Paginated<Evenement>>('/evenements', { query }), placeholderData: (p) => p });
   const total = list.data?.meta.total ?? 0;
 
   return (
     <>
       <header className="page-head page-head--actions">
         <div>
-          <h1>Agenda</h1>
+          <h1>Événements</h1>
           <p>Réunions, formations, assemblées et autres rendez-vous de la CAPH-CI.</p>
         </div>
         {canAdd && <div className="page-head__actions"><Button onClick={() => setAdding(true)}>+ Ajouter un événement</Button></div>}
       </header>
       <Flash notice={notice} />
-      {adding && <AddEventModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
-      {editing && <AddEventModal proposer={!manage} edit={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
-      {deleting && <ConfirmDelete what="Événement" title={deleting.title} path={`/events/${deleting.id}`} invalidate={['events']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
+      {adding && <AjoutEvenementModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
+      {editing && <AjoutEvenementModal proposer={!manage} edit={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Événement" title={deleting.title} path={`/evenements/${deleting.id}`} invalidate={['events']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
       <div className="stack">
         <div className="panel">
           <div className="filters">
@@ -67,6 +69,8 @@ export function AgendaPage() {
               onChange={(e) => f.set('when', e.target.value === 'past' ? 'past' : '')} />
             <SelectField label="Type d’événement" value={f.get('type')} placeholder="Tous les types"
               options={Object.entries(EVENT_TYPES).map(([value, label]) => ({ value, label }))} onChange={(e) => f.set('type', e.target.value)} />
+            <SelectField label="Région" value={f.get('regionId')} placeholder="Toutes les régions"
+              options={(regions.data ?? []).map((r) => ({ value: r.id, label: r.name }))} onChange={(e) => f.set('regionId', e.target.value)} />
             {manage && <SelectField label="Validation" value={f.get('review')} placeholder="Tous" options={REVIEW_OPTIONS} onChange={(e) => f.set('review', e.target.value)} />}
           </div>
         </div>
@@ -91,11 +95,11 @@ export function AgendaPage() {
                   </p>
                   <p style={{ margin: '0 0 var(--space-2)' }}><strong>{when(e)}</strong></p>
                   <p className="item__meta" style={{ margin: 0 }}>
-                    {EVENT_MODES[e.mode] ?? e.mode}{e.location ? ` — ${e.location}` : ''}{e.region ? ` (${e.region.name})` : ''}
+                    {EVENT_MODES[e.mode] ?? e.mode}{e.location ? ` — ${e.location}` : ''}{e.region ? ` · Région : ${e.region.name}` : ''}
                   </p>
                   {e.description && <p style={{ marginBottom: 0 }}>{e.description}</p>}
                   <ReviewInfo item={e} />
-                  <ReviewActions item={e} path="/events" canReview={manage} onNotice={setNotice} />
+                  <ReviewActions item={e} path="/evenements" canReview={manage} onNotice={setNotice} />
                   {mine(e) && <ItemActions title={e.title} onEdit={() => { setNotice(null); setEditing(e); }} onDelete={() => { setNotice(null); setDeleting(e); }} />}
                 </article>
               </li>

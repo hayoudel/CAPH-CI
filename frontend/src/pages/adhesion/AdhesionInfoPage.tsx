@@ -11,8 +11,8 @@ import { Spinner } from '../../ui/Spinner';
 
 export function AdhesionInfoPage() {
   usePageTitle('Adhérer à la CAPH-CI');
-  const reqs = useQuery({ queryKey: ['requirements', 'PM_ORGANISATION'], queryFn: () => api<MembershipRequirements>('/memberships/requirements', { auth: false, query: { category: 'PM_ORGANISATION' } }) });
-  const cats = useQuery({ queryKey: ['categories'], queryFn: () => api<MembershipCategory[]>('/memberships/categories', { auth: false }) });
+  const reqs = useQuery({ queryKey: ['requirements', 'PM_ORGANISATION'], queryFn: () => api<MembershipRequirements>('/adhesions/requirements', { auth: false, query: { category: 'PM_ORGANISATION' } }) });
+  const cats = useQuery({ queryKey: ['categories'], queryFn: () => api<MembershipCategory[]>('/adhesions/categories', { auth: false }) });
   const draft = loadDraft();
 
   if (reqs.isLoading) return <div className="container"><Spinner /></div>;

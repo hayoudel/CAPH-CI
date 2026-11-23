@@ -17,12 +17,12 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 interface Form {
   acronym: string; commune: string; address: string; postalAddress: string; regionId: string; phone: string; email: string;
-  website: string; interventionZone: string; domainIds: string[]; disabilityTypeIds: string[];
+  website: string; interventionZone: string; domainIds: string[]; typeHandicapIds: string[];
 }
 const toForm = (o: OrganizationProfile): Form => ({
   acronym: o.acronym ?? '', commune: o.commune ?? '', address: o.address ?? '', postalAddress: o.postalAddress ?? '',
   regionId: o.region?.id ?? '', phone: o.phone ?? '', email: o.email ?? '', website: o.website ?? '',
-  interventionZone: o.interventionZone ?? '', domainIds: o.domains.map((d) => d.id), disabilityTypeIds: o.disabilityTypes.map((d) => d.id),
+  interventionZone: o.interventionZone ?? '', domainIds: o.domains.map((d) => d.id), typeHandicapIds: o.typesHandicap.map((d) => d.id),
 });
 
 export function validate(f: Form) {
@@ -38,8 +38,8 @@ export function OrganizationPage() {
   const { can } = useAuth();
   const editable = can('organization.update');
   const qc = useQueryClient();
-  const org = useQuery({ queryKey: ['org', 'me'], queryFn: () => api<OrganizationProfile>('/organizations/me') });
-  const filters = useQuery({ queryKey: ['filters'], queryFn: () => api<DirectoryFilters>('/directory/filters', { auth: false }), staleTime: 3_600_000 });
+  const org = useQuery({ queryKey: ['org', 'me'], queryFn: () => api<OrganizationProfile>('/organisations/me') });
+  const filters = useQuery({ queryKey: ['filters'], queryFn: () => api<DirectoryFilters>('/annuaire/filters', { auth: false }), staleTime: 3_600_000 });
   const [form, setForm] = useState<Form | null>(null);
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -47,7 +47,7 @@ export function OrganizationPage() {
   useEffect(() => { if (org.data) setForm(toForm(org.data)); }, [org.data]);
 
   const save = useMutation({
-    mutationFn: (f: Form) => api<OrganizationProfile>(`/organizations/${org.data!.id}`, {
+    mutationFn: (f: Form) => api<OrganizationProfile>(`/organisations/${org.data!.id}`, {
       method: 'PATCH',
       body: { ...f, regionId: f.regionId || null },
     }),
@@ -118,8 +118,8 @@ export function OrganizationPage() {
         </div>
         <CheckGroup legend="Domaines d’intervention" items={(filters.data?.domains ?? [])} selected={form.domainIds}
           onChange={(v) => set('domainIds', v)} disabled={!editable} />
-        <CheckGroup legend="Types de handicap concernés" items={(filters.data?.disabilityTypes ?? [])} selected={form.disabilityTypeIds}
-          onChange={(v) => set('disabilityTypeIds', v)} disabled={!editable} />
+        <CheckGroup legend="Types de handicap concernés" items={(filters.data?.typesHandicap ?? [])} selected={form.typeHandicapIds}
+          onChange={(v) => set('typeHandicapIds', v)} disabled={!editable} />
         {editable && (
           <div className="form-actions">
             <Button type="submit" loading={save.isPending}>{save.isPending ? 'Enregistrement…' : 'Enregistrer les modifications'}</Button>

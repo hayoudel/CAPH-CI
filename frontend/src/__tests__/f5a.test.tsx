@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as Auth from '../auth/AuthContext';
 import { formatSize } from '../lib/format';
-import { AgendaPage } from '../pages/content/AgendaPage';
+import { EvenementsPage } from '../pages/content/EvenementsPage';
 import { CommunicationsPage } from '../pages/content/CommunicationsPage';
 import { DocumentsPage } from '../pages/content/DocumentsPage';
 import { OpportunitiesPage } from '../pages/content/OpportunitiesPage';
@@ -29,7 +29,7 @@ describe('formatSize', () => {
 
 describe('contenus en lecture', () => {
   it('liste les documents', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ data: [{ id: '1', title: 'Guide test', description: 'Un guide', category: 'GUIDE', accessLevel: 'MEMBERS', isFeatured: true, publishedAt: '2026-01-05T00:00:00Z', file: { originalName: 'guide.pdf', mimeType: 'application/pdf', sizeBytes: 2048 } }], meta: meta(1) }));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [{ id: '1', title: 'Guide test', description: 'Un guide', category: 'GUIDE', accessLevel: 'MEMBERS', isFeatured: true, publishedAt: '2026-01-05T00:00:00Z', file: { originalName: 'guide.pdf', mimeType: 'application/pdf', sizeBytes: 2048 } }], meta: meta(1) }));
     render(wrap(<DocumentsPage />));
     expect(await screen.findByText('Guide test')).toBeInTheDocument();
     expect(screen.getByText('À la une')).toBeInTheDocument();
@@ -37,21 +37,21 @@ describe('contenus en lecture', () => {
   });
 
   it('affiche un message clair quand il n’y a aucune opportunité', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ data: [], meta: meta(0) }));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [], meta: meta(0) }));
     render(wrap(<OpportunitiesPage />));
     expect(await screen.findByText(/Aucune opportunité ne correspond/)).toBeInTheDocument();
   });
 
   it('signale les communications non lues', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ data: [{ id: '1', kind: 'INTERNAL', category: 'Information', title: 'Réunion annuelle', excerpt: 'Bonjour', senderLabel: 'Équipe CAPH-CI', publishedAt: '2026-10-01T09:00:00Z', isRead: false }], meta: meta(1) }));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [{ id: '1', kind: 'INTERNAL', category: 'Information', title: 'Réunion annuelle', excerpt: 'Bonjour', senderLabel: 'Équipe CAPH-CI', publishedAt: '2026-10-01T09:00:00Z', isRead: false }], meta: meta(1) }));
     render(wrap(<CommunicationsPage />));
     expect(await screen.findByText('Non lue')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Réunion annuelle/ })).toHaveAttribute('href', '/espace/communications/1');
   });
 
-  it('affiche l’agenda avec les dates en français', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ data: [{ id: '1', type: 'MEETING', title: 'Assemblée', description: null, startsAt: '2026-12-10T09:00:00Z', endsAt: '2026-12-10T12:00:00Z', mode: 'ONSITE', location: 'Abidjan', status: 'PLANNED', region: null }], meta: meta(1) }));
-    render(wrap(<AgendaPage />));
+  it('affiche les événements avec les dates en français', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [{ id: '1', type: 'MEETING', title: 'Assemblée', description: null, startsAt: '2026-12-10T09:00:00Z', endsAt: '2026-12-10T12:00:00Z', mode: 'ONSITE', location: 'Abidjan', status: 'PLANNED', region: null }], meta: meta(1) }));
+    render(wrap(<EvenementsPage />));
     expect(await screen.findByText('Assemblée')).toBeInTheDocument();
     expect(screen.getByText(/jeudi 10 décembre/i)).toBeInTheDocument();
     expect(screen.getByText('Sur place — Abidjan')).toBeInTheDocument();

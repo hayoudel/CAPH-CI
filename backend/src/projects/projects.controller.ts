@@ -12,7 +12,7 @@ import { ProjectsService } from './projects.service';
 
 @ApiTags('Projets (organisations)')
 @ApiBearerAuth()
-@Controller('projects')
+@Controller('projets')
 export class ProjectsController {
   constructor(private readonly svc: ProjectsService) {}
 
@@ -62,7 +62,7 @@ export class ProjectsController {
 
 @ApiTags('Projets (personnel CAPH-CI)')
 @ApiBearerAuth()
-@Controller('admin/projects')
+@Controller('admin/projets')
 export class AdminProjectsController {
   constructor(private readonly svc: ProjectsService) {}
 

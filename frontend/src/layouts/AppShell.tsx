@@ -19,7 +19,7 @@ function navFor(area: 'member' | 'staff'): NavItem[] {
         { to: '/espace/communications', label: 'Communications', permission: 'communication.read', unread: true },
         { to: '/espace/documents', label: 'Documents', permission: 'document.read' },
         { to: '/espace/opportunites', label: 'Opportunités', permission: 'opportunity.read' },
-        { to: '/espace/agenda', label: 'Agenda', permission: 'event.read' },
+        { to: '/espace/evenements', label: 'Événements', permission: 'event.read' },
         { to: '/espace/projets', label: 'Projets', permission: 'project.read' },
         { to: '/espace/rapports', label: 'Rapports', permission: 'report.read' },
         { to: '/espace/actualites', label: 'Mes actualités', permission: 'news.propose' },
@@ -29,7 +29,7 @@ function navFor(area: 'member' | 'staff'): NavItem[] {
         { to: '/admin', label: 'Tableau de bord', end: true },
         { to: '/admin/documents', label: 'Documents', permission: 'document.read' },
         { to: '/admin/opportunites', label: 'Opportunités', permission: 'opportunity.read' },
-        { to: '/admin/agenda', label: 'Agenda', permission: 'event.read' },
+        { to: '/admin/evenements', label: 'Événements', permission: 'event.read' },
       ];
 }
 

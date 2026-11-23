@@ -13,7 +13,7 @@ import { OrganizationsService } from './organizations.service';
 
 @ApiTags('Organisations')
 @ApiBearerAuth()
-@Controller('organizations')
+@Controller('organisations')
 export class OrganizationsController {
   constructor(private readonly orgs: OrganizationsService, private readonly members: MembersService) {}
 

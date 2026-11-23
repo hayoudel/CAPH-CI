@@ -12,7 +12,7 @@ const orgInclude = {
   region: { select: { id: true, name: true } },
   delegation: { select: { id: true, name: true } },
   domains: { select: { id: true, code: true, label: true }, orderBy: { sortOrder: 'asc' } },
-  disabilityTypes: { select: { id: true, code: true, label: true }, orderBy: { sortOrder: 'asc' } },
+  typesHandicap: { select: { id: true, code: true, label: true }, orderBy: { sortOrder: 'asc' } },
   _count: { select: { members: true } },
 } satisfies Prisma.OrganizationInclude;
 
@@ -88,13 +88,13 @@ export class OrganizationsService {
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateOrganizationDto) {
     const org = await this.findWritable(user, id);
-    const { domainIds, disabilityTypeIds, regionId, ...fields } = dto;
+    const { domainIds, typeHandicapIds, regionId, ...fields } = dto;
 
     if (regionId && !(await this.prisma.region.findUnique({ where: { id: regionId } }))) {
       throw new BadRequestException({ code: 'INVALID_REFERENCE', message: 'Région inconnue.' });
     }
-    await this.assertExist('interventionDomain', domainIds, 'Domaine d’intervention inconnu.');
-    await this.assertExist('disabilityType', disabilityTypeIds, 'Type de handicap inconnu.');
+    await this.assertExist('domaineIntervention', domainIds, 'Domaine d’intervention inconnu.');
+    await this.assertExist('typeHandicap', typeHandicapIds, 'Type de handicap inconnu.');
 
     await this.prisma.organization.update({
       where: { id: org.id },
@@ -102,7 +102,7 @@ export class OrganizationsService {
         ...fields,
         ...(regionId !== undefined ? { regionId } : {}),
         ...(domainIds ? { domains: { set: domainIds.map((d) => ({ id: d })) } } : {}),
-        ...(disabilityTypeIds ? { disabilityTypes: { set: disabilityTypeIds.map((d) => ({ id: d })) } } : {}),
+        ...(typeHandicapIds ? { typesHandicap: { set: typeHandicapIds.map((d) => ({ id: d })) } } : {}),
       },
     });
     await this.audit.log({
@@ -112,7 +112,7 @@ export class OrganizationsService {
     return this.get(user, id);
   }
 
-  private async assertExist(model: 'interventionDomain' | 'disabilityType', ids: string[] | undefined, message: string) {
+  private async assertExist(model: 'domaineIntervention' | 'typeHandicap', ids: string[] | undefined, message: string) {
     if (!ids?.length) return;
     const unique = [...new Set(ids)];
     const count = await (this.prisma[model] as any).count({ where: { id: { in: unique } } });

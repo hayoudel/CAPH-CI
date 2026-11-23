@@ -25,7 +25,7 @@ export class DocumentsService {
   private seesContributorDocs = (u: AuthenticatedUser) =>
     !u.organizationId || ['OPH_PRESIDENT', 'OPH_DEPUTY', 'OPH_CONTRIBUTOR'].includes(u.organizationRole?.code ?? '');
 
-  private visible(u: AuthenticatedUser, includeArchived = false): Prisma.InternalDocumentWhereInput {
+  private visible(u: AuthenticatedUser, includeArchived = false): Prisma.DocumentWhereInput {
     return {
       ...(this.manages(u) && includeArchived ? {} : { archivedAt: null }),
       ...(this.seesContributorDocs(u) ? {} : { accessLevel: 'MEMBERS' as const }),
@@ -34,7 +34,7 @@ export class DocumentsService {
   }
 
   async list(u: AuthenticatedUser, q: ListDocumentsQueryDto) {
-    const where: Prisma.InternalDocumentWhereInput = {
+    const where: Prisma.DocumentWhereInput = {
       AND: [
         this.visible(u, q.includeArchived),
         q.category ? { category: q.category } : {},
@@ -42,14 +42,14 @@ export class DocumentsService {
       ],
     };
     const [total, rows] = await Promise.all([
-      this.prisma.internalDocument.count({ where }),
-      this.prisma.internalDocument.findMany({ where, select, orderBy: [{ isFeatured: 'desc' }, { publishedAt: 'desc' }], ...pageArgs(q) }),
+      this.prisma.document.count({ where }),
+      this.prisma.document.findMany({ where, select, orderBy: [{ isFeatured: 'desc' }, { publishedAt: 'desc' }], ...pageArgs(q) }),
     ]);
     return paginated(rows, total, q);
   }
 
   private async find(u: AuthenticatedUser, id: string) {
-    const doc = await this.prisma.internalDocument.findFirst({ where: { id, ...this.visible(u, true) }, include: { file: true } });
+    const doc = await this.prisma.document.findFirst({ where: { id, ...this.visible(u, true) }, include: { file: true } });
     if (!doc) throw new NotFoundException(NOT_FOUND);
     return doc;
   }
@@ -68,7 +68,7 @@ export class DocumentsService {
     const manage = this.manages(u);
     // Document interne (jamais public) : publié tout de suite, sans validation. Une OPH ne choisit ni l'accès réservé ni la mise à la une.
     const own = manage ? dto : { ...dto, accessLevel: 'MEMBERS' as const, isFeatured: false };
-    const doc = await this.prisma.internalDocument.create({
+    const doc = await this.prisma.document.create({
       data: { ...own, ...creationReview(u, manage, false), fileId: asset.id, createdById: u.id }, select,
     });
     await this.audit.log({ action: 'document.created', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: doc.id, metadata: { reviewStatus: doc.reviewStatus } });
@@ -80,7 +80,7 @@ export class DocumentsService {
     assertOwnerOrManager(u, this.manages(u), cur);
     // Une OPH change le titre, la description et la catégorie ; l'accès réservé et la mise à la une restent au personnel.
     const data = this.manages(u) ? dto : { title: dto.title, description: dto.description, category: dto.category };
-    const doc = await this.prisma.internalDocument.update({ where: { id }, data, select });
+    const doc = await this.prisma.document.update({ where: { id }, data, select });
     await this.audit.log({ action: 'document.updated', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: id });
     return doc;
   }
@@ -89,13 +89,13 @@ export class DocumentsService {
   async remove(u: AuthenticatedUser, id: string) {
     const cur = await this.find(u, id);
     assertOwnerOrManager(u, this.manages(u), cur);
-    await this.prisma.internalDocument.update({ where: { id }, data: { archivedAt: new Date() } });
+    await this.prisma.document.update({ where: { id }, data: { archivedAt: new Date() } });
     await this.audit.log({ action: 'document.deleted', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: id });
   }
 
   async setArchived(u: AuthenticatedUser, id: string, archived: boolean) {
     await this.find(u, id);
-    const doc = await this.prisma.internalDocument.update({ where: { id }, data: { archivedAt: archived ? new Date() : null }, select });
+    const doc = await this.prisma.document.update({ where: { id }, data: { archivedAt: archived ? new Date() : null }, select });
     await this.audit.log({ action: archived ? 'document.archived' : 'document.restored', actorId: u.id, actorLabel: u.email, entityType: 'InternalDocument', entityId: id });
     return doc;
   }

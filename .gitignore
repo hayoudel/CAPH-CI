@@ -5,3 +5,6 @@ dist/
 /backend/storage/
 coverage/
 .DS_Store
+# Sauvegardes de base de données (contiennent des données sensibles)
+sauvegarde*.sql
+**/sauvegarde*.sql

@@ -2,26 +2,27 @@
 :root {
   color-scheme: light;
 
-  /* Couleurs de la charte */
-  --orange: #f56600;        /* identité : accents, jamais pour du texte courant (contraste < 4,5:1 sur blanc) */
-  --green: #008b3d;         /* repères graphiques */
-  --green-ui: #006b35;      /* boutons, liens, titres (6,66:1 avec du blanc) */
-  --green-deep: #004d29;    /* en-têtes et fonds foncés */
-  --yellow: #ffd600;        /* détails graphiques, focus sur fond foncé */
+  /* Couleurs de la charte : orange CAPH-CI */
+  --orange: #045923ff; 
+  --flag-orange: #f77f00;   /* orange du drapeau uniquement */       /* identité : filets, repères graphiques, jamais pour du texte courant (3,1:1 sur blanc) */
+  --green: #008b3d;         /* repères graphiques (drapeau) */
+  --brand: #c25a0f;         /* boutons, liens, titres (5,5:1 avec du blanc) */
+  --brand-deep: #d15401ff;    /* en-têtes, menus, fonds foncés et survol (8,1:1 avec du blanc) */
+  --yellow: #ffd600;        /* détails graphiques, focus et repère actif sur fond foncé */
   --ink: #1a1a1a;           /* texte principal */
   --paper: #ffffff;
-  --paper-2: #f5f7f6;       /* fonds secondaires */
+  --paper-2: #f8f5f2;       /* fonds secondaires */
 
   /* Couleurs de service (contrastes vérifiés ≥ 4,5:1) */
-  --ink-2: #4a524d;         /* texte secondaire */
-  --line: #cdd5d0;          /* filets et bordures de composants (≥ 3:1 sur blanc pour les champs : voir --field-line) */
-  --field-line: #6b7570;    /* bordure des champs : 4,7:1 */
+  --ink-2: #51483f;         /* texte secondaire */
+  --line: #ddd5ce;          /* filets et bordures de composants (≥ 3:1 sur blanc pour les champs : voir --field-line) */
+  --field-line: #7a6f66;    /* bordure des champs : 4,9:1 */
   --danger: #b42318;
   --danger-bg: #fdeeec;
   --success: #0b6b3a;
   --success-bg: #e8f5ed;
-  --info-bg: #eef3f1;
-  --focus: #004d29;
+  --info-bg: #f8f1ea;
+  --focus: #8a3500;
   --focus-on-dark: #ffd600;
 
   /* Typographie */

@@ -202,14 +202,14 @@ async function seedDemo() {
     ['SANTE', 'Santé et réadaptation'],
   ];
   for (const [i, [code, label]] of domains.entries()) {
-    await prisma.interventionDomain.upsert({ where: { code }, update: {}, create: { code, label, sortOrder: i } });
+    await prisma.domaineIntervention.upsert({ where: { code }, update: {}, create: { code, label, sortOrder: i } });
   }
   const disabilities = [
     ['VISUAL', 'Handicap visuel'], ['HEARING', 'Handicap auditif'], ['MOTOR', 'Handicap moteur'],
     ['INTELLECTUAL', 'Handicap intellectuel'], ['PSYCHOSOCIAL', 'Handicap psychosocial'], ['ALL', 'Tous types de handicap'],
   ];
   for (const [i, [code, label]] of disabilities.entries()) {
-    await prisma.disabilityType.upsert({ where: { code }, update: {}, create: { code, label, sortOrder: i } });
+    await prisma.typeHandicap.upsert({ where: { code }, update: {}, create: { code, label, sortOrder: i } });
   }
   const news = [['ACTIVITIES', 'Activités des OPH'], ['EVENTS', 'Événements'], ['RESOURCES', 'Ressources utiles']];
   for (const [i, [code, label]] of news.entries()) {
@@ -218,8 +218,8 @@ async function seedDemo() {
 
   // OPH fictive (domaine .example : jamais de vrais e-mails)
   const delegation = await prisma.delegation.findUniqueOrThrow({ where: { name: 'Délégation de Agnéby-Tiassa' } });
-  const domain = await prisma.interventionDomain.findUniqueOrThrow({ where: { code: 'INCLUSION_PLAIDOYER' } });
-  const disability = await prisma.disabilityType.findUniqueOrThrow({ where: { code: 'ALL' } });
+  const domain = await prisma.domaineIntervention.findUniqueOrThrow({ where: { code: 'INCLUSION_PLAIDOYER' } });
+  const disability = await prisma.typeHandicap.findUniqueOrThrow({ where: { code: 'ALL' } });
   const org = await prisma.organization.upsert({
     where: { name: 'Association Horizon Inclusif' },
     update: {},
@@ -234,7 +234,7 @@ async function seedDemo() {
       isListed: true, publicationConsentAt: new Date(),
       fieldVisibility: { publicEmail: true, publicPhone: true, postalAddress: false, website: true },
       domains: { connect: [{ id: domain.id }] },
-      disabilityTypes: { connect: [{ id: disability.id }] },
+      typesHandicap: { connect: [{ id: disability.id }] },
     },
   });
 

@@ -17,7 +17,7 @@ export function HomePage() {
             <h1 id="titre-accueil">Les associations de personnes handicapées, réunies au même endroit</h1>
             <p className="hero__lead">
               {connected
-                ? `Bonjour ${user.firstName}. Retrouvez votre espace ${site.fullName} : communications, documents, opportunités et agenda.`
+                ? `Bonjour ${user.firstName}. Retrouvez votre espace ${site.fullName} : communications, documents, opportunités et événements.`
                 : `La ${site.fullName} accompagne ses organisations membres. Retrouvez ici votre espace, ou déposez votre demande d’adhésion.`}
             </p>
             {/* Pendant la vérification de la session, aucun bouton : on évite d'afficher « Se connecter » à quelqu'un déjà connecté. */}
@@ -52,7 +52,7 @@ export function HomePage() {
                 <div className="row">
                   {can('document.read') && <LinkButton to={`${base}/documents`} variant="secondary">Documents</LinkButton>}
                   {can('opportunity.read') && <LinkButton to={`${base}/opportunites`} variant="secondary">Opportunités</LinkButton>}
-                  {can('event.read') && <LinkButton to={`${base}/agenda`} variant="secondary">Agenda</LinkButton>}
+                  {can('event.read') && <LinkButton to={`${base}/evenements`} variant="secondary">Événements</LinkButton>}
                 </div>
               </section>
             </>
@@ -60,7 +60,7 @@ export function HomePage() {
             <>
               <section className="panel choice" aria-labelledby="c-membre">
                 <h3 id="c-membre">Accéder à mon espace</h3>
-                <p>Pour les organisations déjà membres : communications, documents, opportunités, agenda et rapports.</p>
+                <p>Pour les organisations déjà membres : communications, documents, opportunités, événements et rapports.</p>
                 <LinkButton to="/connexion" variant="secondary">Se connecter</LinkButton>
               </section>
               <section className="panel choice" aria-labelledby="c-adhesion">

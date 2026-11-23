@@ -15,7 +15,7 @@ import { OpportunitiesService } from './opportunities.service';
 
 @ApiTags('Opportunités')
 @ApiBearerAuth()
-@Controller('opportunities')
+@Controller('opportunites')
 export class OpportunitiesController {
   constructor(private readonly svc: OpportunitiesService) {}
 
@@ -71,7 +71,7 @@ export class OpportunitiesController {
 /** Opportunités marquées « PUBLIC » : consultables sans connexion (site public). */
 @ApiTags('Site public')
 @Public()
-@Controller('public/opportunities')
+@Controller('public/opportunites')
 export class PublicOpportunitiesController {
   constructor(private readonly svc: OpportunitiesService) {}
 

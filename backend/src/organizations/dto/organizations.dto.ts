@@ -38,7 +38,7 @@ export class UpdateOrganizationDto {
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsUUID('all', { each: true })
   domainIds?: string[];
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsUUID('all', { each: true })
-  disabilityTypeIds?: string[];
+  typeHandicapIds?: string[];
 }
 
 export class FieldVisibilityDto {

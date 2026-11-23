@@ -21,14 +21,14 @@ export function VisibilityPage() {
   const orgId = user!.organizationId!;
   const qc = useQueryClient();
   const key = ['org', orgId, 'visibility'];
-  const q = useQuery({ queryKey: key, queryFn: () => api<Visibility>(`/organizations/${orgId}/visibility`) });
+  const q = useQuery({ queryKey: key, queryFn: () => api<Visibility>(`/organisations/${orgId}/visibility`) });
   const [v, setV] = useState<Visibility | null>(null);
   const [errors, setErrors] = useState<{ publicEmail?: string; publicPhone?: string }>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   useEffect(() => { if (q.data) setV(q.data); }, [q.data]);
 
   const save = useMutation({
-    mutationFn: (body: object) => api<Visibility>(`/organizations/${orgId}/visibility`, { method: 'PATCH', body }),
+    mutationFn: (body: object) => api<Visibility>(`/organisations/${orgId}/visibility`, { method: 'PATCH', body }),
     onSuccess: (data) => { qc.setQueryData(key, data); setV(data); },
     onError: (e) => setNotice(errorNotice(e, 'Enregistrement impossible')),
   });

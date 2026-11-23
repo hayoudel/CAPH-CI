@@ -6,7 +6,7 @@ import { DirectoryService } from './directory.service';
 
 @ApiTags('Annuaire (public)')
 @Public()
-@Controller('directory')
+@Controller('annuaire')
 export class DirectoryController {
   constructor(private readonly directory: DirectoryService) {}
 

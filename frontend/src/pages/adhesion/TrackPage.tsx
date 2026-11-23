@@ -16,7 +16,7 @@ export function TrackPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [result, setResult] = useState<TrackResult | null>(null);
   const track = useMutation({
-    mutationFn: () => api<TrackResult>('/memberships/track', { method: 'POST', auth: false, body: { reference: f.reference.trim(), email: f.email.trim(), code: f.code.trim() } }),
+    mutationFn: () => api<TrackResult>('/adhesions/track', { method: 'POST', auth: false, body: { reference: f.reference.trim(), email: f.email.trim(), code: f.code.trim() } }),
     onSuccess: setResult,
   });
 

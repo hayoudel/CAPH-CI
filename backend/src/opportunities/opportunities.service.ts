@@ -85,8 +85,8 @@ export class OpportunitiesService {
     const created = await this.prisma.$transaction(async (tx) => {
       // Compteur dédié aux opportunités : clé négative (-année) pour ne jamais croiser celui des dossiers d'adhésion.
       const rows = await tx.$queryRaw<{ last: number }[]>`
-        INSERT INTO reference_counters (year, last) VALUES (${-year}, 1)
-        ON CONFLICT (year) DO UPDATE SET last = reference_counters.last + 1 RETURNING last`;
+        INSERT INTO compteurs_reference (year, last) VALUES (${-year}, 1)
+        ON CONFLICT (year) DO UPDATE SET last = compteurs_reference.last + 1 RETURNING last`;
       return tx.opportunity.create({
         data: { ...dto, ...creationReview(u, this.manages(u)), reference: `OP-${year}-${String(rows[0].last).padStart(2, '0')}`, createdById: u.id }, select,
       });

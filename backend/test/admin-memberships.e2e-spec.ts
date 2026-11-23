@@ -36,19 +36,19 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
     return cache.get(email)!;
   };
   const as = async (email: string) => ({ Authorization: `Bearer ${await tokenOf(email)}` });
-  const A = '/api/v1/admin/memberships';
+  const A = '/api/v1/admin/adhesions';
 
   /** Dépose un dossier complet côté demandeur et retourne ses identifiants. */
   async function submitted(label: string, pres = `president-${label}-${stamp}@test.example`) {
     const e = `test-${label}-${stamp}-${n++}@test.example`;
-    const d = (await http().post('/api/v1/memberships/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'Awa Koné', applicantEmail: e })).body;
+    const d = (await http().post('/api/v1/adhesions/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'Awa Koné', applicantEmail: e })).body;
     const name = `Association B4 ${label} ${stamp}`;
     createdOrgNames.push(name);
-    await http().patch(`/api/v1/memberships/requests/${d.id}`).set('x-tracking-code', d.trackingCode).send({
+    await http().patch(`/api/v1/adhesions/requests/${d.id}`).set('x-tracking-code', d.trackingCode).send({
       delegationId: opts.delegationId,
       data: {
         organization: {
-          name, address: 'Rue des Jardins', regionId: opts.regionId, commune: 'Yopougon', interventionDomainIds: [opts.domainId],
+          name, address: 'Rue des Jardins', regionId: opts.regionId, commune: 'Yopougon', domaineInterventionIds: [opts.domainId],
           interventionZone: 'Abidjan', legalReference: `REC-B4-${label}-${stamp}`, phone: '+225 07 00 00 00 00', email: `contact-${label}-${stamp}@test.example`,
         },
         representative: { name: 'Awa Koné', function: 'Présidente', phone: '+225 07 11 11 11 11', email: pres },
@@ -57,9 +57,9 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
       },
     });
     for (const t of ['LEGAL_REGISTRATION', 'STATUTES', 'REPRESENTATIVE_ID']) {
-      await http().post(`/api/v1/memberships/requests/${d.id}/documents`).set('x-tracking-code', d.trackingCode).field('type', t).attach('file', PDF, { filename: `${t}.pdf` });
+      await http().post(`/api/v1/adhesions/requests/${d.id}/documents`).set('x-tracking-code', d.trackingCode).field('type', t).attach('file', PDF, { filename: `${t}.pdf` });
     }
-    const s = await http().post(`/api/v1/memberships/requests/${d.id}/submit`).set('x-tracking-code', d.trackingCode).send(DECL);
+    const s = await http().post(`/api/v1/adhesions/requests/${d.id}/submit`).set('x-tracking-code', d.trackingCode).send(DECL);
     expect(s.status).toBe(200);
     return { id: d.id as string, code: d.trackingCode as string, email: e, reference: s.body.reference as string, name, president: pres };
   }
@@ -89,7 +89,7 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
     configureApp(app);
     await app.init();
     prisma = app.get(PrismaService);
-    const r = (await http().get('/api/v1/memberships/requirements')).body.options;
+    const r = (await http().get('/api/v1/adhesions/requirements')).body.options;
     opts = { regionId: r.regions[0].id, domainId: r.domains[0].id, delegationId: r.delegations[0].id };
     for (const e of [MANAGER, COMM, AWA]) await tokenOf(e);
   });
@@ -150,7 +150,7 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
     });
     it('les brouillons ne sont jamais visibles du personnel', async () => {
       const e = `test-brouillon-${stamp}@test.example`;
-      const d = (await http().post('/api/v1/memberships/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'X Y', applicantEmail: e })).body;
+      const d = (await http().post('/api/v1/adhesions/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'X Y', applicantEmail: e })).body;
       expect((await http().get(`${A}/${d.id}`).set(await as(MANAGER))).status).toBe(404);
     });
     it('un personnel limité à d’autres délégations ne voit pas le dossier', async () => {
@@ -210,7 +210,7 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
       expect((await http().patch(`${A}/${r.id}/documents/${doc.id}`).set(h).send({ status: 'REJECTED' })).status).toBe(422);
       const ok = await http().patch(`${A}/${r.id}/documents/${doc.id}`).set(h).send({ status: 'REJECTED', note: 'Scan illisible' });
       expect(ok.status).toBe(200);
-      const t = await http().post('/api/v1/memberships/track').send({ reference: r.reference, email: r.email, code: r.code });
+      const t = await http().post('/api/v1/adhesions/track').send({ reference: r.reference, email: r.email, code: r.code });
       expect(t.body.documents.some((x: any) => x.status === 'REJECTED' && x.note === 'Scan illisible')).toBe(true);
     });
   });
@@ -224,12 +224,12 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
       expect(ri.status).toBe(200);
       expect(ri.body.status).toBe('TO_COMPLETE');
       expect(sent.some((m) => m.to === r.email && m.text.includes('récépissé lisible'))).toBe(true);
-      const t = await http().post('/api/v1/memberships/track').send({ reference: r.reference, email: r.email, code: r.code });
+      const t = await http().post('/api/v1/adhesions/track').send({ reference: r.reference, email: r.email, code: r.code });
       expect(t.body.status).toBe('TO_COMPLETE');
       expect(t.body.canEdit).toBe(true);
       expect(t.body.messages.some((m: any) => m.text.includes('récépissé lisible'))).toBe(true);
       // le demandeur renvoie son dossier → de nouveau « reçu »
-      const rs = await http().post(`/api/v1/memberships/requests/${r.id}/submit`).set('x-tracking-code', r.code).send(DECL);
+      const rs = await http().post(`/api/v1/adhesions/requests/${r.id}/submit`).set('x-tracking-code', r.code).send(DECL);
       expect(rs.status).toBe(200);
       expect((await detail(r.id)).status).toBe('SUBMITTED');
     });
@@ -285,7 +285,7 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
       const res = await post(`${r.id}/decision`, { ...DECISION, outcome: 'REJECTED', motive: 'Activité hors du champ du handicap.' });
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('REJECTED');
-      const t = await http().post('/api/v1/memberships/track').send({ reference: r.reference, email: r.email, code: r.code });
+      const t = await http().post('/api/v1/adhesions/track').send({ reference: r.reference, email: r.email, code: r.code });
       expect(t.body.decision.outcome).toBe('REJECTED');
       expect(t.body.decision.motive).toContain('hors du champ');
       const d = await detail(r.id);
@@ -375,7 +375,7 @@ describe('Gestion des adhésions — personnel CAPH-CI (B4)', () => {
       const r = await admitted('annuaire');
       await post(`${r.id}/payment`, { method: 'CASH', receiptNumber: `T${stamp}-an` });
       await post(`${r.id}/register`);
-      const dir = await http().get(`/api/v1/directory/organizations?q=${encodeURIComponent(r.name)}`);
+      const dir = await http().get(`/api/v1/annuaire/organizations?q=${encodeURIComponent(r.name)}`);
       expect(dir.status).toBe(200);
       expect(JSON.stringify(dir.body)).toContain(r.name);
       expect(JSON.stringify(dir.body)).not.toContain(r.president); // aucune donnée privée

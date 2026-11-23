@@ -20,7 +20,7 @@ export function DocumentsStep({ draft, view, onChanged }: { draft: Draft; view: 
   const [msg, setMsg] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
-  const refresh = async () => onChanged(await api<MembershipRequestView>(`/memberships/requests/${draft.id}`, { auth: false, headers: headers(draft) }));
+  const refresh = async () => onChanged(await api<MembershipRequestView>(`/adhesions/requests/${draft.id}`, { auth: false, headers: headers(draft) }));
 
   async function upload(type: string, label: string, e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -35,7 +35,7 @@ export function DocumentsStep({ draft, view, onChanged }: { draft: Draft; view: 
       const fd = new FormData();
       fd.append('type', type);
       fd.append('file', file);
-      await api(`/memberships/requests/${draft.id}/documents`, { method: 'POST', auth: false, headers: headers(draft), body: fd });
+      await api(`/adhesions/requests/${draft.id}/documents`, { method: 'POST', auth: false, headers: headers(draft), body: fd });
       await refresh();
       setMsg({ kind: 'success', text: `« ${file.name} » a bien été ajouté à : ${label}.` });
     } catch (err) {
@@ -47,7 +47,7 @@ export function DocumentsStep({ draft, view, onChanged }: { draft: Draft; view: 
     setMsg(null);
     setBusy(docId);
     try {
-      await api(`/memberships/requests/${draft.id}/documents/${docId}`, { method: 'DELETE', auth: false, headers: headers(draft) });
+      await api(`/adhesions/requests/${draft.id}/documents/${docId}`, { method: 'DELETE', auth: false, headers: headers(draft) });
       await refresh();
       setMsg({ kind: 'success', text: `« ${name} » a été retiré.` });
     } catch (err) {
@@ -111,7 +111,7 @@ export function RecapStep({ draft, view, reqs, onGoTo, onSubmitted }: {
   const alertRef = useRef<HTMLDivElement>(null);
 
   const submit = useMutation({
-    mutationFn: () => api<{ reference: string }>(`/memberships/requests/${draft.id}/submit`, {
+    mutationFn: () => api<{ reference: string }>(`/adhesions/requests/${draft.id}/submit`, {
       method: 'POST', auth: false, headers: headers(draft),
       body: { acceptAccuracy, acceptStatutes, acceptDataProcessing, signerName: signerName.trim(), publicationConsent },
     }),
@@ -143,16 +143,16 @@ export function RecapStep({ draft, view, reqs, onGoTo, onSubmitted }: {
     const v = view.data?.[section]?.[key];
     if (v === undefined || v === null || v === '') return '';
     if (key === 'regionId') return regionName(v);
-    if (key === 'interventionDomainIds') return names(opt.domains, v);
-    if (key === 'disabilityTypeIds') return names(opt.disabilityTypes, v);
+    if (key === 'domaineInterventionIds') return names(opt.domains, v);
+    if (key === 'typeHandicapIds') return names(opt.typesHandicap, v);
     return String(v);
   };
 
   const blocks: { title: string; step: number; rows: [string, string][] }[] = [
     { title: 'Vous', step: 0, rows: [['Type de demande', view.requestType === 'RENEWAL' ? `Renouvellement (n° ${view.existingMemberNumber ?? ''})` : 'Première adhésion'], ['Nom', view.applicant.name], ['E-mail', view.applicant.email], ['Téléphone', view.applicant.phone ?? '']] },
-    { title: 'Organisation', step: 1, rows: Object.entries(reqs.fields?.organization ?? {}).filter(([k]) => !['interventionDomainIds', 'disabilityTypeIds', 'interventionZone'].includes(k)).map(([k, s]) => [s.label, display('organization', k)] as [string, string]) },
+    { title: 'Organisation', step: 1, rows: Object.entries(reqs.fields?.organization ?? {}).filter(([k]) => !['domaineInterventionIds', 'typeHandicapIds', 'interventionZone'].includes(k)).map(([k, s]) => [s.label, display('organization', k)] as [string, string]) },
     { title: 'Activités et territoire', step: 2, rows: [
-      ['Domaines d’intervention', display('organization', 'interventionDomainIds')], ['Types de handicap', display('organization', 'disabilityTypeIds')],
+      ['Domaines d’intervention', display('organization', 'domaineInterventionIds')], ['Types de handicap', display('organization', 'typeHandicapIds')],
       ['Zone d’intervention', display('organization', 'interventionZone')], ['Délégation', opt.delegations.find((d) => d.id === view.delegationId)?.name ?? ''],
     ] },
     { title: 'Représentant habilité', step: 3, rows: Object.entries(reqs.fields?.representative ?? {}).map(([k, s]) => [s.label, display('representative', k)] as [string, string]) },

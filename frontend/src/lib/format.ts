@@ -3,7 +3,7 @@ const dateTime = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long
 
 export const formatDate = (v?: string | Date | null) => (v ? date.format(new Date(v)) : '');
 export const formatDateTime = (v?: string | Date | null) => (v ? dateTime.format(new Date(v)) : '');
-/** « Mardi 3 novembre » : pour l'agenda. */
+/** « Mardi 3 novembre » : pour les événements. */
 export const formatDay = (v: string | Date) =>
   new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(v));
 

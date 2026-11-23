@@ -17,7 +17,7 @@ const meta = (req: Request): RequestMeta => ({ ip: req.ip, userAgent: req.header
 /** Gestion des demandes d'adhésion par le personnel CAPH-CI. */
 @ApiTags('Adhésions (personnel CAPH-CI)')
 @ApiBearerAuth()
-@Controller('admin/memberships')
+@Controller('admin/adhesions')
 export class AdminMembershipsController {
   constructor(private readonly svc: AdminMembershipsService) {}
 

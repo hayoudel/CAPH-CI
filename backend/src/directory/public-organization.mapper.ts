@@ -11,7 +11,7 @@ export const publicOrganizationSelect = {
   fieldVisibility: true, publicEmail: true, publicPhone: true, website: true, postalAddress: true,
   region: { select: { id: true, name: true } },
   domains: { select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } },
-  disabilityTypes: { select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } },
+  typesHandicap: { select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } },
 } satisfies Prisma.OrganizationSelect;
 
 export type PublicOrganizationRow = Prisma.OrganizationGetPayload<{ select: typeof publicOrganizationSelect }>;
@@ -26,7 +26,7 @@ export function toPublicOrganization(o: PublicOrganizationRow) {
     commune: o.commune,
     interventionZone: o.interventionZone,
     domains: o.domains,
-    disabilityTypes: o.disabilityTypes,
+    typesHandicap: o.typesHandicap,
     contact: {
       email: v.publicEmail ? o.publicEmail : null,
       phone: v.publicPhone ? o.publicPhone : null,

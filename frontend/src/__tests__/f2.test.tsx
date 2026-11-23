@@ -14,7 +14,7 @@ const wrap = (ui: React.ReactNode) => (
     <MemoryRouter>{ui}</MemoryRouter>
   </QueryClientProvider>
 );
-const base = { acronym: '', commune: '', address: '', postalAddress: '', regionId: '', phone: '', email: '', website: '', interventionZone: '', domainIds: [], disabilityTypeIds: [] };
+const base = { acronym: '', commune: '', address: '', postalAddress: '', regionId: '', phone: '', email: '', website: '', interventionZone: '', domainIds: [], typeHandicapIds: [] };
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -33,15 +33,15 @@ describe('annuaire public', () => {
   it('affiche les organisations trouvées', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) =>
       String(url).includes('/filters')
-        ? json({ regions: [], domains: [], disabilityTypes: [] })
-        : json({ data: [{ id: '1', name: 'Association Test', acronym: 'AT', region: { id: 'r', name: 'Lagunes' }, commune: 'Cocody', interventionZone: null, domains: [], disabilityTypes: [], contact: {} }], meta: { page: 1, limit: 12, total: 1, totalPages: 1 } }));
+        ? json({ regions: [], domains: [], typesHandicap: [] })
+        : json({ data: [{ id: '1', name: 'Association Test', acronym: 'AT', region: { id: 'r', name: 'Lagunes' }, commune: 'Cocody', interventionZone: null, domains: [], typesHandicap: [], contact: {} }], meta: { page: 1, limit: 12, total: 1, totalPages: 1 } }));
     render(wrap(<DirectoryPage />));
     expect(await screen.findByText('Association Test')).toBeInTheDocument();
     expect(screen.getByText('organisation trouvée')).toBeInTheDocument();
   });
   it('dit clairement quand il n’y a aucun résultat', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) =>
-      String(url).includes('/filters') ? json({ regions: [], domains: [], disabilityTypes: [] })
+      String(url).includes('/filters') ? json({ regions: [], domains: [], typesHandicap: [] })
         : json({ data: [], meta: { page: 1, limit: 12, total: 0, totalPages: 1 } }));
     render(wrap(<DirectoryPage />));
     expect(await screen.findByText(/n’est encore publiée/)).toBeInTheDocument();

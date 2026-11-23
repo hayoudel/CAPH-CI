@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as Auth from '../auth/AuthContext';
 import { validateNews } from '../pages/content/NewsPage';
-import { emptyReport, ReportsPage, validateReport } from '../pages/content/ReportsPage';
+import { emptyRapport, RapportsPage, validateRapport } from '../pages/content/RapportsPage';
 import { checkFile } from '../ui/Attachments';
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -14,23 +14,23 @@ const wrap = (ui: React.ReactNode) => (
 );
 afterEach(() => vi.restoreAllMocks());
 
-const okReport = { ...emptyReport, type: 'ACTIVITY', title: 'Rapport 2026', summary: 'Un résumé suffisamment long.', certify: true };
+const okRapport = { ...emptyRapport, type: 'ACTIVITY', title: 'Rapport 2026', summary: 'Un résumé suffisamment long.', certify: true };
 
 describe('rapport : validation', () => {
   it('refuse un formulaire vide', () => {
-    expect(Object.keys(validateReport(emptyReport, true)).sort()).toEqual(['certify', 'summary', 'title', 'type']);
+    expect(Object.keys(validateRapport(emptyRapport, true)).sort()).toEqual(['certify', 'summary', 'title', 'type']);
   });
-  it('accepte un rapport correct', () => expect(validateReport(okReport, true)).toEqual({}));
+  it('accepte un rapport correct', () => expect(validateRapport(okRapport, true)).toEqual({}));
   it('refuse un résumé de plus de 600 caractères', () => {
-    expect(validateReport({ ...okReport, summary: 'x'.repeat(601) }, true).summary).toMatch(/600/);
-    expect(validateReport({ ...okReport, summary: 'x'.repeat(600) }, true)).toEqual({});
+    expect(validateRapport({ ...okRapport, summary: 'x'.repeat(601) }, true).summary).toMatch(/600/);
+    expect(validateRapport({ ...okRapport, summary: 'x'.repeat(600) }, true)).toEqual({});
   });
   it('exige la certification seulement à la création', () => {
-    expect(validateReport({ ...okReport, certify: false }, true).certify).toBeTruthy();
-    expect(validateReport({ ...okReport, certify: false }, false)).toEqual({});
+    expect(validateRapport({ ...okRapport, certify: false }, true).certify).toBeTruthy();
+    expect(validateRapport({ ...okRapport, certify: false }, false)).toEqual({});
   });
   it('refuse une période inversée', () => {
-    expect(validateReport({ ...okReport, periodStart: '2026-06-30', periodEnd: '2026-01-01' }, true).periodEnd).toBeTruthy();
+    expect(validateRapport({ ...okRapport, periodStart: '2026-06-30', periodEnd: '2026-01-01' }, true).periodEnd).toBeTruthy();
   });
 });
 
@@ -66,7 +66,7 @@ describe('liste des rapports', () => {
       data: [{ id: '1', organization: { id: 'o', name: 'Org' }, type: 'ACTIVITY', title: 'Rapport T1', summary: 'x', periodStart: null, periodEnd: null, status: 'CORRECTION_REQUESTED', statusLabel: 'Correction demandée', reviewerNote: 'Précisez', submittedAt: '2026-03-01T00:00:00Z', processedAt: null, author: 'Awa Koné', canEdit: true, attachments: [] }],
       meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
     }));
-    render(wrap(<ReportsPage />));
+    render(wrap(<RapportsPage />));
     expect(await screen.findByText('Rapport T1')).toBeInTheDocument();
     expect(screen.getByText(/vous demande de corriger/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: '+ Transmettre un rapport' }));

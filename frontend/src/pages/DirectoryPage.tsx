@@ -15,12 +15,12 @@ export function DirectoryPage() {
   usePageTitle('Annuaire des organisations');
   const [params, setParams] = useSearchParams();
   const [text, setText] = useState(params.get('q') ?? '');
-  const filters = useQuery({ queryKey: ['filters'], queryFn: () => api<DirectoryFilters>('/directory/filters', { auth: false }), staleTime: 3_600_000 });
+  const filters = useQuery({ queryKey: ['filters'], queryFn: () => api<DirectoryFilters>('/annuaire/filters', { auth: false }), staleTime: 3_600_000 });
   const page = Number(params.get('page') ?? 1) || 1;
-  const query = { q: params.get('q') ?? undefined, regionId: params.get('regionId') ?? undefined, domainId: params.get('domainId') ?? undefined, disabilityTypeId: params.get('disabilityTypeId') ?? undefined, page, limit: LIMIT };
+  const query = { q: params.get('q') ?? undefined, regionId: params.get('regionId') ?? undefined, domainId: params.get('domainId') ?? undefined, typeHandicapId: params.get('typeHandicapId') ?? undefined, page, limit: LIMIT };
   const list = useQuery({
     queryKey: ['directory', query],
-    queryFn: () => api<Paginated<PublicOrganization>>('/directory/organizations', { auth: false, query }),
+    queryFn: () => api<Paginated<PublicOrganization>>('/annuaire/organizations', { auth: false, query }),
     placeholderData: (prev) => prev,
   });
 
@@ -34,7 +34,7 @@ export function DirectoryPage() {
   const reset = () => { setText(''); setParams({}); };
   const total = list.data?.meta.total ?? 0;
   const pages = list.data?.meta.totalPages ?? 1;
-  const hasFilter = ['q', 'regionId', 'domainId', 'disabilityTypeId'].some((k) => params.get(k));
+  const hasFilter = ['q', 'regionId', 'domainId', 'typeHandicapId'].some((k) => params.get(k));
 
   return (
     <div className="container stack">
@@ -50,8 +50,8 @@ export function DirectoryPage() {
             options={(filters.data?.regions ?? []).map((r) => ({ value: r.id, label: r.name }))} onChange={(e) => setParam('regionId', e.target.value)} />
           <SelectField label="Domaine d’intervention" value={params.get('domainId') ?? ''} placeholder="Tous les domaines"
             options={(filters.data?.domains ?? []).map((r) => ({ value: r.id, label: r.label }))} onChange={(e) => setParam('domainId', e.target.value)} />
-          <SelectField label="Type de handicap" value={params.get('disabilityTypeId') ?? ''} placeholder="Tous les types"
-            options={(filters.data?.disabilityTypes ?? []).map((r) => ({ value: r.id, label: r.label }))} onChange={(e) => setParam('disabilityTypeId', e.target.value)} />
+          <SelectField label="Type de handicap" value={params.get('typeHandicapId') ?? ''} placeholder="Tous les types"
+            options={(filters.data?.typesHandicap ?? []).map((r) => ({ value: r.id, label: r.label }))} onChange={(e) => setParam('typeHandicapId', e.target.value)} />
         </div>
         <div className="row row--end">
           {hasFilter && <Button variant="secondary" onClick={reset}>Effacer la recherche</Button>}
@@ -98,7 +98,7 @@ export function DirectoryPage() {
 
 export function DirectoryDetailPage() {
   const { id } = useParams();
-  const q = useQuery({ queryKey: ['directory', id], queryFn: () => api<PublicOrganization>(`/directory/organizations/${id}`, { auth: false }), retry: false });
+  const q = useQuery({ queryKey: ['directory', id], queryFn: () => api<PublicOrganization>(`/annuaire/organizations/${id}`, { auth: false }), retry: false });
   usePageTitle(q.data?.name ?? 'Organisation');
 
   if (q.isLoading) return <div className="container"><Spinner /></div>;
@@ -133,7 +133,7 @@ export function DirectoryDetailPage() {
         <h3>Domaines d’intervention</h3>
         {o.domains.length ? <ul className="tags">{o.domains.map((d) => <li key={d.id} className="badge badge--green">{d.label}</li>)}</ul> : <p className="empty">Non précisés.</p>}
         <h3 style={{ marginTop: 'var(--space-4)' }}>Types de handicap concernés</h3>
-        {o.disabilityTypes.length ? <ul className="tags">{o.disabilityTypes.map((d) => <li key={d.id} className="badge badge--grey">{d.label}</li>)}</ul> : <p className="empty">Non précisés.</p>}
+        {o.typesHandicap.length ? <ul className="tags">{o.typesHandicap.map((d) => <li key={d.id} className="badge badge--grey">{d.label}</li>)}</ul> : <p className="empty">Non précisés.</p>}
       </section>
       <section className="panel" aria-labelledby="ctc">
         <h2 id="ctc" className="panel__title">Contact</h2>

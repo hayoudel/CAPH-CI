@@ -14,7 +14,7 @@ export const STEPS: StepDef[] = [
 /** Champs de chaque étape (chemin « section.champ »). */
 export const STEP_FIELDS: Record<string, string[]> = {
   organisation: ['organization.name', 'organization.acronym', 'organization.legalReference', 'organization.address', 'organization.regionId', 'organization.commune', 'organization.phone', 'organization.email', 'organization.website'],
-  activites: ['organization.interventionDomainIds', 'organization.disabilityTypeIds', 'organization.interventionZone'],
+  activites: ['organization.domaineInterventionIds', 'organization.typeHandicapIds', 'organization.interventionZone'],
   representant: ['representative.name', 'representative.function', 'representative.phone', 'representative.email'],
   responsables: ['secretaryGeneral.name', 'secretaryGeneral.contact', 'treasurer.name', 'treasurer.contact'],
 };

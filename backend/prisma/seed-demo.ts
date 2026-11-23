@@ -13,7 +13,7 @@
 import 'dotenv/config';
 import { readFileSync } from 'fs';
 import { basename, join } from 'path';
-import { PrismaClient, type ContentReviewStatus, type EventMode, type EventStatus, type EventType, type NewsStatus, type OpportunityStatus, type OpportunityType, type ProjectStatus, type ReportStatus, type ReportType } from '@prisma/client';
+import { PrismaClient, type ContentReviewStatus, type ModeEvenement, type StatutEvenement, type TypeEvenement, type NewsStatus, type OpportunityStatus, type OpportunityType, type ProjectStatus, type StatutRapport, type TypeRapport } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import type { ConfigService } from '@nestjs/config';
 import { hashPassword } from '../src/common/utils/password';
@@ -36,14 +36,14 @@ async function clearDemo() {
   const add = (ids: (string | null)[]) => ids.forEach((i) => i && fileIds.add(i));
   add((await prisma.newsProposal.findMany({ where: { isDemo: true }, select: { coverFileId: true } })).map((x) => x.coverFileId));
   add((await prisma.project.findMany({ where: { isDemo: true }, select: { coverFileId: true } })).map((x) => x.coverFileId));
-  add((await prisma.reportAttachment.findMany({ where: { report: { isDemo: true } }, select: { fileId: true } })).map((x) => x.fileId));
+  add((await prisma.rapportPieceJointe.findMany({ where: { rapport: { isDemo: true } }, select: { fileId: true } })).map((x) => x.fileId));
   add((await prisma.newsAttachment.findMany({ where: { proposal: { isDemo: true } }, select: { fileId: true } })).map((x) => x.fileId));
   add((await prisma.projectAttachment.findMany({ where: { project: { isDemo: true } }, select: { fileId: true } })).map((x) => x.fileId));
-  await prisma.report.deleteMany({ where: { isDemo: true } });
+  await prisma.rapport.deleteMany({ where: { isDemo: true } });
   await prisma.newsProposal.deleteMany({ where: { isDemo: true } });
   await prisma.project.deleteMany({ where: { isDemo: true } });
   await prisma.opportunity.deleteMany({ where: { isDemo: true } });
-  await prisma.event.deleteMany({ where: { isDemo: true } });
+  await prisma.evenement.deleteMany({ where: { isDemo: true } });
   await prisma.communication.deleteMany({ where: { isDemo: true } });
   const assets = await prisma.fileAsset.findMany({ where: { id: { in: [...fileIds] } }, select: { id: true, storageKey: true } });
   for (const a of assets) await storage.remove(a.storageKey).catch(() => undefined);
@@ -91,15 +91,15 @@ async function ensureOrgs(): Promise<Record<string, Actor>> {
   for (const o of ORGS) {
     const region = await prisma.region.findUniqueOrThrow({ where: { code: o.region } });
     const delegation = await prisma.delegation.findFirstOrThrow({ where: { regionId: region.id } });
-    const domain = await prisma.interventionDomain.findUniqueOrThrow({ where: { code: o.domain } });
-    const dis = await prisma.disabilityType.findUniqueOrThrow({ where: { code: o.disability } });
+    const domain = await prisma.domaineIntervention.findUniqueOrThrow({ where: { code: o.domain } });
+    const dis = await prisma.typeHandicap.findUniqueOrThrow({ where: { code: o.disability } });
     const org = await prisma.organization.upsert({
       where: { name: o.name }, update: {},
       create: {
         name: o.name, acronym: o.acronym, status: 'ACTIVE', memberNumber: o.no, registeredAt: new Date(), delegationId: delegation.id, regionId: region.id,
         commune: o.commune, email: o.email, publicEmail: o.email, isListed: true, publicationConsentAt: new Date(),
         fieldVisibility: { publicEmail: true, publicPhone: false, postalAddress: false, website: false },
-        domains: { connect: [{ id: domain.id }] }, disabilityTypes: { connect: [{ id: dis.id }] },
+        domains: { connect: [{ id: domain.id }] }, typesHandicap: { connect: [{ id: dis.id }] },
       },
     });
     const [email, first, last, job] = o.president;
@@ -113,9 +113,9 @@ async function ensureOrgs(): Promise<Record<string, Actor>> {
 // ───────────────────────────── Contenus ─────────────────────────────
 async function seedCommunications(staffId: string) {
   const rows = [
-    ['Bienvenue sur l’espace OPH', 'Information', 'Cet espace vous permet de suivre vos projets, proposer des actualités, transmettre vos rapports et consulter l’agenda et les opportunités de la CAPH-CI.', -12],
+    ['Bienvenue sur l’espace OPH', 'Information', 'Cet espace vous permet de suivre vos projets, proposer des actualités, transmettre vos rapports et consulter les événements et les opportunités de la CAPH-CI.', -12],
     ['Rappel : transmission des rapports d’activités', 'Rappel', 'Les organisations sont invitées à transmettre leur rapport d’activités annuel depuis l’onglet « Rapports » avant la fin du mois.', -4],
-    ['Nouvelle session de formation en gestion associative', 'Formation', 'Une session de formation en comptabilité et gestion associative est ouverte aux membres. Consultez l’agenda pour la date et le lieu.', -1],
+    ['Nouvelle session de formation en gestion associative', 'Formation', 'Une session de formation en comptabilité et gestion associative est ouverte aux membres. Consultez les événements pour la date et le lieu.', -1],
   ] as const;
   for (const [title, category, body, d] of rows) {
     await prisma.communication.create({ data: { isDemo: true, kind: 'INTERNAL', category, title, body: body + NOTE, publishedAt: day(d, 10), createdById: staffId, audienceAll: true } });
@@ -145,7 +145,7 @@ async function seedOpportunities(A: Record<string, Actor>, staffId: string) {
   }
 }
 
-interface EvSpec { type: EventType; title: string; description: string; start: number; hour: number; hours: number; mode: EventMode; location: string; status: EventStatus; org?: string; region?: string }
+interface EvSpec { type: TypeEvenement; title: string; description: string; start: number; hour: number; hours: number; mode: ModeEvenement; location: string; status: StatutEvenement; org?: string; region?: string }
 const EVENTS: EvSpec[] = [
   { type: 'TRAINING', title: 'Atelier : rédiger une demande de financement', description: 'Atelier pratique pour apprendre à construire un budget et argumenter un dossier.', start: 6, hour: 9, hours: 4, mode: 'ONSITE', location: 'Siège de la CAPH-CI, Abidjan', status: 'REGISTRATION', region: 'ABJ' },
   { type: 'TRAINING', title: 'Formation en comptabilité associative', description: 'Trois jours de formation pour les trésoriers des OPH.', start: 21, hour: 8, hours: 8, mode: 'HYBRID', location: 'Bouaké et en ligne', status: 'OPEN', org: 'gbeke', region: 'GBE' },
@@ -156,11 +156,11 @@ const EVENTS: EvSpec[] = [
   { type: 'FORUM', title: 'Forum des initiatives locales', description: 'Les OPH présentent leurs actions et échangent sur leurs bonnes pratiques.', start: -20, hour: 9, hours: 8, mode: 'ONSITE', location: 'Man', status: 'CLOSED', org: 'man', region: 'TON' },
   { type: 'MEETING', title: 'Atelier de lancement du projet « Inclusion par le numérique »', description: 'Lancement officiel de la première phase du projet avec les bénéficiaires.', start: -45, hour: 10, hours: 3, mode: 'ONSITE', location: 'Yopougon, Abidjan', status: 'CLOSED', org: 'horizon', region: 'ABJ' },
 ];
-async function seedEvents(A: Record<string, Actor>, staffId: string) {
+async function seedEvenements(A: Record<string, Actor>, staffId: string) {
   for (const e of EVENTS) {
     const region = e.region ? await prisma.region.findUnique({ where: { code: e.region } }) : null;
     const startsAt = day(e.start, e.hour);
-    await prisma.event.create({
+    await prisma.evenement.create({
       data: {
         isDemo: true, type: e.type, title: e.title, description: e.description + NOTE, startsAt, endsAt: new Date(startsAt.getTime() + e.hours * 3_600_000), mode: e.mode,
         location: e.location, status: e.status, regionId: region?.id, organizationId: e.org ? A[e.org].orgId : null, reviewStatus: 'APPROVED', reviewedAt: day(-25), reviewedById: staffId,
@@ -202,7 +202,7 @@ async function seedNews(A: Record<string, Actor>, staffId: string) {
   }
 }
 
-interface RepSpec { org: string; type: ReportType; title: string; summary: string; status: ReportStatus; ago: number; pdf: string; note?: string; period: [number, number] }
+interface RepSpec { org: string; type: TypeRapport; title: string; summary: string; status: StatutRapport; ago: number; pdf: string; note?: string; period: [number, number] }
 const REPORTS: RepSpec[] = [
   { org: 'horizon', type: 'ACTIVITY', title: 'Rapport d’activités annuel — Association Horizon Inclusif', summary: 'Bilan des actions de l’année : ateliers numériques, rencontres avec les familles et participation aux activités de la CAPH-CI.', status: 'PROCESSED', ago: 40, pdf: 'rapport-activites', period: [-400, -35] },
   { org: 'horizon', type: 'OTHER', title: 'Rapport de formation — atelier de comptabilité associative', summary: 'Compte rendu de la formation suivie par quatre membres : contenu, présence et recommandations.', status: 'IN_PROCESS', ago: 9, pdf: 'rapport-formation', period: [-20, -17] },
@@ -211,17 +211,17 @@ const REPORTS: RepSpec[] = [
   { org: 'gbeke', type: 'OTHER', title: 'Rapport de sensibilisation — journée scolaire inclusive', summary: 'Bilan d’une journée de sensibilisation dans deux écoles de Bouaké : activités, participation et suites prévues.', status: 'CORRECTION_REQUESTED', ago: 7, pdf: 'rapport-sensibilisation', note: 'Merci d’ajouter le nombre d’élèves touchés et les dates exactes.', period: [-14, -14] },
   { org: 'man', type: 'FINANCIAL', title: 'Rapport financier de l’exercice — Association Mains Unies de Man', summary: 'Recettes et dépenses de l’exercice, avec la répartition par activité.', status: 'RECEIVED', ago: 2, pdf: 'rapport-financier', period: [-400, -35] },
 ];
-async function seedReports(A: Record<string, Actor>, staffId: string) {
+async function seedRapports(A: Record<string, Actor>, staffId: string) {
   for (const r of REPORTS) {
     const a = A[r.org];
     const handled = r.status === 'PROCESSED' || r.status === 'CORRECTION_REQUESTED' || r.status === 'IN_PROCESS';
-    const rep = await prisma.report.create({
+    const rep = await prisma.rapport.create({
       data: {
         isDemo: true, organizationId: a.orgId, authorId: a.userId, type: r.type, title: r.title, summary: r.summary, status: r.status, periodStart: day(r.period[0]), periodEnd: day(r.period[1]),
         certifiedAuthorityAt: day(-r.ago), reviewerNote: r.note ?? null, reviewedById: handled ? staffId : null, submittedAt: day(-r.ago), processedAt: r.status === 'PROCESSED' ? day(-r.ago + 3) : null,
       },
     });
-    await prisma.reportAttachment.create({ data: { reportId: rep.id, fileId: await storeFile(`${r.pdf}.pdf`, 'application/pdf', a.userId) } });
+    await prisma.rapportPieceJointe.create({ data: { rapportId: rep.id, fileId: await storeFile(`${r.pdf}.pdf`, 'application/pdf', a.userId) } });
   }
 }
 
@@ -267,9 +267,9 @@ async function main() {
   const A = await ensureOrgs();
   await seedCommunications(staff.id);
   await seedOpportunities(A, staff.id);
-  await seedEvents(A, staff.id);
+  await seedEvenements(A, staff.id);
   await seedNews(A, staff.id);
-  await seedReports(A, staff.id);
+  await seedRapports(A, staff.id);
   await seedProjects(A, staff.id);
   console.log(`✔ Données de démonstration : ${OPPS.length} opportunités, ${EVENTS.length} événements, ${NEWS.length} actualités, ${REPORTS.length} rapports, ${PROJECTS.length} projets, 3 communications.`);
   console.log(`  Nouveaux comptes (mot de passe ${PASSWORD}) : mariam.traore@horizon-inclusif.example (Suppléante), ` + ORGS.map((o) => o.president[0]).join(', '));

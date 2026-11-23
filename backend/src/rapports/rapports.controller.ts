@@ -7,29 +7,29 @@ import { PERMISSIONS as P } from '../common/constants/permissions';
 import { AuthenticatedUser, CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../common/decorators/permissions.decorator';
 import { fileBody, sendFile, uploadOne } from '../common/utils/files';
-import { CreateReportDto, ListReportsQueryDto, ReviewReportDto, UpdateReportDto } from './dto/reports.dto';
-import { ReportsService } from './reports.service';
+import { CreateRapportDto, ListRapportsQueryDto, ReviewRapportDto, UpdateRapportDto } from './dto/rapports.dto';
+import { RapportsService } from './rapports.service';
 
 @ApiTags('Rapports')
 @ApiBearerAuth()
-@Controller('reports')
-export class ReportsController {
-  constructor(private readonly svc: ReportsService) {}
+@Controller('rapports')
+export class RapportsController {
+  constructor(private readonly svc: RapportsService) {}
 
   @Get() @RequirePermissions(P.REPORT_READ)
   @ApiOperation({ summary: 'Rapports : ceux de mon organisation, ou ceux de mon périmètre pour le personnel' })
-  list(@CurrentUser() u: AuthenticatedUser, @Query() q: ListReportsQueryDto) { return this.svc.list(u, q); }
+  list(@CurrentUser() u: AuthenticatedUser, @Query() q: ListRapportsQueryDto) { return this.svc.list(u, q); }
 
   @Get(':id') @RequirePermissions(P.REPORT_READ)
   get(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) { return this.svc.get(u, id); }
 
   @Post() @RequirePermissions(P.REPORT_CREATE)
   @ApiOperation({ summary: 'Transmettre un rapport (résumé 600 caractères max, certification d’habilitation obligatoire)' })
-  create(@CurrentUser() u: AuthenticatedUser, @Body() dto: CreateReportDto) { return this.svc.create(u, dto); }
+  create(@CurrentUser() u: AuthenticatedUser, @Body() dto: CreateRapportDto) { return this.svc.create(u, dto); }
 
   @Patch(':id') @RequirePermissions(P.REPORT_CREATE)
   @ApiOperation({ summary: 'Modifier un rapport reçu ou à corriger (une correction le renvoie à la CAPH-CI)' })
-  update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateReportDto) { return this.svc.update(u, id, dto); }
+  update(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateRapportDto) { return this.svc.update(u, id, dto); }
 
   @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT) @RequirePermissions(P.REPORT_CREATE)
   @ApiOperation({ summary: 'Supprimer un rapport tant qu’il n’est pas en traitement (reçu ou correction demandée)' })
@@ -50,5 +50,5 @@ export class ReportsController {
 
   @Post(':id/review') @HttpCode(HttpStatus.OK) @RequirePermissions(P.REPORT_REVIEW)
   @ApiOperation({ summary: 'Traiter un rapport : en traitement / traité / correction demandée (personnel)' })
-  review(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: ReviewReportDto) { return this.svc.review(u, id, dto); }
+  review(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: ReviewRapportDto) { return this.svc.review(u, id, dto); }
 }

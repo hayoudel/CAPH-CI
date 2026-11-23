@@ -17,7 +17,7 @@ export interface SessionResponse { accessToken: string; expiresIn: number; user:
 
 export interface Paginated<T> { data: T[]; meta: { page: number; limit: number; total: number; totalPages: number } }
 
-export interface EventItem { id: string; title: string; type: string; mode: string; location: string | null; startsAt: string; endsAt: string | null; status: string }
+export interface EvenementResume { id: string; title: string; type: string; mode: string; location: string | null; startsAt: string; endsAt: string | null; status: string }
 export interface OpportunityItem { id: string; isDemo?: boolean; reference: string; title: string; type: string; deadline: string | null; effectiveStatus: string }
 export interface CommunicationItem { id: string; isDemo?: boolean; title: string; excerpt?: string; category: string | null; publishedAt: string; isRead: boolean }
 export interface DocumentItem { id: string; title: string; category: string; isFeatured: boolean; publishedAt: string }
@@ -28,10 +28,10 @@ export interface MemberDashboard {
   role: { code: string; label: string } | null;
   unreadCommunications: number;
   latestCommunications: CommunicationItem[];
-  upcomingEvents: EventItem[];
+  upcomingEvents: EvenementResume[];
   openOpportunities: OpportunityItem[];
   latestDocuments: DocumentItem[];
-  reports: Record<string, number> | null;
+  rapports: Record<string, number> | null;
   newsProposals: Record<string, number> | null;
   hasDemoData: boolean;
   myProjects: {
@@ -40,20 +40,20 @@ export interface MemberDashboard {
     counts: Record<string, number>;
   } | null;
   myNews: { id: string; title: string; status: string; statusLabel: string; date: string; isDemo: boolean }[] | null;
-  myReports: { id: string; title: string; status: string; statusLabel: string; date: string; isDemo: boolean }[] | null;
+  myRapports: { id: string; title: string; status: string; statusLabel: string; date: string; isDemo: boolean }[] | null;
   upcomingDeadlines: { kind: 'opportunity' | 'project'; id: string; title: string; date: string; link: string }[];
-  notifications: { kind: 'news' | 'project' | 'report'; id: string; title: string; status: string; statusLabel: string; note: string | null; date: string; needsAction: boolean; link: string }[];
+  notifications: { kind: 'news' | 'project' | 'rapport'; id: string; title: string; status: string; statusLabel: string; note: string | null; date: string; needsAction: boolean; link: string }[];
 }
 
 export interface StaffDashboard {
   kind: 'STAFF';
   roles: string[];
   memberships: { total: number; toProcess: number; overdue: number; overdueAfterDays: number; byStatus: Record<string, number>; labels: Record<string, string> } | null;
-  reports: { received: number; inProcess: number } | null;
+  rapports: { received: number; inProcess: number } | null;
   newsToReview: number | null;
   activeOrganizations: number | null;
   unreadCommunications: number | null;
-  upcomingEvents: EventItem[];
+  upcomingEvents: EvenementResume[];
   openOpportunities: OpportunityItem[];
   contentsToReview?: { opportunities: number; events: number; total: number };
 }
@@ -69,7 +69,7 @@ export interface OrganizationProfile {
   phone: string | null; email: string | null; website: string | null; interventionZone: string | null;
   region: { id: string; name: string } | null; delegation: { id: string; name: string } | null;
   domains: { id: string; code: string; label: string }[];
-  disabilityTypes: { id: string; code: string; label: string }[];
+  typesHandicap: { id: string; code: string; label: string }[];
   memberCount: number;
 }
 export interface Visibility {
@@ -82,11 +82,11 @@ export interface TeamMember {
   role: { code: string; label: string }; status: 'INVITED' | 'ACTIVE' | 'DISABLED';
   email?: string; lastLoginAt?: string | null;
 }
-export interface DirectoryFilters { regions: { id: string; name: string }[]; domains: RefItem[]; disabilityTypes: RefItem[] }
+export interface DirectoryFilters { regions: { id: string; name: string }[]; domains: RefItem[]; typesHandicap: RefItem[] }
 export interface PublicOrganization {
   id: string; name: string; acronym: string | null; region: { id: string; name: string } | null;
   commune: string | null; interventionZone: string | null;
-  domains: RefItem[]; disabilityTypes: RefItem[];
+  domains: RefItem[]; typesHandicap: RefItem[];
   contact: { email: string | null; phone: string | null; website: string | null; postalAddress: string | null };
 }
 export interface MyProfile {
@@ -112,7 +112,7 @@ export interface MembershipRequirements {
   options: {
     regions: { id: string; name: string }[];
     delegations: { id: string; name: string; regionId: string | null }[];
-    domains: RefItem[]; disabilityTypes: RefItem[];
+    domains: RefItem[]; typesHandicap: RefItem[];
   };
 }
 export interface MembershipCategory { code: string; label: string; description: string | null; isOpen: boolean }
@@ -138,7 +138,7 @@ export interface TrackResult {
   decision: { outcome: string; outcomeLabel: string; decidedAt: string; motive: string | null } | null;
 }
 
-// ── Lot F5a : contenus en lecture (documents, opportunités, communications, agenda) ──
+// ── Lot F5a : contenus en lecture (documents, opportunités, communications, événements) ──
 export interface FileInfo { originalName: string; mimeType: string; sizeBytes: number }
 /** Validation par le personnel CAPH-CI des contenus proposés par une OPH. */
 export interface ReviewFields { isDemo?: boolean; reviewStatus: 'PENDING' | 'APPROVED' | 'REJECTED'; reviewNote: string | null; organization: { id: string; name: string } | null }
@@ -155,14 +155,14 @@ export interface Communication {
   id: string; isDemo?: boolean; kind: 'INTERNAL' | 'EXTERNAL'; category: string | null; title: string; excerpt?: string; body?: string;
   senderLabel: string; publishedAt: string; isRead: boolean;
 }
-export interface AgendaEvent extends ReviewFields {
+export interface Evenement extends ReviewFields {
   id: string; type: string; title: string; description: string | null; startsAt: string; endsAt: string | null;
   createdById?: string | null; mode: string; location: string | null; status: string; region: { id: string; name: string } | null;
 }
 
 // ── Lot F5b : rapports et propositions d'actualités ──
 export interface Attachment { id: string; originalName: string; mimeType: string; sizeBytes: number }
-export interface Report {
+export interface Rapport {
   id: string; isDemo?: boolean; organization: { id: string; name: string }; type: 'ACTIVITY' | 'FINANCIAL' | 'OTHER'; title: string; summary: string;
   periodStart: string | null; periodEnd: string | null; status: string; statusLabel: string; reviewerNote: string | null;
   submittedAt: string; processedAt: string | null; author: string; authorId?: string; canEdit: boolean; attachments: Attachment[];

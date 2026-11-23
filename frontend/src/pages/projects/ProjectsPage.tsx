@@ -148,9 +148,9 @@ function ProjectCreateModal({ onClose, onDone }: { onClose: () => void; onDone: 
   async function save(v: ProjectValues, intent: Intent, files: NewFiles) {
     setNotice(null); setBusy(intent);
     let created: Project;
-    try { created = await api<Project>('/projects', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
+    try { created = await api<Project>('/projets', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
     catch (e) { setNotice(errorNotice(e, 'Envoi impossible')); setBusy(null); return; }
-    const failed = await uploadNewFiles(`/projects/${created.id}`, files);
+    const failed = await uploadNewFiles(`/projets/${created.id}`, files);
     void qc.invalidateQueries({ queryKey: ['projects'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
     const f = FLASHES[intent === 'submit' ? 'submitted' : 'draft'];
     onDone({ kind: 'success', title: f.title, text: failed.length ? `${f.text} Ces fichiers n’ont pas pu être envoyés : ${failed.join(', ')}. Ajoutez-les depuis la page du projet.` : f.text });
@@ -173,7 +173,7 @@ export function ProjectsPage() {
   const filter = f.get('filter') || 'ALL';
   const [search, setSearch] = useState(f.get('q'));
   const query = { filter, q: f.get('q') || undefined, page: f.page, limit: 12 };
-  const list = useQuery({ queryKey: ['projects', query], queryFn: () => api<Paginated<Project>>('/projects', { query }), placeholderData: (p) => p });
+  const list = useQuery({ queryKey: ['projects', query], queryFn: () => api<Paginated<Project>>('/projets', { query }), placeholderData: (p) => p });
   const total = list.data?.meta.total ?? 0;
   const empty: Record<string, string> = {
     ALL: 'Aucun projet pour le moment.', ONGOING: 'Aucun projet en cours pour le moment.', COMPLETED: 'Aucun projet terminé pour le moment.',
@@ -229,9 +229,9 @@ export function ProjectNewPage() {
   async function save(v: ProjectValues, intent: Intent, files: NewFiles) {
     setNotice(null); setBusy(intent);
     let created: Project;
-    try { created = await api<Project>('/projects', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
+    try { created = await api<Project>('/projets', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
     catch (e) { setNotice(errorNotice(e, 'Envoi impossible')); setBusy(null); return; }
-    const failed = await uploadNewFiles(`/projects/${created.id}`, files);
+    const failed = await uploadNewFiles(`/projets/${created.id}`, files);
     void qc.invalidateQueries({ queryKey: ['projects'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
     navigate(`/espace/projets/${created.id}`, { state: { flash: intent === 'submit' ? 'submitted' : 'draft', failed } });
   }
@@ -269,7 +269,7 @@ export function ProjectDetailPage() {
   const st = location.state as { flash?: keyof typeof FLASHES; failed?: string[] } | null;
   const [notice, setNotice] = useState<Notice | null>(st?.flash ? { kind: 'success', ...FLASHES[st.flash] } : null);
   const key = ['project', id];
-  const q = useQuery({ queryKey: key, queryFn: () => api<Project>(`/projects/${id}`), retry: false });
+  const q = useQuery({ queryKey: key, queryFn: () => api<Project>(`/projets/${id}`), retry: false });
   usePageTitle(q.data?.title ?? 'Projet');
   const refresh = (p: Project) => { qc.setQueryData(key, p); void qc.invalidateQueries({ queryKey: ['projects'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] }); };
 
@@ -277,20 +277,20 @@ export function ProjectDetailPage() {
     const was = q.data?.status;
     setNotice(null); setBusy(intent);
     try {
-      let p = await api<Project>(`/projects/${id}`, { method: 'PATCH', body: payload(v) });
-      if (intent === 'submit') p = await api<Project>(`/projects/${id}/submit`, { method: 'POST' });
+      let p = await api<Project>(`/projets/${id}`, { method: 'PATCH', body: payload(v) });
+      if (intent === 'submit') p = await api<Project>(`/projets/${id}/submit`, { method: 'POST' });
       refresh(p); setEditing(false);
       setNotice(intent === 'draft' ? { kind: 'success', ...FLASHES.draft } : { kind: 'success', ...FLASHES.submitted, title: was === 'TO_COMPLETE' ? 'Projet complété et renvoyé à la validation' : FLASHES.submitted.title });
     } catch (e) { setNotice(errorNotice(e, 'Enregistrement impossible')); } finally { setBusy(null); }
   }
   async function submitNow() {
     setNotice(null); setBusy('submit');
-    try { refresh(await api<Project>(`/projects/${id}/submit`, { method: 'POST' })); setNotice({ kind: 'success', ...FLASHES.submitted }); }
+    try { refresh(await api<Project>(`/projets/${id}/submit`, { method: 'POST' })); setNotice({ kind: 'success', ...FLASHES.submitted }); }
     catch (e) { setNotice(errorNotice(e, 'Soumission impossible')); } finally { setBusy(null); }
   }
   async function deleteDraft() {
     setBusy('delete');
-    try { await api(`/projects/${id}`, { method: 'DELETE' }); void qc.invalidateQueries({ queryKey: ['projects'] }); navigate('/espace/projets'); }
+    try { await api(`/projets/${id}`, { method: 'DELETE' }); void qc.invalidateQueries({ queryKey: ['projects'] }); navigate('/espace/projets'); }
     catch (e) { setNotice(errorNotice(e, 'Suppression impossible')); setBusy(null); setConfirmDelete(false); }
   }
 
@@ -361,7 +361,7 @@ export function ProjectDetailPage() {
           </section>
         </>
       )}
-      {p.isMine && <Attachments basePath={`/projects/${p.id}`} queryKey={key} items={p.attachments} editable={mayEdit} />}
+      {p.isMine && <Attachments basePath={`/projets/${p.id}`} queryKey={key} items={p.attachments} editable={mayEdit} />}
       {p.isMine && <History entries={p.history} />}
       <p><Link to="/espace/projets">Retour aux projets</Link></p>
     </div>

@@ -12,7 +12,7 @@ type T = (typeof EVENT_TYPES)[number];
 type M = (typeof EVENT_MODES)[number];
 type S = (typeof EVENT_STATUSES)[number];
 
-export class ListEventsQueryDto extends PaginationQueryDto {
+export class ListEvenementsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: REVIEW_STATUSES, description: 'Validation par le personnel : PENDING = en attente, APPROVED = validé, REJECTED = refusé' })
   @IsOptional() @IsIn(REVIEW_STATUSES as unknown as string[])
   review?: (typeof REVIEW_STATUSES)[number];
@@ -26,7 +26,7 @@ export class ListEventsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Gestionnaires : inclure les événements archivés' }) @IsOptional() @Transform(asBool) @IsBoolean() includeArchived?: boolean;
 }
 
-export class CreateEventDto {
+export class CreateEvenementDto {
   @ApiProperty({ enum: EVENT_TYPES }) @IsIn(EVENT_TYPES as unknown as string[]) type: T;
   @ApiProperty() @Transform(trimmed) @IsString() @MinLength(3) @MaxLength(200) title: string;
   @ApiPropertyOptional() @IsOptional() @Transform(trimmed) @IsString() @MaxLength(5000) description?: string;
@@ -38,7 +38,7 @@ export class CreateEventDto {
   @ApiPropertyOptional({ enum: EVENT_STATUSES, default: 'PLANNED' }) @IsOptional() @IsIn(EVENT_STATUSES as unknown as string[]) status?: S;
 }
 
-export class UpdateEventDto {
+export class UpdateEvenementDto {
   @ApiPropertyOptional({ enum: EVENT_TYPES }) @IsOptional() @IsIn(EVENT_TYPES as unknown as string[]) type?: T;
   @ApiPropertyOptional() @IsOptional() @Transform(trimmed) @IsString() @MinLength(3) @MaxLength(200) title?: string;
   @ApiPropertyOptional() @IsOptional() @Transform(trimmed) @IsString() @MaxLength(5000) description?: string;

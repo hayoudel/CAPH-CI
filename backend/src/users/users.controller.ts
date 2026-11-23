@@ -12,7 +12,7 @@ import { UsersService } from './users.service';
 
 @ApiTags('Utilisateurs')
 @ApiBearerAuth()
-@Controller('users/me')
+@Controller('utilisateurs/moi')
 export class UsersController {
   constructor(private readonly users: UsersService, private readonly auth: AuthService) {}
 
@@ -37,7 +37,7 @@ export class UsersController {
 
 @ApiTags('Administration — Utilisateurs')
 @ApiBearerAuth()
-@Controller('admin/users')
+@Controller('admin/utilisateurs')
 @RequirePermissions(PERMISSIONS.USER_MANAGE)
 export class AdminUsersController {
   constructor(private readonly users: UsersService) {}

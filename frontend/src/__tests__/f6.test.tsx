@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as Auth from '../auth/AuthContext';
 import { AppShell } from '../layouts/AppShell';
-import { AgendaPage } from '../pages/content/AgendaPage';
+import { EvenementsPage } from '../pages/content/EvenementsPage';
 import { DocumentsPage } from '../pages/content/DocumentsPage';
 import { OpportunitiesPage } from '../pages/content/OpportunitiesPage';
 import { HomePage } from '../pages/HomePage';
@@ -27,9 +27,9 @@ describe('boutons d’ajout selon les permissions', () => {
   it.each([
     ['Documents', <DocumentsPage key="d" />, 'document.manage', '+ Ajouter un document'],
     ['Opportunités', <OpportunitiesPage key="o" />, 'opportunity.manage', '+ Ajouter une opportunité'],
-    ['Agenda', <AgendaPage key="a" />, 'event.manage', '+ Ajouter un événement'],
+    ['Événements', <EvenementsPage key="a" />, 'event.manage', '+ Ajouter un événement'],
   ])('%s : bouton caché pour un membre, visible pour le personnel autorisé', async (_n, page, perm, label) => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json(list));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json(list));
     auth();
     const first = render(wrap(page));
     await screen.findByRole('heading', { level: 1 });
@@ -41,14 +41,16 @@ describe('boutons d’ajout selon les permissions', () => {
   });
 
   it('ouvre la fenêtre, refuse un formulaire vide, puis la ferme avec Échap', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json(list));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json(list));
     auth({ can: (p: string) => p === 'event.manage' });
-    render(wrap(<AgendaPage />));
+    render(wrap(<EvenementsPage />));
     const u = userEvent.setup();
     await u.click(await screen.findByRole('button', { name: '+ Ajouter un événement' }));
     const dialog = screen.getByRole('dialog', { name: 'Ajouter un événement' });
     expect(dialog).toBeInTheDocument();
-    await u.click(screen.getByRole('button', { name: 'Ajouter à l’agenda' }));
+    expect(within(dialog).getByLabelText(/Région/)).toBeInTheDocument(); // région administrative, distincte du lieu
+    expect(within(dialog).getByLabelText(/Lieu ou lien/)).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Ajouter l’événement' }));
     expect(await screen.findByText('Saisissez un titre d’au moins 3 caractères.')).toBeInTheDocument();
     expect(screen.getByText('Indiquez la date et l’heure de début.')).toBeInTheDocument();
     await u.keyboard('{Escape}');
@@ -68,13 +70,13 @@ describe('boutons d’ajout selon les permissions', () => {
     await u.click(screen.getByRole('button', { name: 'Publier l’opportunité' }));
     expect(await screen.findByText('Opportunité publiée')).toBeInTheDocument();
     const post = fetchMock.mock.calls.find(([, i]) => i?.method === 'POST')!;
-    expect(String(post[0])).toContain('/opportunities');
+    expect(String(post[0])).toContain('/opportunites');
     expect(JSON.parse(String(post[1]!.body))).toMatchObject({ type: 'CALL_FOR_PROJECTS', title: 'Appel à projets test' });
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('refuse un document sans fichier', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json(list));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json(list));
     auth({ can: (p: string) => p === 'document.manage' });
     render(wrap(<DocumentsPage />));
     const u = userEvent.setup();
@@ -105,7 +107,7 @@ describe('page d’accueil selon la connexion', () => {
 describe('bulle de notification du menu', () => {
   const shell = (unread: number) => {
     auth({ user: { firstName: 'Awa', lastName: 'K', organizationName: 'Org', organizationId: 'o1', permissions: [] }, can: () => true });
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ unread }));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ unread }));
     return render(wrap(<AppShell area="member" />, '/espace'));
   };
   it('affiche le nombre dans une bulle', async () => {
@@ -125,7 +127,7 @@ describe('bulle de notification du menu', () => {
 describe('Inviter un membre', () => {
   it('le bouton ouvre une fenêtre modale avec le formulaire, sans défilement de la page', async () => {
     auth({ user: { organizationId: 'o1', organizationRole: { code: 'OPH_PRESIDENT' } }, can: (p: string) => p === 'organization.members.manage' });
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json([]));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json([]));
     const scroll = vi.fn();
     Element.prototype.scrollIntoView = scroll;
     render(wrap(<TeamPage />));
@@ -140,7 +142,7 @@ describe('Inviter un membre', () => {
   });
   it('le bouton est absent sans la permission', async () => {
     auth({ user: { organizationId: 'o1', organizationRole: { code: 'OPH_VIEWER' } }, can: () => false });
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json([]));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json([]));
     render(wrap(<TeamPage />));
     await screen.findByRole('heading', { level: 1 });
     expect(screen.queryByRole('button', { name: 'Inviter un membre' })).toBeNull();
@@ -152,7 +154,7 @@ describe('contenus proposés par une OPH', () => {
   const item = { id: 'e1', title: 'Atelier', reviewStatus: 'PENDING' as const, reviewNote: null, organization: { id: 'o', name: 'Horizon Inclusif' } };
 
   it('le Président (droit « proposer ») ajoute un document sans validation : pas de réglages du personnel', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json(list));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json(list));
     auth({ can: (p: string) => p === 'document.propose' });
     render(wrap(<DocumentsPage />));
     const u = userEvent.setup();
@@ -164,7 +166,7 @@ describe('contenus proposés par une OPH', () => {
   });
 
   it('une opportunité proposée par le Président avertit de la validation', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json(list));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json(list));
     auth({ can: (p: string) => p === 'opportunity.propose' });
     render(wrap(<OpportunitiesPage />));
     const u = userEvent.setup();
@@ -175,26 +177,26 @@ describe('contenus proposés par une OPH', () => {
   });
 
   it('une proposition apparaît « en attente » dans la liste, avec le nom de l’organisation', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ data: [{ id: 'e1', type: 'MEETING', title: 'Atelier', description: null, startsAt: '2027-03-01T09:00:00Z', endsAt: null, mode: 'ONSITE', location: null, status: 'PLANNED', region: null, reviewStatus: 'PENDING', reviewNote: null, organization: { id: 'o', name: 'Horizon Inclusif' } }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 } }));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ data: [{ id: 'e1', type: 'MEETING', title: 'Atelier', description: null, startsAt: '2027-03-01T09:00:00Z', endsAt: null, mode: 'ONSITE', location: null, status: 'PLANNED', region: null, reviewStatus: 'PENDING', reviewNote: null, organization: { id: 'o', name: 'Horizon Inclusif' } }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 } }));
     auth({ can: (p: string) => p === 'event.propose' });
-    render(wrap(<AgendaPage />));
+    render(wrap(<EvenementsPage />));
     expect(await screen.findByText('En attente de validation')).toBeInTheDocument();
     expect(screen.getByText('Proposé par Horizon Inclusif')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Valider/ })).toBeNull(); // pas de boutons de validation pour une OPH
   });
 
   it('le personnel valide en un clic', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ ok: true }));
-    render(wrap(<ReviewActions item={item} path="/events" canReview onNotice={onNotice} />));
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ ok: true }));
+    render(wrap(<ReviewActions item={item} path="/evenements" canReview onNotice={onNotice} />));
     await userEvent.setup().click(screen.getByRole('button', { name: 'Valider « Atelier »' }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/events/e1/approve');
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/evenements/e1/approve');
     await waitFor(() => expect(onNotice).toHaveBeenCalledWith(expect.objectContaining({ title: 'Contenu validé' })));
   });
 
   it('le refus exige un motif', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ ok: true }));
-    render(wrap(<ReviewActions item={item} path="/events" canReview onNotice={onNotice} />));
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json({ ok: true }));
+    render(wrap(<ReviewActions item={item} path="/evenements" canReview onNotice={onNotice} />));
     const u = userEvent.setup();
     await u.click(screen.getByRole('button', { name: 'Refuser « Atelier »' }));
     await u.click(screen.getByRole('button', { name: 'Confirmer le refus' }));
@@ -203,12 +205,12 @@ describe('contenus proposés par une OPH', () => {
     await u.type(screen.getByLabelText(/Motif du refus/), 'Date impossible');
     await u.click(screen.getByRole('button', { name: 'Confirmer le refus' }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/events/e1/reject');
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/evenements/e1/reject');
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]!.body))).toEqual({ note: 'Date impossible' });
   });
 
   it('aucun bouton de validation sans le droit de gestion', () => {
-    render(wrap(<ReviewActions item={item} path="/events" canReview={false} onNotice={onNotice} />));
+    render(wrap(<ReviewActions item={item} path="/evenements" canReview={false} onNotice={onNotice} />));
     expect(screen.queryByRole('button')).toBeNull();
   });
 });

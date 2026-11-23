@@ -7,13 +7,13 @@ import { trimmed } from '../../common/utils/files';
 export const REPORT_TYPES = ['ACTIVITY', 'FINANCIAL', 'OTHER'] as const;
 export const REPORT_STATUSES = ['RECEIVED', 'IN_PROCESS', 'PROCESSED', 'CORRECTION_REQUESTED'] as const;
 
-export class ListReportsQueryDto extends PaginationQueryDto {
+export class ListRapportsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: REPORT_STATUSES }) @IsOptional() @IsIn(REPORT_STATUSES as unknown as string[]) status?: (typeof REPORT_STATUSES)[number];
   @ApiPropertyOptional({ enum: REPORT_TYPES }) @IsOptional() @IsIn(REPORT_TYPES as unknown as string[]) type?: (typeof REPORT_TYPES)[number];
   @ApiPropertyOptional({ description: 'Personnel : filtrer sur une organisation' }) @IsOptional() @IsUUID() organizationId?: string;
 }
 
-export class CreateReportDto {
+export class CreateRapportDto {
   @ApiProperty({ enum: REPORT_TYPES }) @IsIn(REPORT_TYPES as unknown as string[]) type: (typeof REPORT_TYPES)[number];
   @ApiProperty() @Transform(trimmed) @IsString() @MinLength(3) @MaxLength(200) title: string;
   @ApiProperty({ description: '600 caractères maximum' }) @Transform(trimmed) @IsString() @MinLength(10) @MaxLength(600) summary: string;
@@ -23,7 +23,7 @@ export class CreateReportDto {
   @Equals(true, { message: 'Vous devez certifier être habilité(e) à transmettre ce rapport.' }) certifyAuthority: boolean;
 }
 
-export class UpdateReportDto {
+export class UpdateRapportDto {
   @ApiPropertyOptional({ enum: REPORT_TYPES }) @IsOptional() @IsIn(REPORT_TYPES as unknown as string[]) type?: (typeof REPORT_TYPES)[number];
   @ApiPropertyOptional() @IsOptional() @Transform(trimmed) @IsString() @MinLength(3) @MaxLength(200) title?: string;
   @ApiPropertyOptional() @IsOptional() @Transform(trimmed) @IsString() @MinLength(10) @MaxLength(600) summary?: string;
@@ -31,7 +31,7 @@ export class UpdateReportDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Date) @IsDate() periodEnd?: Date;
 }
 
-export class ReviewReportDto {
+export class ReviewRapportDto {
   @ApiProperty({ enum: ['IN_PROCESS', 'PROCESSED', 'CORRECTION_REQUESTED'] }) @IsIn(['IN_PROCESS', 'PROCESSED', 'CORRECTION_REQUESTED'])
   status: 'IN_PROCESS' | 'PROCESSED' | 'CORRECTION_REQUESTED';
   @ApiPropertyOptional({ description: 'Obligatoire si une correction est demandée ; visible par l’organisation' })

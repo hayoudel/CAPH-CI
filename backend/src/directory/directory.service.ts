@@ -19,7 +19,7 @@ export class DirectoryService {
       ...PUBLIC_ONLY,
       ...(q.regionId ? { regionId: q.regionId } : {}),
       ...(q.domainId ? { domains: { some: { id: q.domainId } } } : {}),
-      ...(q.disabilityTypeId ? { disabilityTypes: { some: { id: q.disabilityTypeId } } } : {}),
+      ...(q.typeHandicapId ? { typesHandicap: { some: { id: q.typeHandicapId } } } : {}),
       ...(q.q ? { OR: [{ name: { contains: q.q, mode: 'insensitive' } }, { acronym: { contains: q.q, mode: 'insensitive' } }] } : {}),
     };
     const [rows, total] = await this.prisma.$transaction([
@@ -37,11 +37,11 @@ export class DirectoryService {
 
   /** Listes pour alimenter les filtres de recherche. */
   async filters() {
-    const [regions, domains, disabilityTypes] = await this.prisma.$transaction([
+    const [regions, domains, typesHandicap] = await this.prisma.$transaction([
       this.prisma.region.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
-      this.prisma.interventionDomain.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
-      this.prisma.disabilityType.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
+      this.prisma.domaineIntervention.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
+      this.prisma.typeHandicap.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
     ]);
-    return { regions, domains, disabilityTypes };
+    return { regions, domains, typesHandicap };
   }
 }

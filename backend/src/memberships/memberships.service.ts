@@ -72,15 +72,15 @@ export class MembershipsService {
     const category = await this.prisma.membershipCategory.findUnique({ where: { code } });
     if (!category) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Catégorie inconnue.' });
     const feeCodes = FEES_BY_CATEGORY[code] ?? [];
-    const [fees, regions, delegations, domains, disabilityTypes] = await this.prisma.$transaction([
+    const [fees, regions, delegations, domains, typesHandicap] = await this.prisma.$transaction([
       this.prisma.feeSchedule.findMany({
         where: { code: { in: feeCodes }, isActive: true }, orderBy: { amountFcfa: 'desc' },
         select: { code: true, label: true, amountFcfa: true, periodicity: true },
       }),
       this.prisma.region.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
       this.prisma.delegation.findMany({ where: { archivedAt: null }, select: { id: true, name: true, regionId: true }, orderBy: { name: 'asc' } }),
-      this.prisma.interventionDomain.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
-      this.prisma.disabilityType.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
+      this.prisma.domaineIntervention.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
+      this.prisma.typeHandicap.findMany({ select: { id: true, label: true }, orderBy: { sortOrder: 'asc' } }),
     ]);
     const open = category.isActive && SUPPORTED_CATEGORIES.has(code);
     return {
@@ -97,7 +97,7 @@ export class MembershipsService {
         acceptDataProcessing: DATA_PROTECTION_NOTICE,
       },
       fields: SUPPORTED_CATEGORIES.has(code) ? ORGANISATION_FIELDS : null,
-      options: { regions, delegations, domains, disabilityTypes },
+      options: { regions, delegations, domains, typesHandicap },
     };
   }
 
@@ -250,15 +250,15 @@ export class MembershipsService {
     if (typeof org.regionId === 'string' && org.regionId && !(await this.prisma.region.findUnique({ where: { id: org.regionId } }))) {
       errors.push({ field: 'organization.regionId', message: 'Région inconnue.' });
     }
-    const checkList = async (key: 'interventionDomainIds' | 'disabilityTypeIds', model: 'interventionDomain' | 'disabilityType', label: string) => {
+    const checkList = async (key: 'domaineInterventionIds' | 'typeHandicapIds', model: 'domaineIntervention' | 'typeHandicap', label: string) => {
       const ids = org[key];
       if (!Array.isArray(ids) || !ids.length) return;
       const unique = [...new Set(ids as string[])];
       const count = await (this.prisma[model] as any).count({ where: { id: { in: unique } } });
       if (count !== unique.length) errors.push({ field: `organization.${key}`, message: `${label} : valeur inconnue.` });
     };
-    await checkList('interventionDomainIds', 'interventionDomain', "Domaine d'intervention");
-    await checkList('disabilityTypeIds', 'disabilityType', 'Type de handicap');
+    await checkList('domaineInterventionIds', 'domaineIntervention', "Domaine d'intervention");
+    await checkList('typeHandicapIds', 'typeHandicap', 'Type de handicap');
     return errors;
   }
 
@@ -346,8 +346,8 @@ export class MembershipsService {
         // Compteur annuel incrémenté de façon atomique : deux dépôts simultanés n'obtiennent jamais la même référence.
         const year = new Date().getFullYear();
         const rows = await tx.$queryRaw<{ last: number }[]>`
-          INSERT INTO reference_counters (year, last) VALUES (${year}, 1)
-          ON CONFLICT (year) DO UPDATE SET last = reference_counters.last + 1 RETURNING last`;
+          INSERT INTO compteurs_reference (year, last) VALUES (${year}, 1)
+          ON CONFLICT (year) DO UPDATE SET last = compteurs_reference.last + 1 RETURNING last`;
         reference = `CAPH-${year}-${String(rows[0].last).padStart(6, '0')}`;
       }
       const resubmission = req.status === 'TO_COMPLETE';
@@ -392,7 +392,7 @@ export class MembershipsService {
   /** Une organisation ne peut pas avoir deux dossiers ouverts, ni redemander une première adhésion si elle est déjà membre. */
   private async assertNoConflict(requestId: string, type: 'FIRST' | 'RENEWAL', name: string, legalReference: string) {
     const open = await this.prisma.$queryRaw<{ id: string }[]>`
-      SELECT id FROM membership_requests
+      SELECT id FROM demandes_adhesion
       WHERE id <> ${requestId}::uuid AND status::text = ANY(${OPEN_STATUSES.filter((s) => s !== 'DRAFT')})
         AND (lower(data->'organization'->>'name') = lower(${name})
           OR lower(data->'organization'->>'legalReference') = lower(${legalReference}))

@@ -27,14 +27,14 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
   const email = (l: string) => `test-${l}-${stamp}-${n++}@test.example`;
 
   const newDraft = async (e = email('d')) => {
-    const r = await http().post('/api/v1/memberships/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'Awa Koné', applicantEmail: e });
+    const r = await http().post('/api/v1/adhesions/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'Awa Koné', applicantEmail: e });
     expect(r.status).toBe(201);
     return { id: r.body.id as string, code: r.body.trackingCode as string, email: e };
   };
   const orgData = (name: string, legal: string) => ({
     organization: {
       name, address: 'Rue des Jardins, Yopougon', regionId: opts.regionId, commune: 'Yopougon',
-      interventionDomainIds: [opts.domainId], interventionZone: 'District d’Abidjan', legalReference: legal,
+      domaineInterventionIds: [opts.domainId], interventionZone: 'District d’Abidjan', legalReference: legal,
       phone: '+225 07 00 00 00 00', email: 'contact@association-test.example',
     },
     representative: { name: 'Awa Koné', function: 'Présidente', phone: '+225 07 11 11 11 11', email: 'awa@association-test.example' },
@@ -42,14 +42,14 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
     treasurer: { name: 'Fatou Diallo', contact: '0500000000' },
   });
   const patch = (d: { id: string; code: string }, body: object) =>
-    http().patch(`/api/v1/memberships/requests/${d.id}`).set('x-tracking-code', d.code).send(body);
+    http().patch(`/api/v1/adhesions/requests/${d.id}`).set('x-tracking-code', d.code).send(body);
   const upload = (d: { id: string; code: string }, type: string, buf: Buffer, filename = 'piece.pdf') =>
-    http().post(`/api/v1/memberships/requests/${d.id}/documents`).set('x-tracking-code', d.code)
+    http().post(`/api/v1/adhesions/requests/${d.id}/documents`).set('x-tracking-code', d.code)
       .field('type', type).attach('file', buf, { filename });
   const submit = (d: { id: string; code: string }, body: object = DECL) =>
-    http().post(`/api/v1/memberships/requests/${d.id}/submit`).set('x-tracking-code', d.code).send(body);
+    http().post(`/api/v1/adhesions/requests/${d.id}/submit`).set('x-tracking-code', d.code).send(body);
   const track = (reference: string, e: string, code: string) =>
-    http().post('/api/v1/memberships/track').send({ reference, email: e, code });
+    http().post('/api/v1/adhesions/track').send({ reference, email: e, code });
 
   /** Dossier complet prêt à soumettre. */
   async function completeDraft(label: string, orgName = `Association Test ${label} ${stamp}`, legal = `REC-${label}-${stamp}`) {
@@ -65,7 +65,7 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
     configureApp(app);
     await app.init();
     prisma = app.get(PrismaService);
-    const r = (await http().get('/api/v1/memberships/requirements')).body.options;
+    const r = (await http().get('/api/v1/adhesions/requirements')).body.options;
     opts = { regionId: r.regions[0].id, domainId: r.domains[0].id, delegationId: r.delegations[0].id };
   });
 
@@ -85,20 +85,20 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
 
   describe('Informations publiques', () => {
     it('seule la catégorie « Organisation » est ouverte', async () => {
-      const r = await http().get('/api/v1/memberships/categories');
+      const r = await http().get('/api/v1/adhesions/categories');
       expect(r.status).toBe(200);
       expect(r.body.find((c: any) => c.code === 'PM_ORGANISATION').isOpen).toBe(true);
       expect(r.body.filter((c: any) => c.isOpen)).toHaveLength(1);
     });
     it('conditions, critères, pièces, barème et listes de choix', async () => {
-      const r = await http().get('/api/v1/memberships/requirements?category=PM_ORGANISATION');
+      const r = await http().get('/api/v1/adhesions/requirements?category=PM_ORGANISATION');
       expect(r.status).toBe(200);
       expect(r.body.documents.filter((d: any) => d.requirement === 'REQUIRED').map((d: any) => d.type).sort())
         .toEqual(['LEGAL_REGISTRATION', 'REPRESENTATIVE_ID', 'STATUTES']);
       expect(r.body.fees.some((f: any) => f.code === 'ADHESION_PM' && f.amountFcfa === 25000)).toBe(true);
       expect(r.body.eligibility.criteria.length).toBeGreaterThan(0);
       expect(r.body.options.delegations.length).toBeGreaterThan(0);
-      expect((await http().get('/api/v1/memberships/requirements?category=INCONNUE')).status).toBe(404);
+      expect((await http().get('/api/v1/adhesions/requirements?category=INCONNUE')).status).toBe(404);
     });
   });
 
@@ -108,15 +108,15 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
       const d = await newDraft(e);
       expect(d.code.length).toBeGreaterThan(30);
       expect(sent.some((m) => m.to === e && m.text.includes(d.code))).toBe(true);
-      const closed = await http().post('/api/v1/memberships/requests').send({ categoryCode: 'PP_DISABLED_PERSON', applicantName: 'X Y', applicantEmail: email('c') });
+      const closed = await http().post('/api/v1/adhesions/requests').send({ categoryCode: 'PP_DISABLED_PERSON', applicantName: 'X Y', applicantEmail: email('c') });
       expect(closed.status).toBe(422);
       expect(closed.body.code).toBe('CATEGORY_CLOSED');
-      expect((await http().post('/api/v1/memberships/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'X Y', applicantEmail: 'pas-un-email' })).status).toBe(422);
+      expect((await http().post('/api/v1/adhesions/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'X Y', applicantEmail: 'pas-un-email' })).status).toBe(422);
     });
     it('un dossier n’est lisible QU’avec son propre code (404 sinon, sans révéler son existence)', async () => {
       const a = await newDraft();
       const b = await newDraft();
-      const url = `/api/v1/memberships/requests/${a.id}`;
+      const url = `/api/v1/adhesions/requests/${a.id}`;
       expect((await http().get(url)).status).toBe(404);
       expect((await http().get(url).set('x-tracking-code', 'code-incorrect-code-incorrect-code')).status).toBe(404);
       expect((await http().get(url).set('x-tracking-code', b.code)).status).toBe(404); // le code d'un AUTRE dossier
@@ -131,7 +131,7 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
     it('limite à 5 brouillons par adresse e-mail', async () => {
       const e = email('many');
       for (let i = 0; i < 5; i++) await newDraft(e);
-      const r = await http().post('/api/v1/memberships/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'X Y', applicantEmail: e });
+      const r = await http().post('/api/v1/adhesions/requests').send({ categoryCode: 'PM_ORGANISATION', applicantName: 'X Y', applicantEmail: e });
       expect(r.status).toBe(409);
       expect(r.body.code).toBe('TOO_MANY_DRAFTS');
     });
@@ -154,7 +154,7 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
       expect(bad.status).toBe(422);
       const fields = bad.body.details.map((x: any) => x.field);
       expect(fields).toEqual(expect.arrayContaining(['organization.email', 'organization.phone', 'organization.regionId', 'organization.inconnu', 'pirate']));
-      expect((await http().get(`/api/v1/memberships/requests/${d.id}`).set('x-tracking-code', d.code)).body.data).toEqual({});
+      expect((await http().get(`/api/v1/adhesions/requests/${d.id}`).set('x-tracking-code', d.code)).body.data).toEqual({});
       expect((await patch(d, { status: 'REGISTERED' })).status).toBe(422);   // champs hors liste blanche
       expect((await patch(d, { reference: 'CAPH-2026-000001' })).status).toBe(422);
     });
@@ -191,7 +191,7 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
       expect((await upload(d, 'STATUTES', big)).status).toBe(413);
       expect((await upload(d, 'TYPE_INCONNU', PDF)).body.code).toBe('INVALID_DOCUMENT_TYPE');
       expect((await upload(d, 'PAYMENT_PROOF', PDF)).body.code).toBe('INVALID_DOCUMENT_TYPE');
-      const noFile = await http().post(`/api/v1/memberships/requests/${d.id}/documents`).set('x-tracking-code', d.code).field('type', 'STATUTES');
+      const noFile = await http().post(`/api/v1/adhesions/requests/${d.id}/documents`).set('x-tracking-code', d.code).field('type', 'STATUTES');
       expect(noFile.status).toBe(422);
     });
     it('3 fichiers maximum par type ; suppression possible ; pièces rattachées au bon dossier', async () => {
@@ -200,13 +200,13 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
       const ids: string[] = [];
       for (let i = 0; i < 3; i++) ids.push((await upload(a, 'STATUTES', PDF)).body.id);
       expect((await upload(a, 'STATUTES', PDF)).body.code).toBe('TOO_MANY_FILES');
-      expect((await http().delete(`/api/v1/memberships/requests/${a.id}/documents/${ids[0]}`).set('x-tracking-code', b.code)).status).toBe(404);
-      expect((await http().delete(`/api/v1/memberships/requests/${a.id}/documents/${ids[0]}`).set('x-tracking-code', a.code)).status).toBe(204);
+      expect((await http().delete(`/api/v1/adhesions/requests/${a.id}/documents/${ids[0]}`).set('x-tracking-code', b.code)).status).toBe(404);
+      expect((await http().delete(`/api/v1/adhesions/requests/${a.id}/documents/${ids[0]}`).set('x-tracking-code', a.code)).status).toBe(204);
       const asset = await prisma.membershipDocument.findUniqueOrThrow({ where: { id: ids[0] }, include: { file: true } });
       expect(asset.deletedAt).not.toBeNull();
       expect(existsSync(join(process.env.STORAGE_DIR!, asset.file.storageKey.slice(0, 2), asset.file.storageKey))).toBe(false);
-      expect((await http().get(`/api/v1/memberships/requests/${a.id}`).set('x-tracking-code', a.code)).body.documents).toHaveLength(2);
-      expect((await http().get(`/api/v1/memberships/requests/${b.id}`).set('x-tracking-code', b.code)).body.documents).toHaveLength(0);
+      expect((await http().get(`/api/v1/adhesions/requests/${a.id}`).set('x-tracking-code', a.code)).body.documents).toHaveLength(2);
+      expect((await http().get(`/api/v1/adhesions/requests/${b.id}`).set('x-tracking-code', b.code)).body.documents).toHaveLength(0);
     });
   });
 
@@ -334,7 +334,7 @@ describe('Parcours d’adhésion — demandeur (B3)', () => {
 
     it('retrait de la demande', async () => {
       const c = await completeDraft('wd');
-      const r = await http().post(`/api/v1/memberships/requests/${c.id}/withdraw`).set('x-tracking-code', c.code);
+      const r = await http().post(`/api/v1/adhesions/requests/${c.id}/withdraw`).set('x-tracking-code', c.code);
       expect(r.status).toBe(200);
       expect(r.body.status).toBe('WITHDRAWN');
       expect((await patch(c, { applicantName: 'X Y' })).status).toBe(409);

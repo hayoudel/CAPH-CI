@@ -4,12 +4,12 @@ import { AppShell } from './layouts/AppShell';
 import { AuthLayout } from './layouts/AuthLayout';
 import { PublicLayout } from './layouts/PublicLayout';
 import { DirectoryDetailPage, DirectoryPage } from './pages/DirectoryPage';
-import { AgendaPage } from './pages/content/AgendaPage';
+import { EvenementsPage } from './pages/content/EvenementsPage';
 import { CommunicationDetailPage, CommunicationsPage } from './pages/content/CommunicationsPage';
 import { DocumentsPage } from './pages/content/DocumentsPage';
 import { NewsDetailPage, NewsListPage, NewsNewPage } from './pages/content/NewsPage';
 import { ProjectDetailPage, ProjectNewPage, ProjectsPage } from './pages/projects/ProjectsPage';
-import { ReportDetailPage, ReportNewPage, ReportsPage } from './pages/content/ReportsPage';
+import { RapportDetailPage, RapportNewPage, RapportsPage } from './pages/content/RapportsPage';
 import { OpportunitiesPage, OpportunityDetailPage } from './pages/content/OpportunitiesPage';
 import { OrganizationPage } from './pages/org/OrganizationPage';
 import { TeamPage } from './pages/org/TeamPage';
@@ -57,10 +57,10 @@ export function App() {
           <Route path="espace/documents" element={<DocumentsPage />} />
           <Route path="espace/opportunites" element={<OpportunitiesPage />} />
           <Route path="espace/opportunites/:id" element={<OpportunityDetailPage />} />
-          <Route path="espace/agenda" element={<AgendaPage />} />
-          <Route path="espace/rapports" element={<ReportsPage />} />
-          <Route path="espace/rapports/nouveau" element={<ReportNewPage />} />
-          <Route path="espace/rapports/:id" element={<ReportDetailPage />} />
+          <Route path="espace/evenements" element={<EvenementsPage />} />
+          <Route path="espace/rapports" element={<RapportsPage />} />
+          <Route path="espace/rapports/nouveau" element={<RapportNewPage />} />
+          <Route path="espace/rapports/:id" element={<RapportDetailPage />} />
           <Route path="espace/projets" element={<ProjectsPage />} />
           <Route path="espace/projets/nouveau" element={<ProjectNewPage />} />
           <Route path="espace/projets/:id" element={<ProjectDetailPage />} />
@@ -76,7 +76,7 @@ export function App() {
           <Route path="admin/documents" element={<DocumentsPage />} />
           <Route path="admin/opportunites" element={<OpportunitiesPage />} />
           <Route path="admin/opportunites/:id" element={<OpportunityDetailPage />} />
-          <Route path="admin/agenda" element={<AgendaPage />} />
+          <Route path="admin/evenements" element={<EvenementsPage />} />
         </Route>
       </Route>
     </Routes>

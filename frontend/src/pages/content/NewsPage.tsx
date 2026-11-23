@@ -97,7 +97,7 @@ const payload = (v: NewsValues) => ({
   title: v.title.trim(), description: v.description.trim(), ...(v.summary.trim() ? { summary: v.summary.trim() } : {}),
   ...(v.categoryId ? { categoryId: v.categoryId } : {}), ...(v.newsDate ? { newsDate: v.newsDate } : {}),
 });
-const useCategories = () => useQuery({ queryKey: ['news-categories'], queryFn: () => api<NewsCategory[]>('/news/categories'), staleTime: 3_600_000 });
+const useCategories = () => useQuery({ queryKey: ['news-categories'], queryFn: () => api<NewsCategory[]>('/actualites/categories'), staleTime: 3_600_000 });
 
 export function NewsListPage() {
   usePageTitle('Mes actualités');
@@ -108,7 +108,7 @@ export function NewsListPage() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const f = useListParams();
   const query = { status: f.get('status') || undefined, page: f.page, limit: 10 };
-  const list = useQuery({ queryKey: ['news', query], queryFn: () => api<Paginated<NewsProposal>>('/news', { query }), placeholderData: (p) => p });
+  const list = useQuery({ queryKey: ['news', query], queryFn: () => api<Paginated<NewsProposal>>('/actualites', { query }), placeholderData: (p) => p });
   const total = list.data?.meta.total ?? 0;
   return (
     <>
@@ -122,7 +122,7 @@ export function NewsListPage() {
       <Flash notice={notice} />
       {adding && <NewsCreateModal onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
       {editing && <NewsEditModal news={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
-      {deleting && <ConfirmDelete what="Actualité" title={deleting.title} path={`/news/${deleting.id}`} invalidate={['news']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Actualité" title={deleting.title} path={`/actualites/${deleting.id}`} invalidate={['news']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
       <div className="stack">
         <div className="panel">
           <div className="filters">
@@ -172,9 +172,9 @@ function NewsCreateModal({ onClose, onDone }: { onClose: () => void; onDone: (n:
   async function save(v: NewsValues, intent: Intent, files: NewFiles) {
     setNotice(null); setBusy(intent);
     let created: NewsProposal;
-    try { created = await api<NewsProposal>('/news', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
+    try { created = await api<NewsProposal>('/actualites', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } }); }
     catch (e) { setNotice(errorNotice(e, 'Envoi impossible')); setBusy(null); return; }
-    const failed = await uploadNewFiles(`/news/${created.id}`, files);
+    const failed = await uploadNewFiles(`/actualites/${created.id}`, files);
     void qc.invalidateQueries({ queryKey: ['news'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
     const f = FLASHES[intent === 'submit' ? 'submitted' : 'draft'];
     onDone({ kind: 'success', title: f.title, text: failed.length ? `${f.text} Ces fichiers n’ont pas pu être envoyés : ${failed.join(', ')}. Ajoutez-les depuis la page de l’actualité.` : f.text });
@@ -198,8 +198,8 @@ function NewsEditModal({ news, onClose, onDone }: { news: NewsProposal; onClose:
   async function save(v: NewsValues, intent: Intent) {
     setNotice(null); setBusy(intent);
     try {
-      await api<NewsProposal>(`/news/${news.id}`, { method: 'PATCH', body: payload(v) });
-      if (news.status === 'DRAFT' && intent === 'submit') await api<NewsProposal>(`/news/${news.id}/submit`, { method: 'POST' });
+      await api<NewsProposal>(`/actualites/${news.id}`, { method: 'PATCH', body: payload(v) });
+      if (news.status === 'DRAFT' && intent === 'submit') await api<NewsProposal>(`/actualites/${news.id}/submit`, { method: 'POST' });
       void qc.invalidateQueries({ queryKey: ['news'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
       onDone(news.status === 'DRAFT' && intent === 'draft' ? { kind: 'success', ...FLASHES.draft }
         : news.status === 'DRAFT' || news.status === 'CORRECTION' ? { kind: 'success', title: 'Actualité soumise à la validation', text: 'Votre proposition a été envoyée à la CAPH-CI.' }
@@ -227,10 +227,10 @@ export function NewsNewPage() {
     setNotice(null); setBusy(intent);
     let created: NewsProposal;
     try {
-      created = await api<NewsProposal>('/news', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } });
+      created = await api<NewsProposal>('/actualites', { method: 'POST', body: { ...payload(v), submit: intent === 'submit' } });
     } catch (e) { setNotice(errorNotice(e, 'Envoi impossible')); setBusy(null); return; }
     // L'actualité existe : on ajoute les fichiers ; un échec n'annule rien, il est signalé sur la page suivante.
-    const failed = await uploadNewFiles(`/news/${created.id}`, files);
+    const failed = await uploadNewFiles(`/actualites/${created.id}`, files);
     void qc.invalidateQueries({ queryKey: ['news'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] });
     navigate(`/espace/actualites/${created.id}`, { state: { flash: intent === 'submit' ? 'submitted' : 'draft', failed } });
   }
@@ -266,7 +266,7 @@ export function NewsDetailPage() {
   const st = location.state as { flash?: keyof typeof FLASHES; failed?: string[] } | null;
   const [notice, setNotice] = useState<Notice | null>(st?.flash ? { kind: 'success', ...FLASHES[st.flash] } : null);
   const key = ['news-item', id];
-  const q = useQuery({ queryKey: key, queryFn: () => api<NewsProposal>(`/news/${id}`), retry: false });
+  const q = useQuery({ queryKey: key, queryFn: () => api<NewsProposal>(`/actualites/${id}`), retry: false });
   usePageTitle(q.data?.title ?? 'Actualité');
   const refresh = (n: NewsProposal) => { qc.setQueryData(key, n); void qc.invalidateQueries({ queryKey: ['news'] }); void qc.invalidateQueries({ queryKey: ['dashboard'] }); };
 
@@ -274,8 +274,8 @@ export function NewsDetailPage() {
     const was = q.data?.status;
     setNotice(null); setBusy(intent);
     try {
-      let n = await api<NewsProposal>(`/news/${id}`, { method: 'PATCH', body: payload(v) });
-      if (was === 'DRAFT' && intent === 'submit') n = await api<NewsProposal>(`/news/${id}/submit`, { method: 'POST' });
+      let n = await api<NewsProposal>(`/actualites/${id}`, { method: 'PATCH', body: payload(v) });
+      if (was === 'DRAFT' && intent === 'submit') n = await api<NewsProposal>(`/actualites/${id}/submit`, { method: 'POST' });
       refresh(n); setEditing(false);
       setNotice(was === 'DRAFT' && intent === 'draft' ? { kind: 'success', ...FLASHES.draft }
         : was === 'DRAFT' || was === 'CORRECTION' ? { kind: 'success', title: 'Actualité soumise à la validation', text: 'Votre proposition a été envoyée à la CAPH-CI.' }
@@ -284,12 +284,12 @@ export function NewsDetailPage() {
   }
   async function submitDraft() {
     setNotice(null); setBusy('submit');
-    try { refresh(await api<NewsProposal>(`/news/${id}/submit`, { method: 'POST' })); setNotice({ kind: 'success', title: 'Actualité soumise à la validation', text: 'La CAPH-CI va l’examiner.' }); }
+    try { refresh(await api<NewsProposal>(`/actualites/${id}/submit`, { method: 'POST' })); setNotice({ kind: 'success', title: 'Actualité soumise à la validation', text: 'La CAPH-CI va l’examiner.' }); }
     catch (e) { setNotice(errorNotice(e, 'Soumission impossible')); } finally { setBusy(null); }
   }
   async function deleteDraft() {
     setBusy('delete');
-    try { await api(`/news/${id}`, { method: 'DELETE' }); void qc.invalidateQueries({ queryKey: ['news'] }); navigate('/espace/actualites'); }
+    try { await api(`/actualites/${id}`, { method: 'DELETE' }); void qc.invalidateQueries({ queryKey: ['news'] }); navigate('/espace/actualites'); }
     catch (e) { setNotice(errorNotice(e, 'Suppression impossible')); setBusy(null); setConfirmDelete(false); }
   }
 
@@ -358,7 +358,7 @@ export function NewsDetailPage() {
           )}
         </section>
       )}
-      <Attachments basePath={`/news/${n.id}`} queryKey={key} items={n.attachments} editable={mayEdit} />
+      <Attachments basePath={`/actualites/${n.id}`} queryKey={key} items={n.attachments} editable={mayEdit} />
       <History entries={n.history} />
       <p><Link to="/espace/actualites">Retour à mes actualités</Link></p>
     </div>

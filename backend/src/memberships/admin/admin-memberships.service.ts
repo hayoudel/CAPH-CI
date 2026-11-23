@@ -19,7 +19,7 @@ import {
 const NOT_FOUND = { code: 'REQUEST_NOT_FOUND', message: 'Dossier introuvable.' };
 /** Un dossier « reçu » ou « en examen » depuis plus longtemps est signalé comme en retard. */
 const SLA_DAYS = 15;
-/** Compteur des numéros de membre : stocké dans reference_counters avec la clé 0 (les années réelles sont > 2000). */
+/** Compteur des numéros de membre : stocké dans compteurs_reference avec la clé 0 (les années réelles sont > 2000). */
 const MEMBER_COUNTER_KEY = 0;
 
 interface DocSpec { type: string; label: string; requirement: string }
@@ -182,7 +182,7 @@ export class AdminMembershipsService {
       this.prisma.feeSchedule.findMany({ where: { code: { in: FEES_BY_CATEGORY[req.category.code] ?? [] }, isActive: true }, orderBy: { code: 'asc' } }),
       org.name
         ? this.prisma.$queryRaw<{ id: string; reference: string; status: string }[]>`
-            SELECT id, reference, status::text FROM membership_requests
+            SELECT id, reference, status::text FROM demandes_adhesion
             WHERE id <> ${id}::uuid AND reference IS NOT NULL AND status::text <> 'DRAFT'
               AND (lower(data->'organization'->>'name') = lower(${org.name})
                 OR lower(data->'organization'->>'legalReference') = lower(${org.legalReference ?? ''}))
@@ -504,8 +504,8 @@ export class AdminMembershipsService {
         throw new ConflictException({ code: 'INVALID_STATUS', message: 'Le statut du dossier a changé. Actualisez la page.' });
       }
       const rows = await tx.$queryRaw<{ last: number }[]>`
-        INSERT INTO reference_counters (year, last) VALUES (${MEMBER_COUNTER_KEY}, 1)
-        ON CONFLICT (year) DO UPDATE SET last = reference_counters.last + 1 RETURNING last`;
+        INSERT INTO compteurs_reference (year, last) VALUES (${MEMBER_COUNTER_KEY}, 1)
+        ON CONFLICT (year) DO UPDATE SET last = compteurs_reference.last + 1 RETURNING last`;
       const memberNumber = `OPH-${String(rows[0].last).padStart(4, '0')}`;
       const now = new Date();
       const organization = await tx.organization.create({
@@ -516,8 +516,8 @@ export class AdminMembershipsService {
           interventionZone: org.interventionZone ?? null,
           // Annuaire : visible uniquement si le consentement a été donné au dépôt.
           isListed: req.publicationConsent, publicationConsentAt: req.publicationConsent ? req.declarationsAcceptedAt ?? now : null,
-          domains: { connect: ((org.interventionDomainIds as string[]) ?? []).map((x) => ({ id: x })) },
-          disabilityTypes: { connect: ((org.disabilityTypeIds as string[]) ?? []).map((x) => ({ id: x })) },
+          domains: { connect: ((org.domaineInterventionIds as string[]) ?? []).map((x) => ({ id: x })) },
+          typesHandicap: { connect: ((org.typeHandicapIds as string[]) ?? []).map((x) => ({ id: x })) },
         },
       });
       const president = await tx.user.create({

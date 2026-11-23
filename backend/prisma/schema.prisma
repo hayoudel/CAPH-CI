@@ -98,7 +98,7 @@ enum FeePeriodicity {
   YEARLY
 }
 
-enum InternalDocumentCategory {
+enum CategorieDocument {
   GUIDE
   FORM
   MEETING_MINUTES
@@ -144,7 +144,7 @@ enum CommunicationKind {
   EXTERNAL
 }
 
-enum EventType {
+enum TypeEvenement {
   MEETING
   TRAINING
   GENERAL_ASSEMBLY
@@ -154,13 +154,13 @@ enum EventType {
   CEREMONY
 }
 
-enum EventMode {
+enum ModeEvenement {
   ONLINE
   ONSITE
   HYBRID
 }
 
-enum EventStatus {
+enum StatutEvenement {
   PLANNED
   OPEN
   REGISTRATION
@@ -168,13 +168,13 @@ enum EventStatus {
   CANCELLED
 }
 
-enum ReportType {
+enum TypeRapport {
   ACTIVITY
   FINANCIAL
   OTHER
 }
 
-enum ReportStatus {
+enum StatutRapport {
   RECEIVED
   IN_PROCESS
   PROCESSED
@@ -212,7 +212,7 @@ model Region {
   updatedAt     DateTime       @updatedAt
   delegations   Delegation[]
   organizations Organization[]
-  events        Event[]
+  evenements        Evenement[]
 
   @@map("regions")
 }
@@ -220,7 +220,7 @@ model Region {
 model Delegation {
   id                 String              @id @default(uuid()) @db.Uuid
   name               String              @unique
-  regionId           String?             @db.Uuid
+  regionId           String?             @db.Uuid @map("region_id")
   region             Region?             @relation(fields: [regionId], references: [id])
   commune            String?
   email              String?
@@ -237,24 +237,24 @@ model Delegation {
   @@map("delegations")
 }
 
-model InterventionDomain {
+model DomaineIntervention {
   id            String         @id @default(uuid()) @db.Uuid
   code          String         @unique
   label         String
   sortOrder     Int            @default(0)
   organizations Organization[]
 
-  @@map("intervention_domains")
+  @@map("domaines_intervention")
 }
 
-model DisabilityType {
+model TypeHandicap {
   id            String         @id @default(uuid()) @db.Uuid
   code          String         @unique
   label         String
   sortOrder     Int            @default(0)
   organizations Organization[]
 
-  @@map("disability_types")
+  @@map("types_handicap")
 }
 
 model NewsCategory {
@@ -264,7 +264,7 @@ model NewsCategory {
   sortOrder     Int            @default(0)
   newsProposals NewsProposal[]
 
-  @@map("news_categories")
+  @@map("categories_actualites")
 }
 
 // ─────────────────────────── COMPTES ET ACCÈS ─────────────────────────────
@@ -296,15 +296,15 @@ model User {
   decisionsRecorded  MembershipDecision[] @relation("DecisionRecorder")
   paymentsRecorded   PaymentRecord[]      @relation("PaymentRecorder")
   documentsReviewed  MembershipDocument[] @relation("DocumentReviewer")
-  reportsAuthored    Report[]             @relation("ReportAuthor")
-  reportsReviewed    Report[]             @relation("ReportReviewer")
+  rapportsAuthored    Rapport[]             @relation("RapportAuthor")
+  rapportsReviewed    Rapport[]             @relation("RapportReviewer")
   newsAuthored       NewsProposal[]       @relation("NewsAuthor")
   newsReviewed       NewsProposal[]       @relation("NewsReviewer")
   projectsAuthored   Project[]            @relation("ProjectAuthor")
   projectsReviewed   Project[]            @relation("ProjectReviewer")
 
   @@index([status])
-  @@map("users")
+  @@map("utilisateurs")
 }
 
 model Permission {
@@ -329,36 +329,36 @@ model Role {
 }
 
 model RolePermission {
-  roleId       String     @db.Uuid
-  permissionId String     @db.Uuid
+  roleId       String     @db.Uuid @map("role_id")
+  permissionId String     @db.Uuid @map("permission_id")
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
-  @@map("role_permissions")
+  @@map("roles_permissions")
 }
 
 // Rôles du personnel CAPH-CI. delegationId limite le rôle à une délégation.
 model UserRole {
   id           String      @id @default(uuid()) @db.Uuid
-  userId       String      @db.Uuid
-  roleId       String      @db.Uuid
-  delegationId String?     @db.Uuid
+  userId       String      @db.Uuid @map("utilisateur_id")
+  roleId       String      @db.Uuid @map("role_id")
+  delegationId String?     @db.Uuid @map("delegation_id")
   createdAt    DateTime    @default(now())
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   role         Role        @relation(fields: [roleId], references: [id])
   delegation   Delegation? @relation(fields: [delegationId], references: [id])
 
   @@index([userId])
-  @@map("user_roles")
+  @@map("roles_utilisateurs")
 }
 
 // Appartenance d'un utilisateur à UNE seule OPH (userId unique).
 model OrganizationMember {
   id             String       @id @default(uuid()) @db.Uuid
-  userId         String       @unique @db.Uuid
-  organizationId String       @db.Uuid
-  roleId         String       @db.Uuid
+  userId         String       @unique @db.Uuid @map("utilisateur_id")
+  organizationId String       @db.Uuid @map("organisation_id")
+  roleId         String       @db.Uuid @map("role_id")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -366,12 +366,12 @@ model OrganizationMember {
   role           Role         @relation(fields: [roleId], references: [id])
 
   @@index([organizationId])
-  @@map("organization_members")
+  @@map("membres_organisation")
 }
 
 model RefreshToken {
   id        String    @id @default(uuid()) @db.Uuid
-  userId    String    @db.Uuid
+  userId    String    @db.Uuid @map("utilisateur_id")
   tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
@@ -381,13 +381,13 @@ model RefreshToken {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@map("refresh_tokens")
+  @@map("jetons_actualisation")
 }
 
 // Jetons à usage unique (invitation, réinitialisation). Seul le hash est stocké.
 model OneTimeToken {
   id        String           @id @default(uuid()) @db.Uuid
-  userId    String           @db.Uuid
+  userId    String           @db.Uuid @map("utilisateur_id")
   type      OneTimeTokenType
   tokenHash String           @unique
   expiresAt DateTime
@@ -396,7 +396,7 @@ model OneTimeToken {
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
-  @@map("one_time_tokens")
+  @@map("jetons_usage_unique")
 }
 
 // ───────────────────────────── ORGANISATIONS ──────────────────────────────
@@ -409,8 +409,8 @@ model Organization {
   status               OrganizationStatus @default(ACTIVE)
   memberNumber         String?            @unique
   registeredAt         DateTime?
-  delegationId         String?            @db.Uuid
-  regionId             String?            @db.Uuid
+  delegationId         String?            @db.Uuid @map("delegation_id")
+  regionId             String?            @db.Uuid @map("region_id")
   commune              String?
   address              String?
   postalAddress        String?
@@ -431,22 +431,22 @@ model Organization {
 
   delegation        Delegation?          @relation(fields: [delegationId], references: [id])
   region            Region?              @relation(fields: [regionId], references: [id])
-  domains           InterventionDomain[]
-  disabilityTypes   DisabilityType[]
+  domains           DomaineIntervention[]
+  typesHandicap   TypeHandicap[]
   members           OrganizationMember[]
   membershipRequest MembershipRequest?
-  reports           Report[]
+  rapports           Rapport[]
   newsProposals     NewsProposal[]
   projects          Project[]
   communications    Communication[]
-  internalDocuments InternalDocument[]
+  documents Document[]
   opportunities     Opportunity[]
-  events            Event[]
+  evenements            Evenement[]
 
   @@index([delegationId])
   @@index([regionId])
   @@index([isListed, status])
-  @@map("organizations")
+  @@map("organisations")
 }
 
 // ──────────────────────────────── ADHÉSION ────────────────────────────────
@@ -464,7 +464,7 @@ model MembershipCategory {
   updatedAt         DateTime            @updatedAt
   requests          MembershipRequest[]
 
-  @@map("membership_categories")
+  @@map("categories_adhesion")
 }
 
 // Barème des droits et cotisations (RI 2026, transitoire : modifiable).
@@ -479,7 +479,7 @@ model FeeSchedule {
   isActive    Boolean        @default(true)
   updatedAt   DateTime       @updatedAt
 
-  @@map("fee_schedules")
+  @@map("baremes_cotisations")
 }
 
 // Compteur annuel pour générer CAPH-AAAA-NNNNNN sans doublon.
@@ -487,7 +487,7 @@ model ReferenceCounter {
   year Int @id
   last Int @default(0)
 
-  @@map("reference_counters")
+  @@map("compteurs_reference")
 }
 
 model FileAsset {
@@ -498,26 +498,26 @@ model FileAsset {
   sizeBytes    Int
   sha256       String
   encrypted    Boolean   @default(false)
-  uploadedById String?   @db.Uuid
+  uploadedById String?   @db.Uuid @map("depose_par_id")
   createdAt    DateTime  @default(now())
   deletedAt    DateTime?
 
   membershipDocuments MembershipDocument[]
-  reportAttachments   ReportAttachment[]
+  rapportPiecesJointes   RapportPieceJointe[]
   newsAttachments     NewsAttachment[]
   newsCovers          NewsProposal[]       @relation("NewsCover")
   projectCovers       Project[]            @relation("ProjectCover")
   projectAttachments  ProjectAttachment[]
-  internalDocuments   InternalDocument[]
+  documents   Document[]
   opportunities       Opportunity[]
 
-  @@map("file_assets")
+  @@map("fichiers")
 }
 
 model MembershipRequest {
   id                       String                @id @default(uuid()) @db.Uuid
   reference                String?               @unique // générée à la soumission
-  categoryId               String                @db.Uuid
+  categoryId               String                @db.Uuid @map("categorie_id")
   requestType              MembershipRequestType @default(FIRST)
   existingMemberNumber     String?
   status                   MembershipStatus      @default(DRAFT)
@@ -527,7 +527,7 @@ model MembershipRequest {
   trackingTokenHash        String
   data                     Json                  @default("{}") // champs propres à la catégorie
   dataVersion              Int                   @default(1)
-  delegationId             String?               @db.Uuid
+  delegationId             String?               @db.Uuid @map("delegation_id")
   delegationOverrideReason String?
   declarationsAcceptedAt   DateTime?
   declarationIp            String?
@@ -535,7 +535,7 @@ model MembershipRequest {
   publicationConsent       Boolean               @default(false)
   submittedAt              DateTime?
   lastActionAt             DateTime              @default(now())
-  organizationId           String?               @unique @db.Uuid // renseigné à l'enregistrement
+  organizationId           String?               @unique @db.Uuid @map("organisation_id") // renseigné à l'enregistrement
   memberCardNumber         String?
   createdAt                DateTime              @default(now())
   updatedAt                DateTime              @updatedAt
@@ -553,17 +553,17 @@ model MembershipRequest {
   @@index([applicantEmail])
   @@index([delegationId])
   @@index([submittedAt])
-  @@map("membership_requests")
+  @@map("demandes_adhesion")
 }
 
 model MembershipDocument {
   id           String               @id @default(uuid()) @db.Uuid
-  requestId    String               @db.Uuid
+  requestId    String               @db.Uuid @map("demande_id")
   type         String // ex. LEGAL_REGISTRATION, STATUTES, REPRESENTATIVE_ID
-  fileId       String               @db.Uuid
+  fileId       String               @db.Uuid @map("fichier_id")
   status       DocumentReviewStatus @default(PENDING)
   reviewNote   String?
-  reviewedById String?              @db.Uuid
+  reviewedById String?              @db.Uuid @map("valide_par_id")
   reviewedAt   DateTime?
   createdAt    DateTime             @default(now())
   deletedAt    DateTime?
@@ -572,15 +572,15 @@ model MembershipDocument {
   reviewedBy   User?                @relation("DocumentReviewer", fields: [reviewedById], references: [id])
 
   @@index([requestId])
-  @@map("membership_documents")
+  @@map("documents_adhesion")
 }
 
 // Historique append-only : on n'édite ni ne supprime jamais une ligne.
 model MembershipEvent {
   id         String            @id @default(uuid()) @db.Uuid
-  requestId  String            @db.Uuid
+  requestId  String            @db.Uuid @map("demande_id")
   actorType  ActorType
-  actorId    String?           @db.Uuid
+  actorId    String?           @db.Uuid @map("acteur_id")
   action     String // SUBMIT, REQUEST_INFO, DECISION, PAYMENT, REGISTER…
   fromStatus MembershipStatus?
   toStatus   MembershipStatus?
@@ -589,69 +589,69 @@ model MembershipEvent {
   request    MembershipRequest @relation(fields: [requestId], references: [id])
 
   @@index([requestId, createdAt])
-  @@map("membership_events")
+  @@map("evenements_adhesion")
 }
 
 model MembershipDecision {
   id                String            @id @default(uuid()) @db.Uuid
-  requestId         String            @db.Uuid
+  requestId         String            @db.Uuid @map("demande_id")
   outcome           DecisionOutcome
   body              DecisionBody
   decisionReference String
   decidedAt         DateTime
   motive            String? // obligatoire si ajourné ou refusé (contrôlé par le service)
-  recordedById      String            @db.Uuid
+  recordedById      String            @db.Uuid @map("enregistre_par_id")
   createdAt         DateTime          @default(now())
   request           MembershipRequest @relation(fields: [requestId], references: [id])
   recordedBy        User              @relation("DecisionRecorder", fields: [recordedById], references: [id])
 
   @@index([requestId])
-  @@map("membership_decisions")
+  @@map("decisions_adhesion")
 }
 
 model PaymentRecord {
   id            String            @id @default(uuid()) @db.Uuid
-  requestId     String            @db.Uuid
+  requestId     String            @db.Uuid @map("demande_id")
   lines         Json // [{ feeCode, label, amountFcfa }]
   totalFcfa     Int
   method        PaymentMethod
   receiptNumber String            @unique
   paidAt        DateTime
-  recordedById  String            @db.Uuid
+  recordedById  String            @db.Uuid @map("enregistre_par_id")
   createdAt     DateTime          @default(now())
   request       MembershipRequest @relation(fields: [requestId], references: [id])
   recordedBy    User              @relation("PaymentRecorder", fields: [recordedById], references: [id])
 
   @@index([requestId])
-  @@map("payment_records")
+  @@map("paiements_adhesion")
 }
 
 // ─────────────────────────────── ESPACE MEMBRE ────────────────────────────
 
-model InternalDocument {
+model Document {
   id          String                   @id @default(uuid()) @db.Uuid
   title       String
   description String?
-  category    InternalDocumentCategory
+  category    CategorieDocument
   accessLevel DocumentAccessLevel      @default(MEMBERS)
-  fileId      String                   @db.Uuid
+  fileId      String                   @db.Uuid @map("fichier_id")
   isFeatured  Boolean                  @default(false)
   publishedAt DateTime                 @default(now())
   archivedAt  DateTime?
-  createdById String?                  @db.Uuid
+  createdById String?                  @db.Uuid @map("cree_par_id")
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
   file        FileAsset                @relation(fields: [fileId], references: [id])
-  organizationId String?             @db.Uuid // OPH auteur ; vide = publié par le personnel CAPH-CI
+  organizationId String?             @db.Uuid @map("organisation_id") // OPH auteur ; vide = publié par le personnel CAPH-CI
   reviewStatus   ContentReviewStatus @default(APPROVED)
   reviewedAt     DateTime?
-  reviewedById   String?             @db.Uuid
+  reviewedById   String?             @db.Uuid @map("valide_par_id")
   reviewNote     String? // motif en cas de refus
   organization   Organization?       @relation(fields: [organizationId], references: [id])
 
   @@index([category, publishedAt])
   @@index([organizationId, reviewStatus])
-  @@map("internal_documents")
+  @@map("documents")
 }
 
 model Opportunity {
@@ -666,16 +666,16 @@ model Opportunity {
   audience    String? // public concerné
   modality    String? // ex. dépôt en ligne
   visibility  Visibility        @default(MEMBERS)
-  sheetFileId String?           @db.Uuid // fiche à télécharger
+  sheetFileId String?           @db.Uuid @map("fichier_fiche_id") // fiche à télécharger
   archivedAt  DateTime?
-  createdById String?           @db.Uuid
+  createdById String?           @db.Uuid @map("cree_par_id")
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   sheetFile   FileAsset?        @relation(fields: [sheetFileId], references: [id])
-  organizationId String?             @db.Uuid // OPH auteur ; vide = publié par le personnel CAPH-CI
+  organizationId String?             @db.Uuid @map("organisation_id") // OPH auteur ; vide = publié par le personnel CAPH-CI
   reviewStatus   ContentReviewStatus @default(APPROVED)
   reviewedAt     DateTime?
-  reviewedById   String?             @db.Uuid
+  reviewedById   String?             @db.Uuid @map("valide_par_id")
   reviewNote     String? // motif en cas de refus
   isDemo         Boolean             @default(false) // donnée de démonstration (jamais en production)
   organization   Organization?       @relation(fields: [organizationId], references: [id])
@@ -683,7 +683,7 @@ model Opportunity {
   @@index([organizationId, reviewStatus])
   @@index([status, deadline])
   @@index([visibility])
-  @@map("opportunities")
+  @@map("opportunites")
 }
 
 model Communication {
@@ -699,7 +699,7 @@ model Communication {
   publishedAt   DateTime            @default(now())
   archivedAt    DateTime?
   isDemo        Boolean             @default(false) // donnée de démonstration
-  createdById   String?             @db.Uuid
+  createdById   String?             @db.Uuid @map("cree_par_id")
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
   reads         CommunicationRead[]
@@ -709,36 +709,36 @@ model Communication {
 }
 
 model CommunicationRead {
-  communicationId String        @db.Uuid
-  userId          String        @db.Uuid
+  communicationId String        @db.Uuid @map("communication_id")
+  userId          String        @db.Uuid @map("utilisateur_id")
   readAt          DateTime      @default(now())
   communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([communicationId, userId])
-  @@map("communication_reads")
+  @@map("communications_lues")
 }
 
-model Event {
+model Evenement {
   id          String      @id @default(uuid()) @db.Uuid
-  type        EventType
+  type        TypeEvenement
   title       String
   description String?
   startsAt    DateTime
   endsAt      DateTime?
-  mode        EventMode   @default(ONSITE)
+  mode        ModeEvenement   @default(ONSITE)
   location    String?
-  regionId    String?     @db.Uuid
-  status      EventStatus @default(PLANNED)
+  regionId    String?     @db.Uuid @map("region_id")
+  status      StatutEvenement @default(PLANNED)
   archivedAt  DateTime?
-  createdById String?     @db.Uuid
+  createdById String?     @db.Uuid @map("cree_par_id")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   region      Region?     @relation(fields: [regionId], references: [id])
-  organizationId String?             @db.Uuid // OPH auteur ; vide = publié par le personnel CAPH-CI
+  organizationId String?             @db.Uuid @map("organisation_id") // OPH auteur ; vide = publié par le personnel CAPH-CI
   reviewStatus   ContentReviewStatus @default(APPROVED)
   reviewedAt     DateTime?
-  reviewedById   String?             @db.Uuid
+  reviewedById   String?             @db.Uuid @map("valide_par_id")
   reviewNote     String? // motif en cas de refus
   isDemo         Boolean             @default(false) // donnée de démonstration (jamais en production)
   organization   Organization?       @relation(fields: [organizationId], references: [id])
@@ -746,61 +746,61 @@ model Event {
   @@index([organizationId, reviewStatus])
   @@index([startsAt])
   @@index([type])
-  @@map("events")
+  @@map("evenements")
 }
 
-model Report {
+model Rapport {
   id                   String             @id @default(uuid()) @db.Uuid
-  organizationId       String             @db.Uuid
-  authorId             String             @db.Uuid
-  type                 ReportType
+  organizationId       String             @db.Uuid @map("organisation_id")
+  authorId             String             @db.Uuid @map("auteur_id")
+  type                 TypeRapport
   periodStart          DateTime?
   periodEnd            DateTime?
   title                String
   summary              String // 600 caractères maximum (contrôlé par le DTO)
-  status               ReportStatus       @default(RECEIVED)
+  status               StatutRapport       @default(RECEIVED)
   certifiedAuthorityAt DateTime // attestation d'habilitation à transmettre
   reviewerNote         String?
-  reviewedById         String?            @db.Uuid
+  reviewedById         String?            @db.Uuid @map("valide_par_id")
   submittedAt          DateTime           @default(now())
   processedAt          DateTime?
   updatedAt            DateTime           @updatedAt
   organization         Organization       @relation(fields: [organizationId], references: [id])
-  author               User               @relation("ReportAuthor", fields: [authorId], references: [id])
-  reviewedBy           User?              @relation("ReportReviewer", fields: [reviewedById], references: [id])
+  author               User               @relation("RapportAuthor", fields: [authorId], references: [id])
+  reviewedBy           User?              @relation("RapportReviewer", fields: [reviewedById], references: [id])
   isDemo               Boolean            @default(false) // donnée de démonstration
-  attachments          ReportAttachment[]
+  attachments          RapportPieceJointe[]
 
   @@index([organizationId, submittedAt])
   @@index([status])
-  @@map("reports")
+  @@map("rapports")
 }
 
-model ReportAttachment {
+model RapportPieceJointe {
   id        String    @id @default(uuid()) @db.Uuid
-  reportId  String    @db.Uuid
-  fileId    String    @db.Uuid
+  rapportId  String    @db.Uuid @map("rapport_id")
+  fileId    String    @db.Uuid @map("fichier_id")
   createdAt DateTime  @default(now())
-  report    Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  rapport    Rapport    @relation(fields: [rapportId], references: [id], onDelete: Cascade)
   file      FileAsset @relation(fields: [fileId], references: [id])
 
-  @@index([reportId])
-  @@map("report_attachments")
+  @@index([rapportId])
+  @@map("rapports_pieces_jointes")
 }
 
 model NewsProposal {
   id             String              @id @default(uuid()) @db.Uuid
-  organizationId String              @db.Uuid
-  authorId       String              @db.Uuid
-  categoryId     String?             @db.Uuid
+  organizationId String              @db.Uuid @map("organisation_id")
+  authorId       String              @db.Uuid @map("auteur_id")
+  categoryId     String?             @db.Uuid @map("categorie_id")
   title          String
   summary        String? // résumé court
   description    String // contenu complet
   newsDate       DateTime? // date de l'événement ou de l'actualité
-  coverFileId    String?             @db.Uuid
+  coverFileId    String?             @db.Uuid @map("fichier_couverture_id")
   status         NewsStatus          @default(DRAFT)
   reviewerNote   String?
-  reviewedById   String?            @db.Uuid
+  reviewedById   String?            @db.Uuid @map("valide_par_id")
   createdAt      DateTime            @default(now())
   submittedAt    DateTime? // renseignée à la soumission (null pour un brouillon)
   reviewedAt     DateTime?
@@ -816,41 +816,41 @@ model NewsProposal {
 
   @@index([organizationId, updatedAt])
   @@index([status])
-  @@map("news_proposals")
+  @@map("actualites")
 }
 
 /// Historique des décisions : une ligne à chaque changement de statut (jamais modifiée).
 model NewsStatusHistory {
   id         String       @id @default(uuid()) @db.Uuid
-  proposalId String       @db.Uuid
+  proposalId String       @db.Uuid @map("actualite_id")
   fromStatus NewsStatus?
   toStatus   NewsStatus
   note       String?
-  actorId    String?      @db.Uuid
+  actorId    String?      @db.Uuid @map("acteur_id")
   createdAt  DateTime     @default(now())
   proposal   NewsProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 
   @@index([proposalId, createdAt])
-  @@map("news_status_history")
+  @@map("actualites_historique")
 }
 
 model NewsAttachment {
   id         String       @id @default(uuid()) @db.Uuid
-  proposalId String       @db.Uuid
-  fileId     String       @db.Uuid
+  proposalId String       @db.Uuid @map("actualite_id")
+  fileId     String       @db.Uuid @map("fichier_id")
   createdAt  DateTime     @default(now())
   proposal   NewsProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   file       FileAsset    @relation(fields: [fileId], references: [id])
 
   @@index([proposalId])
-  @@map("news_attachments")
+  @@map("actualites_pieces_jointes")
 }
 
 /// Projet proposé par une OPH. Validé par le personnel ; seul le personnel le passe « en cours » puis « terminé ».
 model Project {
   id              String          @id @default(uuid()) @db.Uuid
-  organizationId  String          @db.Uuid
-  authorId        String          @db.Uuid
+  organizationId  String          @db.Uuid @map("organisation_id")
+  authorId        String          @db.Uuid @map("auteur_id")
   title           String
   context         String? // contexte et justification
   objectives      String?
@@ -862,10 +862,10 @@ model Project {
   budgetXof       Int? // budget estimatif en F CFA
   partners        String?
   expectedResults String?
-  coverFileId     String?         @db.Uuid
+  coverFileId     String?         @db.Uuid @map("fichier_couverture_id")
   status          ProjectStatus   @default(DRAFT)
   reviewerNote    String?
-  reviewedById    String?         @db.Uuid
+  reviewedById    String?         @db.Uuid @map("valide_par_id")
   progress        Int? // % d'avancement : renseigné par le personnel uniquement, jamais calculé ni inventé
   results         String? // résultats / réalisations constatés, renseignés par le personnel
   createdAt       DateTime        @default(now())
@@ -882,34 +882,34 @@ model Project {
 
   @@index([organizationId, updatedAt])
   @@index([status])
-  @@map("projects")
+  @@map("projets")
 }
 
 model ProjectAttachment {
   id        String   @id @default(uuid()) @db.Uuid
-  projectId String   @db.Uuid
-  fileId    String   @db.Uuid
+  projectId String   @db.Uuid @map("projet_id")
+  fileId    String   @db.Uuid @map("fichier_id")
   createdAt DateTime @default(now())
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   file      FileAsset @relation(fields: [fileId], references: [id])
 
   @@index([projectId])
-  @@map("project_attachments")
+  @@map("projets_pieces_jointes")
 }
 
 /// Historique des décisions : une ligne à chaque changement de statut (jamais modifiée).
 model ProjectStatusHistory {
   id         String         @id @default(uuid()) @db.Uuid
-  projectId  String         @db.Uuid
+  projectId  String         @db.Uuid @map("projet_id")
   fromStatus ProjectStatus?
   toStatus   ProjectStatus
   note       String?
-  actorId    String?        @db.Uuid
+  actorId    String?        @db.Uuid @map("acteur_id")
   createdAt  DateTime       @default(now())
   project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId, createdAt])
-  @@map("project_status_history")
+  @@map("projets_historique")
 }
 
 // ─────────────────────────────────── AUDIT ────────────────────────────────

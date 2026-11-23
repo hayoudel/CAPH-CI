@@ -20,7 +20,7 @@ const REQS = {
   eligibility: { intro: '', criteria: [] }, conditions: [], procedure: [], documents: [], fees: [], feesNotice: '',
   declarations: { acceptAccuracy: 'a', acceptStatutes: 'b', acceptDataProcessing: 'c' },
   fields: { organization: { name: { label: 'Dénomination', type: 'text', required: true, max: 200 } } },
-  options: { regions: [], delegations: [], domains: [], disabilityTypes: [] },
+  options: { regions: [], delegations: [], domains: [], typesHandicap: [] },
 };
 
 describe('règles de saisie', () => {
@@ -69,7 +69,7 @@ describe('formulaire d’adhésion', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Commencer ma demande' }));
     expect(screen.getByText('Saisissez votre nom complet.')).toBeInTheDocument();
     expect(screen.getByText(/Adresse e-mail invalide/)).toBeInTheDocument();
-    expect(f.mock.calls.some(([u, i]) => String(u).endsWith('/memberships/requests') && (i as RequestInit)?.method === 'POST')).toBe(false);
+    expect(f.mock.calls.some(([u, i]) => String(u).endsWith('/adhesions/requests') && (i as RequestInit)?.method === 'POST')).toBe(false);
   });
 
   it('affiche « Demande introuvable » si le brouillon n’existe plus', async () => {

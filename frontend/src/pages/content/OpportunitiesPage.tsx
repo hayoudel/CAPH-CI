@@ -39,7 +39,7 @@ export function OpportunitiesPage() {
   const [text, setText] = useState(f.get('q'));
   const status = f.get('status') || 'OPEN';
   const query = { q: f.get('q') || undefined, type: f.get('type') || undefined, status, review: f.get('review') || undefined, page: f.page, limit: 10 };
-  const list = useQuery({ queryKey: ['opportunities', query], queryFn: () => api<Paginated<Opportunity>>('/opportunities', { query }), placeholderData: (p) => p });
+  const list = useQuery({ queryKey: ['opportunities', query], queryFn: () => api<Paginated<Opportunity>>('/opportunites', { query }), placeholderData: (p) => p });
   const submit = (e: FormEvent) => { e.preventDefault(); f.set('q', text.trim()); };
   const total = list.data?.meta.total ?? 0;
   const hasFilter = f.has('q', 'type', 'status', 'review');
@@ -56,7 +56,7 @@ export function OpportunitiesPage() {
       <Flash notice={notice} />
       {adding && <AddOpportunityModal proposer={!manage} onClose={() => setAdding(false)} onDone={(n) => { setAdding(false); setNotice(n); }} />}
       {editing && <AddOpportunityModal proposer={!manage} edit={editing} onClose={() => setEditing(null)} onDone={(n) => { setEditing(null); setNotice(n); }} />}
-      {deleting && <ConfirmDelete what="Opportunité" title={deleting.title} path={`/opportunities/${deleting.id}`} invalidate={['opportunities']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
+      {deleting && <ConfirmDelete what="Opportunité" title={deleting.title} path={`/opportunites/${deleting.id}`} invalidate={['opportunities']} onClose={() => setDeleting(null)} onDone={(n) => { setDeleting(null); setNotice(n); }} />}
       <div className="stack">
         <form className="panel" role="search" aria-label="Rechercher une opportunité" onSubmit={submit}>
           <div className="filters">
@@ -95,7 +95,7 @@ export function OpportunitiesPage() {
                   </p>
                   <p style={{ margin: 0 }}>{o.summary}</p>
                   <ReviewInfo item={o} />
-                  <ReviewActions item={o} path="/opportunities" canReview={manage} onNotice={setNotice} />
+                  <ReviewActions item={o} path="/opportunites" canReview={manage} onNotice={setNotice} />
                   {mine(o) && <ItemActions title={o.title} onEdit={() => { setNotice(null); setEditing(o); }} onDelete={() => { setNotice(null); setDeleting(o); }} />}
                 </article>
               </li>
@@ -111,7 +111,7 @@ export function OpportunitiesPage() {
 export function OpportunityDetailPage() {
   const { id } = useParams();
   const base = useBase();
-  const q = useQuery({ queryKey: ['opportunity', id], queryFn: () => api<Opportunity>(`/opportunities/${id}`), retry: false });
+  const q = useQuery({ queryKey: ['opportunity', id], queryFn: () => api<Opportunity>(`/opportunites/${id}`), retry: false });
   usePageTitle(q.data?.title ?? 'Opportunité');
   if (q.isLoading) return <Spinner />;
   if (q.isError || !q.data) {
@@ -160,7 +160,7 @@ export function OpportunityDetailPage() {
         <section className="panel" aria-labelledby="fiche">
           <h2 id="fiche" className="panel__title">Fiche à télécharger</h2>
           <p className="item__meta">{o.sheet.originalName} ({formatSize(o.sheet.sizeBytes)})</p>
-          <DownloadButton path={`/opportunities/${o.id}/sheet`} name={o.sheet.originalName} label="Télécharger la fiche" variant="primary" />
+          <DownloadButton path={`/opportunites/${o.id}/sheet`} name={o.sheet.originalName} label="Télécharger la fiche" variant="primary" />
         </section>
       )}
     </div>

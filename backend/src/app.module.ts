@@ -16,8 +16,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DocumentsModule } from './documents/documents.module';
 import { OpportunitiesModule } from './opportunities/opportunities.module';
 import { CommunicationsModule } from './communications/communications.module';
-import { EventsModule } from './events/events.module';
-import { ReportsModule } from './reports/reports.module';
+import { EvenementsModule } from './evenements/evenements.module';
+import { RapportsModule } from './rapports/rapports.module';
 import { NewsModule } from './news/news.module';
 import { ProjectsModule } from './projects/projects.module';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -45,8 +45,8 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     DocumentsModule,
     OpportunitiesModule,
     CommunicationsModule,
-    EventsModule,
-    ReportsModule,
+    EvenementsModule,
+    RapportsModule,
     NewsModule,
     ProjectsModule,
     DashboardModule,

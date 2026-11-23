@@ -1,13 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type FormEvent } from 'react';
 import { api, ApiError } from '../../api/client';
+import { useRegions } from '../../lib/useRegions';
 import { DOCUMENT_CATEGORIES, EVENT_MODES, EVENT_TYPES, OPPORTUNITY_TYPES } from '../../lib/format';
 import { Button } from '../../ui/Button';
 import { Checkbox, SelectField, TextAreaField, TextField } from '../../ui/Field';
 import { checkFile } from '../../ui/Attachments';
 import { errorNotice, Flash, type Notice } from '../../ui/Flash';
 import { Modal } from '../../ui/Modal';
-import type { AgendaEvent, LibraryDocument, Opportunity } from '../../api/types';
+import type { Evenement, LibraryDocument, Opportunity } from '../../api/types';
 
 const toOptions = (r: Record<string, string>) => Object.entries(r).map(([value, label]) => ({ value, label }));
 type Errors = Record<string, string>;
@@ -144,7 +145,7 @@ export function AddOpportunityModal({ onClose, onDone, proposer, edit }: Props &
   const set = (k: string, v: string) => setF((x) => ({ ...x, [k]: v }));
 
   const create = useMutation({
-    mutationFn: () => api(edit ? `/opportunities/${edit.id}` : '/opportunities', {
+    mutationFn: () => api(edit ? `/opportunites/${edit.id}` : '/opportunites', {
       method: edit ? 'PATCH' : 'POST',
       body: {
         type: f.type, title: f.title.trim(), summary: f.summary.trim(), visibility: f.visibility,
@@ -195,25 +196,27 @@ export function AddOpportunityModal({ onClose, onDone, proposer, edit }: Props &
 }
 
 /* ───────────── Événement ───────────── */
-export function AddEventModal({ onClose, onDone, proposer, edit }: Props & { edit?: AgendaEvent }) {
+export function AjoutEvenementModal({ onClose, onDone, proposer, edit }: Props & { edit?: Evenement }) {
   const qc = useQueryClient();
-  const [f, setF] = useState({ type: edit?.type ?? 'MEETING', title: edit?.title ?? '', description: edit?.description ?? '', startsAt: toLocalInput(edit?.startsAt), endsAt: toLocalInput(edit?.endsAt), mode: edit?.mode ?? 'ONSITE', location: edit?.location ?? '' });
+  const [f, setF] = useState({ type: edit?.type ?? 'MEETING', title: edit?.title ?? '', description: edit?.description ?? '', startsAt: toLocalInput(edit?.startsAt), endsAt: toLocalInput(edit?.endsAt), mode: edit?.mode ?? 'ONSITE', location: edit?.location ?? '', regionId: edit?.region?.id ?? '' });
+  const regions = useRegions();
   const [errors, setErrors] = useState<Errors>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const set = (k: string, v: string) => setF((x) => ({ ...x, [k]: v }));
 
   const create = useMutation({
-    mutationFn: () => api(edit ? `/events/${edit.id}` : '/events', {
+    mutationFn: () => api(edit ? `/evenements/${edit.id}` : '/evenements', {
       method: edit ? 'PATCH' : 'POST',
       body: {
         type: f.type, title: f.title.trim(), mode: f.mode,
         description: f.description.trim() || undefined, location: f.location.trim() || undefined,
+        regionId: f.regionId || (edit ? null : undefined),
         startsAt: new Date(f.startsAt).toISOString(), endsAt: f.endsAt ? new Date(f.endsAt).toISOString() : undefined,
       },
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['events'] }); qc.invalidateQueries({ queryKey: ['dashboard'] });
-      onDone(edit ? editedNotice(proposer, edit.reviewStatus, f.title.trim(), 'Événement') : sentNotice(proposer, 'Événement ajouté à l’agenda', f.title.trim()));
+      onDone(edit ? editedNotice(proposer, edit.reviewStatus, f.title.trim(), 'Événement') : sentNotice(proposer, 'Événement ajouté', f.title.trim()));
     },
     onError: (e) => { const s = serverErrors(e); setErrors(s.fields); setNotice(s.notice); },
   });
@@ -243,9 +246,11 @@ export function AddEventModal({ onClose, onDone, proposer, edit }: Props & { edi
           <TextField label="Début" type="datetime-local" required value={f.startsAt} onChange={(e) => set('startsAt', e.target.value)} error={errors.startsAt} />
           <TextField label="Fin" type="datetime-local" value={f.endsAt} onChange={(e) => set('endsAt', e.target.value)} error={errors.endsAt} hint="Facultatif." />
           <SelectField label="Format" value={f.mode} options={toOptions(EVENT_MODES)} onChange={(e) => set('mode', e.target.value)} />
-          <TextField label="Lieu ou lien" value={f.location} onChange={(e) => set('location', e.target.value)} hint="Facultatif. Exemple : Abidjan Plateau." />
+          <SelectField label="Région" value={f.regionId} placeholder="Non précisée" options={(regions.data ?? []).map((r) => ({ value: r.id, label: r.name }))}
+            onChange={(e) => set('regionId', e.target.value)} hint="Région administrative où se déroule l’événement. Facultatif." />
+          <TextField label="Lieu ou lien" value={f.location} onChange={(e) => set('location', e.target.value)} hint="Salle, adresse ou lien de connexion. Facultatif. Exemple : Salle des fêtes, Abidjan Plateau." />
         </div>
-        <Footer pending={create.isPending} label={edit ? 'Enregistrer les modifications' : proposer ? 'Envoyer pour validation' : 'Ajouter à l’agenda'} onCancel={onClose} />
+        <Footer pending={create.isPending} label={edit ? 'Enregistrer les modifications' : proposer ? 'Envoyer pour validation' : 'Ajouter l’événement'} onCancel={onClose} />
       </form>
     </Modal>
   );

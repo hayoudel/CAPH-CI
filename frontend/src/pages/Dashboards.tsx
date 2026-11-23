@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
-import type { Dashboard, EventItem, MemberDashboard, OpportunityItem, StaffDashboard } from '../api/types';
+import type { Dashboard, EvenementResume, MemberDashboard, OpportunityItem, StaffDashboard } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { EVENT_MODES, EVENT_TYPES, OPPORTUNITY_TYPES, formatDate, formatDay } from '../lib/format';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -25,7 +25,7 @@ function Panel({ title, children, more }: { title: string; children: ReactNode; 
   );
 }
 
-function Events({ items }: { items: EventItem[] }) {
+function Events({ items }: { items: EvenementResume[] }) {
   if (!items.length) return <p className="empty">Aucun événement à venir pour le moment.</p>;
   return (
     <ul className="plain-list">
@@ -84,7 +84,7 @@ function State({ query }: { query: ReturnType<typeof useDashboard> }) {
 
 // ─────────────────────────────── Organisation ───────────────────────────────
 
-const KIND_LABELS = { news: 'Actualité', project: 'Projet', report: 'Rapport' } as const;
+const KIND_LABELS = { news: 'Actualité', project: 'Projet', rapport: 'Rapport' } as const;
 const statusBadge = (s: string) =>
   ['PUBLISHED', 'APPROVED', 'VALIDATED', 'ONGOING', 'COMPLETED', 'PROCESSED'].includes(s) ? 'badge badge--green'
   : ['CORRECTION', 'REJECTED', 'TO_COMPLETE', 'CORRECTION_REQUESTED'].includes(s) ? 'badge badge--orange' : 'badge badge--grey';
@@ -150,11 +150,11 @@ function MemberView({ d, firstName }: { d: MemberDashboard; firstName: string })
               )}
             </Panel>
           )}
-          {d.myReports && (
+          {d.myRapports && (
             <Panel title="Mes rapports soumis" more={{ to: '/espace/rapports', label: 'Voir mes rapports' }}>
-              {d.myReports.length === 0 ? <p className="empty">Vous n’avez pas encore transmis de rapport.</p> : (
+              {d.myRapports.length === 0 ? <p className="empty">Vous n’avez pas encore transmis de rapport.</p> : (
                 <ul className="plain-list">
-                  {d.myReports.slice(0, 2).map((r) => (
+                  {d.myRapports.slice(0, 2).map((r) => (
                     <li key={r.id}><Link to={`/espace/rapports/${r.id}`} className="item__title">{r.title}</Link> <span className={statusBadge(r.status)}>{r.statusLabel}</span><span className="item__meta">Transmis le {formatDate(r.date)}</span></li>
                   ))}
                 </ul>
@@ -162,7 +162,7 @@ function MemberView({ d, firstName }: { d: MemberDashboard; firstName: string })
             </Panel>
           )}
           <Panel title="Prochaines opportunités" more={{ to: '/espace/opportunites', label: 'Toutes les opportunités' }}><Opportunities items={d.openOpportunities.slice(0, 2)} /></Panel>
-          <Panel title="Prochains événements" more={{ to: '/espace/agenda', label: 'Voir l’agenda' }}><Events items={d.upcomingEvents.slice(0, 2)} /></Panel>
+          <Panel title="Prochains événements" more={{ to: '/espace/evenements', label: 'Voir les événements' }}><Events items={d.upcomingEvents.slice(0, 2)} /></Panel>
           <Panel title="Communications non lues" more={{ to: '/espace/communications', label: 'Toutes les communications' }}>
             {unread === 0 ? <p className="empty">Vous avez tout lu.</p> : (
               <>
@@ -208,7 +208,7 @@ function StaffView({ d, firstName }: { d: StaffDashboard; firstName: string }) {
   const m = d.memberships;
   const todo: { label: string; n: number }[] = [];
   if (m) todo.push({ label: 'Demandes d’adhésion à traiter', n: m.toProcess });
-  if (d.reports) todo.push({ label: 'Rapports à traiter', n: d.reports.received + d.reports.inProcess });
+  if (d.rapports) todo.push({ label: 'Rapports à traiter', n: d.rapports.received + d.rapports.inProcess });
   if (d.newsToReview !== null) todo.push({ label: 'Actualités à valider', n: d.newsToReview });
 
   return (
@@ -237,7 +237,7 @@ function StaffView({ d, firstName }: { d: StaffDashboard; firstName: string }) {
             <Panel title="Contenus des organisations à valider">
               {d.contentsToReview.total === 0 ? <p className="empty" style={{ margin: 0 }}>Aucun contenu en attente de validation.</p> : (
                 <ul className="plain-list">
-                  {([['opportunities', 'Opportunités', '/admin/opportunites'], ['events', 'Événements', '/admin/agenda']] as const)
+                  {([['opportunities', 'Opportunités', '/admin/opportunites'], ['events', 'Événements', '/admin/evenements']] as const)
                     .filter(([k]) => d.contentsToReview![k] > 0)
                     .map(([k, label, to]) => (
                       <li key={k}><Link to={`${to}?review=PENDING`}>{label}</Link><span className="item__meta">{d.contentsToReview![k]} en attente</span></li>

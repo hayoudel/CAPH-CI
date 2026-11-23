@@ -84,50 +84,50 @@ describe('Organisations, membres, visibilité, annuaire (B2b)', () => {
   describe('Profil et isolation entre organisations', () => {
     it('chaque membre voit SA propre organisation', async () => {
       for (const email of [AWA, KOFFI, FATOU]) {
-        const r = await http().get('/api/v1/organizations/me').set(auth(await tokenOf(email)));
+        const r = await http().get('/api/v1/organisations/me').set(auth(await tokenOf(email)));
         expect(r.status).toBe(200);
         expect(r.body.name).toBe(orgA.name);
       }
     });
     it('un compte du personnel (sans OPH) reçoit un message clair sur /me', async () => {
       const t = await tokenOf(ADMIN);
-      const r = await http().get('/api/v1/organizations/me').set(auth(t));
+      const r = await http().get('/api/v1/organisations/me').set(auth(t));
       expect(r.status).toBe(404);
       expect(r.body.code).toBe('NO_ORGANIZATION');
     });
     it("un Président ne peut NI lire NI modifier l'organisation d'une autre (404)", async () => {
       const t = await tokenOf(AWA);
-      expect((await http().get(`/api/v1/organizations/${orgB.id}`).set(auth(t))).status).toBe(404);
-      expect((await http().patch(`/api/v1/organizations/${orgB.id}`).set(auth(t)).send({ phone: '+225 00 00 00 00' })).status).toBe(404);
-      expect((await http().patch(`/api/v1/organizations/${orgB.id}/visibility`).set(auth(t)).send({ isListed: true })).status).toBe(404);
-      expect((await http().get(`/api/v1/organizations/${orgB.id}/members`).set(auth(t))).status).toBe(404);
+      expect((await http().get(`/api/v1/organisations/${orgB.id}`).set(auth(t))).status).toBe(404);
+      expect((await http().patch(`/api/v1/organisations/${orgB.id}`).set(auth(t)).send({ phone: '+225 00 00 00 00' })).status).toBe(404);
+      expect((await http().patch(`/api/v1/organisations/${orgB.id}/visibility`).set(auth(t)).send({ isListed: true })).status).toBe(404);
+      expect((await http().get(`/api/v1/organisations/${orgB.id}/members`).set(auth(t))).status).toBe(404);
       const tb = await tokenOf(presidentB());
-      expect((await http().get(`/api/v1/organizations/${orgA.id}`).set(auth(tb))).status).toBe(404);
+      expect((await http().get(`/api/v1/organisations/${orgA.id}`).set(auth(tb))).status).toBe(404);
     });
     it('le Président modifie son organisation ; Contributeur et Consultation sont refusés (403)', async () => {
-      const ok = await http().patch(`/api/v1/organizations/${orgA.id}`).set(auth(await tokenOf(AWA))).send({ interventionZone: 'Grand Abidjan' });
+      const ok = await http().patch(`/api/v1/organisations/${orgA.id}`).set(auth(await tokenOf(AWA))).send({ interventionZone: 'Grand Abidjan' });
       expect(ok.status).toBe(200);
       expect(ok.body.interventionZone).toBe('Grand Abidjan');
       for (const email of [KOFFI, FATOU]) {
-        const r = await http().patch(`/api/v1/organizations/${orgA.id}`).set(auth(await tokenOf(email))).send({ commune: 'X' });
+        const r = await http().patch(`/api/v1/organisations/${orgA.id}`).set(auth(await tokenOf(email))).send({ commune: 'X' });
         expect(r.status).toBe(403);
       }
     });
     it('refuse les champs non modifiables et les valeurs invalides (422)', async () => {
       const t = await tokenOf(AWA);
       for (const body of [{ name: 'Nouveau nom' }, { memberNumber: 'X' }, { status: 'ARCHIVED' }, { website: 'pas-une-url' }, { email: 'pas-un-email' }]) {
-        expect((await http().patch(`/api/v1/organizations/${orgA.id}`).set(auth(t)).send(body)).status).toBe(422);
+        expect((await http().patch(`/api/v1/organisations/${orgA.id}`).set(auth(t)).send(body)).status).toBe(422);
       }
     });
     it('refuse une région ou un domaine inconnu', async () => {
       const t = await tokenOf(AWA);
       const unknown = '00000000-0000-4000-8000-000000000000';
-      expect((await http().patch(`/api/v1/organizations/${orgA.id}`).set(auth(t)).send({ regionId: unknown })).status).toBe(400);
-      expect((await http().patch(`/api/v1/organizations/${orgA.id}`).set(auth(t)).send({ domainIds: [unknown] })).status).toBe(400);
+      expect((await http().patch(`/api/v1/organisations/${orgA.id}`).set(auth(t)).send({ regionId: unknown })).status).toBe(400);
+      expect((await http().patch(`/api/v1/organisations/${orgA.id}`).set(auth(t)).send({ domainIds: [unknown] })).status).toBe(400);
     });
     it('périmètre du personnel : admin voit tout, responsable de délégation seulement la sienne', async () => {
       const ta = await tokenOf(ADMIN);
-      expect((await http().get(`/api/v1/organizations/${orgA.id}`).set(auth(ta))).status).toBe(200);
+      expect((await http().get(`/api/v1/organisations/${orgA.id}`).set(auth(ta))).status).toBe(200);
       const orgAfull = await prisma.organization.findUniqueOrThrow({ where: { id: orgA.id } });
       const other = await prisma.delegation.findFirstOrThrow({ where: { id: { not: orgAfull.delegationId! } } });
       const role = await prisma.role.findUniqueOrThrow({ where: { code: 'DELEGATION_MANAGER' } });
@@ -135,11 +135,11 @@ describe('Organisations, membres, visibilité, annuaire (B2b)', () => {
       const right = await tempUser('delegRight', { roles: { create: { roleId: role.id, delegationId: orgAfull.delegationId } } });
       const tw = await tokenOf(wrong.email);
       const tr = await tokenOf(right.email);
-      expect((await http().get(`/api/v1/organizations/${orgA.id}`).set(auth(tw))).status).toBe(404);
-      expect((await http().get(`/api/v1/organizations/${orgA.id}`).set(auth(tr))).status).toBe(200);
+      expect((await http().get(`/api/v1/organisations/${orgA.id}`).set(auth(tw))).status).toBe(404);
+      expect((await http().get(`/api/v1/organisations/${orgA.id}`).set(auth(tr))).status).toBe(200);
       // …mais il ne peut pas la modifier
-      expect((await http().patch(`/api/v1/organizations/${orgA.id}`).set(auth(tr)).send({ commune: 'Y' })).status).toBe(403);
-      const list = await http().get('/api/v1/organizations').set(auth(tr));
+      expect((await http().patch(`/api/v1/organisations/${orgA.id}`).set(auth(tr)).send({ commune: 'Y' })).status).toBe(403);
+      const list = await http().get('/api/v1/organisations').set(auth(tr));
       expect(list.status).toBe(200);
       expect(list.body.data.every((o: any) => o.name !== orgB.id)).toBe(true);
     });
@@ -151,7 +151,7 @@ describe('Organisations, membres, visibilité, annuaire (B2b)', () => {
 
     it('le Président ajoute un membre : invitation envoyée, compte « invité »', async () => {
       tempEmails.push(newEmail);
-      const r = await http().post(`/api/v1/organizations/${orgA.id}/members`).set(auth(await tokenOf(AWA)))
+      const r = await http().post(`/api/v1/organisations/${orgA.id}/members`).set(auth(await tokenOf(AWA)))
         .send({ email: newEmail, firstName: 'Nouveau', lastName: 'Membre', roleCode: 'OPH_VIEWER' });
       expect(r.status).toBe(201);
       expect(r.body.status).toBe('INVITED');
@@ -161,30 +161,30 @@ describe('Organisations, membres, visibilité, annuaire (B2b)', () => {
     it('refuse : adresse déjà utilisée (409), rôle Président (422), Contributeur/Consultation (403)', async () => {
       const t = await tokenOf(AWA);
       const base = { firstName: 'A', lastName: 'B', roleCode: 'OPH_VIEWER' };
-      expect((await http().post(`/api/v1/organizations/${orgA.id}/members`).set(auth(t)).send({ ...base, email: newEmail })).status).toBe(409);
-      expect((await http().post(`/api/v1/organizations/${orgA.id}/members`).set(auth(t)).send({ ...base, email: `x1-${stamp}@test.example`, roleCode: 'OPH_PRESIDENT' })).status).toBe(422);
+      expect((await http().post(`/api/v1/organisations/${orgA.id}/members`).set(auth(t)).send({ ...base, email: newEmail })).status).toBe(409);
+      expect((await http().post(`/api/v1/organisations/${orgA.id}/members`).set(auth(t)).send({ ...base, email: `x1-${stamp}@test.example`, roleCode: 'OPH_PRESIDENT' })).status).toBe(422);
       for (const email of [KOFFI, FATOU]) {
-        const r = await http().post(`/api/v1/organizations/${orgA.id}/members`).set(auth(await tokenOf(email))).send({ ...base, email: `x2-${stamp}@test.example` });
+        const r = await http().post(`/api/v1/organisations/${orgA.id}/members`).set(auth(await tokenOf(email))).send({ ...base, email: `x2-${stamp}@test.example` });
         expect(r.status).toBe(403);
       }
     });
     it('un Président ne peut pas ajouter de membre dans une autre organisation (404)', async () => {
-      const r = await http().post(`/api/v1/organizations/${orgB.id}/members`).set(auth(await tokenOf(AWA)))
+      const r = await http().post(`/api/v1/organisations/${orgB.id}/members`).set(auth(await tokenOf(AWA)))
         .send({ email: `x3-${stamp}@test.example`, firstName: 'A', lastName: 'B', roleCode: 'OPH_VIEWER' });
       expect(r.status).toBe(404);
     });
     it('la liste cache e-mails et dernière connexion aux non-Présidents', async () => {
-      const asViewer = await http().get(`/api/v1/organizations/${orgA.id}/members`).set(auth(await tokenOf(FATOU)));
+      const asViewer = await http().get(`/api/v1/organisations/${orgA.id}/members`).set(auth(await tokenOf(FATOU)));
       expect(asViewer.status).toBe(200);
       expect(asViewer.body.length).toBeGreaterThanOrEqual(4);
       expect(JSON.stringify(asViewer.body)).not.toMatch(/@horizon-inclusif|@test\.example/);
       expect(asViewer.body[0].role.code).toBe('OPH_PRESIDENT');
-      const asPresident = await http().get(`/api/v1/organizations/${orgA.id}/members`).set(auth(await tokenOf(AWA)));
+      const asPresident = await http().get(`/api/v1/organisations/${orgA.id}/members`).set(auth(await tokenOf(AWA)));
       expect(JSON.stringify(asPresident.body)).toMatch(/@horizon-inclusif/);
     });
     it('change le rôle, protège le Président et soi-même, retire le membre et coupe son accès', async () => {
       const t = await tokenOf(AWA);
-      const url = `/api/v1/organizations/${orgA.id}/members`;
+      const url = `/api/v1/organisations/${orgA.id}/members`;
       const roleOk = await http().patch(`${url}/${newUserId}`).set(auth(t)).send({ roleCode: 'OPH_CONTRIBUTOR' });
       expect(roleOk.status).toBe(200);
       expect(roleOk.body.role.code).toBe('OPH_CONTRIBUTOR');
@@ -194,16 +194,16 @@ describe('Organisations, membres, visibilité, annuaire (B2b)', () => {
       // Un membre actif retiré perd tout accès immédiatement
       const victim = await tempUser('victim', { membership: { create: { organizationId: orgA.id, roleId: (await prisma.role.findUniqueOrThrow({ where: { code: 'OPH_VIEWER' } })).id } } });
       const vt = await tokenOf(victim.email);
-      expect((await http().get('/api/v1/organizations/me').set(auth(vt))).status).toBe(200);
+      expect((await http().get('/api/v1/organisations/me').set(auth(vt))).status).toBe(200);
       expect((await http().delete(`${url}/${victim.id}`).set(auth(t))).status).toBe(204);
-      expect((await http().get('/api/v1/organizations/me').set(auth(vt))).status).toBe(401);
+      expect((await http().get('/api/v1/organisations/me').set(auth(vt))).status).toBe(401);
     });
   });
 
   describe('Suppléant du Président (comme « éditeur »)', () => {
     let deputyEmail: string;
     let deputyId: string;
-    const url = () => `/api/v1/organizations/${orgA.id}`;
+    const url = () => `/api/v1/organisations/${orgA.id}`;
 
     beforeAll(async () => {
       const role = await prisma.role.findUniqueOrThrow({ where: { code: 'OPH_DEPUTY' } });
@@ -250,7 +250,7 @@ describe('Organisations, membres, visibilité, annuaire (B2b)', () => {
   });
 
   describe('Visibilité et annuaire public', () => {
-    const dir = () => http().get('/api/v1/directory/organizations?limit=100');
+    const dir = () => http().get('/api/v1/annuaire/organizations?limit=100');
 
     it('l’annuaire est public (sans connexion) et contient l’OPH de démonstration', async () => {
       const r = await dir();
@@ -270,54 +270,54 @@ describe('Organisations, membres, visibilité, annuaire (B2b)', () => {
     });
     it('une OPH non listée est absente de l’annuaire et de sa fiche publique', async () => {
       expect((await dir()).body.data.some((o: any) => o.name.startsWith('Test OPH B'))).toBe(false);
-      expect((await http().get(`/api/v1/directory/organizations/${orgB.id}`)).status).toBe(404);
+      expect((await http().get(`/api/v1/annuaire/organizations/${orgB.id}`)).status).toBe(404);
     });
     it('exige le consentement pour apparaître dans l’annuaire (422)', async () => {
       const t = await tokenOf(presidentB());
-      const r = await http().patch(`/api/v1/organizations/${orgB.id}/visibility`).set(auth(t)).send({ isListed: true });
+      const r = await http().patch(`/api/v1/organisations/${orgB.id}/visibility`).set(auth(t)).send({ isListed: true });
       expect(r.status).toBe(422);
       expect(r.body.code).toBe('CONSENT_REQUIRED');
     });
     it('Contributeur et Consultation ne peuvent pas changer la visibilité (403)', async () => {
       for (const email of [KOFFI, FATOU]) {
-        const r = await http().patch(`/api/v1/organizations/${orgA.id}/visibility`).set(auth(await tokenOf(email))).send({ isListed: false });
+        const r = await http().patch(`/api/v1/organisations/${orgA.id}/visibility`).set(auth(await tokenOf(email))).send({ isListed: false });
         expect(r.status).toBe(403);
       }
     });
     it('cycle complet : publier, masquer un champ, retirer le consentement', async () => {
       const t = await tokenOf(presidentB());
-      const vis = `/api/v1/organizations/${orgB.id}/visibility`;
+      const vis = `/api/v1/organisations/${orgB.id}/visibility`;
       const publish = await http().patch(vis).set(auth(t)).send({
         publicationConsent: true, isListed: true, fieldVisibility: { publicEmail: true, publicPhone: false, postalAddress: false, website: false },
       });
       expect(publish.status).toBe(200);
-      let fiche = await http().get(`/api/v1/directory/organizations/${orgB.id}`);
+      let fiche = await http().get(`/api/v1/annuaire/organizations/${orgB.id}`);
       expect(fiche.status).toBe(200);
       expect(fiche.body.contact.email).toBe('public-b@test.example');
       expect(JSON.stringify(fiche.body)).not.toMatch(/prive-b@test|Rue secrète B|01 00 00 00 00/);
 
       // Le Président masque l'e-mail : il disparaît aussitôt
       await http().patch(vis).set(auth(t)).send({ fieldVisibility: { publicEmail: false } });
-      fiche = await http().get(`/api/v1/directory/organizations/${orgB.id}`);
+      fiche = await http().get(`/api/v1/annuaire/organizations/${orgB.id}`);
       expect(fiche.body.contact.email).toBeNull();
       expect(JSON.stringify(fiche.body)).not.toContain('public-b@test.example');
 
       // Retrait du consentement : l'OPH quitte l'annuaire
       await http().patch(vis).set(auth(t)).send({ publicationConsent: false });
-      expect((await http().get(`/api/v1/directory/organizations/${orgB.id}`)).status).toBe(404);
+      expect((await http().get(`/api/v1/annuaire/organizations/${orgB.id}`)).status).toBe(404);
       expect((await dir()).body.data.some((o: any) => o.name.startsWith('Test OPH B'))).toBe(false);
     });
     it('recherche et filtres', async () => {
-      const found = await http().get('/api/v1/directory/organizations?q=horizon');
+      const found = await http().get('/api/v1/annuaire/organizations?q=horizon');
       expect(found.body.data.length).toBeGreaterThanOrEqual(1);
-      expect((await http().get('/api/v1/directory/organizations?q=zzzzintrouvable')).body.data).toHaveLength(0);
-      const filters = await http().get('/api/v1/directory/filters');
+      expect((await http().get('/api/v1/annuaire/organizations?q=zzzzintrouvable')).body.data).toHaveLength(0);
+      const filters = await http().get('/api/v1/annuaire/filters');
       expect(filters.status).toBe(200);
       expect(filters.body.regions.length).toBeGreaterThan(0);
       const domain = filters.body.domains[0].id;
-      expect((await http().get(`/api/v1/directory/organizations?domainId=${domain}`)).status).toBe(200);
-      expect((await http().get('/api/v1/directory/organizations?regionId=pas-un-uuid')).status).toBe(422);
-      expect((await http().get('/api/v1/directory/organizations?limit=1000')).status).toBe(422);
+      expect((await http().get(`/api/v1/annuaire/organizations?domainId=${domain}`)).status).toBe(200);
+      expect((await http().get('/api/v1/annuaire/organizations?regionId=pas-un-uuid')).status).toBe(422);
+      expect((await http().get('/api/v1/annuaire/organizations?limit=1000')).status).toBe(422);
     });
   });
 });

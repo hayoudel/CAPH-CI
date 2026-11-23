@@ -44,10 +44,10 @@ export function WizardPage() {
   const formRef = useRef<HTMLDivElement>(null);
   const loadedFor = useRef<string | null>(null);
 
-  const reqs = useQuery({ queryKey: ['requirements', 'PM_ORGANISATION'], queryFn: () => api<MembershipRequirements>('/memberships/requirements', { auth: false, query: { category: 'PM_ORGANISATION' } }) });
+  const reqs = useQuery({ queryKey: ['requirements', 'PM_ORGANISATION'], queryFn: () => api<MembershipRequirements>('/adhesions/requirements', { auth: false, query: { category: 'PM_ORGANISATION' } }) });
   const view = useQuery({
     queryKey: ['request', draft?.id], enabled: !!draft, retry: false,
-    queryFn: () => api<MembershipRequestView>(`/memberships/requests/${draft!.id}`, { auth: false, headers: codeHeader(draft!) }),
+    queryFn: () => api<MembershipRequestView>(`/adhesions/requests/${draft!.id}`, { auth: false, headers: codeHeader(draft!) }),
   });
 
   // Les valeurs du formulaire sont initialisées une seule fois par dossier chargé.
@@ -104,7 +104,7 @@ export function WizardPage() {
     mutationFn: async (i: number) => {
       const id = STEPS[i].id;
       if (id === 'demandeur' && !draft) {
-        const created = await api<{ id: string; trackingCode: string }>('/memberships/requests', {
+        const created = await api<{ id: string; trackingCode: string }>('/adhesions/requests', {
           method: 'POST', auth: false,
           body: {
             categoryCode: reqs.data!.category.code, applicantName: String(values.applicantName).trim(), applicantEmail: String(values.applicantEmail).trim(),
@@ -114,7 +114,7 @@ export function WizardPage() {
         const d = { id: created.id, code: created.trackingCode };
         saveDraft(d);
         if (values.requestType === 'RENEWAL') {
-          await api(`/memberships/requests/${d.id}`, { method: 'PATCH', auth: false, headers: codeHeader(d), body: { existingMemberNumber: String(values.existingMemberNumber).trim() } });
+          await api(`/adhesions/requests/${d.id}`, { method: 'PATCH', auth: false, headers: codeHeader(d), body: { existingMemberNumber: String(values.existingMemberNumber).trim() } });
         }
         return { draft: d, created: true as const };
       }
@@ -136,7 +136,7 @@ export function WizardPage() {
         body.data = data;
         if (id === 'activites') { body.delegationId = values.delegationId || null; body.delegationOverrideReason = String(values.delegationOverrideReason ?? '').trim() || null; }
       }
-      const updated = await api<MembershipRequestView>(`/memberships/requests/${d.id}`, { method: 'PATCH', auth: false, headers: codeHeader(d), body });
+      const updated = await api<MembershipRequestView>(`/adhesions/requests/${d.id}`, { method: 'PATCH', auth: false, headers: codeHeader(d), body });
       qc.setQueryData(['request', d.id], updated);
       return { draft: d, created: false as const };
     },
@@ -170,7 +170,7 @@ export function WizardPage() {
   }
 
   const abandon = useMutation({
-    mutationFn: () => api(`/memberships/requests/${draft!.id}/withdraw`, { method: 'POST', auth: false, headers: codeHeader(draft!) }),
+    mutationFn: () => api(`/adhesions/requests/${draft!.id}/withdraw`, { method: 'POST', auth: false, headers: codeHeader(draft!) }),
     onSuccess: () => { clearDraft(); qc.removeQueries({ queryKey: ['request'] }); navigate('/adhesion', { replace: true }); },
     onError: (e) => { setConfirmAbandon(false); setBanner({ kind: 'error', title: 'Abandon impossible', text: e.message }); },
   });

@@ -82,12 +82,12 @@ export function ActivitiesStep() {
   const mismatch = !!chosen && !!regionId && chosen.regionId !== regionId;
   return (
     <>
-      <CheckGroup legend={specs?.organization?.interventionDomainIds?.label ?? 'Domaines d’intervention'} required hint="Cochez tout ce qui s’applique."
-        items={options?.domains ?? []} selected={(values['organization.interventionDomainIds'] as string[]) ?? []} error={errors['organization.interventionDomainIds']}
-        onChange={(v) => set('organization.interventionDomainIds', v)} />
+      <CheckGroup legend={specs?.organization?.domaineInterventionIds?.label ?? 'Domaines d’intervention'} required hint="Cochez tout ce qui s’applique."
+        items={options?.domains ?? []} selected={(values['organization.domaineInterventionIds'] as string[]) ?? []} error={errors['organization.domaineInterventionIds']}
+        onChange={(v) => set('organization.domaineInterventionIds', v)} />
       <CheckGroup legend="Types de handicap concernés" hint="Facultatif."
-        items={options?.disabilityTypes ?? []} selected={(values['organization.disabilityTypeIds'] as string[]) ?? []} error={errors['organization.disabilityTypeIds']}
-        onChange={(v) => set('organization.disabilityTypeIds', v)} />
+        items={options?.typesHandicap ?? []} selected={(values['organization.typeHandicapIds'] as string[]) ?? []} error={errors['organization.typeHandicapIds']}
+        onChange={(v) => set('organization.typeHandicapIds', v)} />
       <div className="form-grid">
         <TextField label="Zone d’intervention" required value={str(values['organization.interventionZone'])} error={errors['organization.interventionZone']}
           hint="Exemple : District d’Abidjan et Sud-Comoé" onChange={(e) => set('organization.interventionZone', e.target.value)} />

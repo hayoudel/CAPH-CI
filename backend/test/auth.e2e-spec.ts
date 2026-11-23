@@ -62,7 +62,7 @@ describe('Authentification et permissions (B2a)', () => {
 
   describe('Routes protégées', () => {
     it('refuse un visiteur non connecté (401)', async () => {
-      for (const url of ['/api/v1/users/me', '/api/v1/admin/users']) {
+      for (const url of ['/api/v1/utilisateurs/moi', '/api/v1/admin/utilisateurs']) {
         const r = await http().get(url);
         expect(r.status).toBe(401);
         expect(r.body.code).toBe('UNAUTHENTICATED');
@@ -72,7 +72,7 @@ describe('Authentification et permissions (B2a)', () => {
       expect((await http().get('/api/v1/health')).status).toBe(200);
     });
     it('refuse un jeton falsifié', async () => {
-      const r = await http().get('/api/v1/users/me').set('Authorization', 'Bearer abc.def.ghi');
+      const r = await http().get('/api/v1/utilisateurs/moi').set('Authorization', 'Bearer abc.def.ghi');
       expect(r.status).toBe(401);
       expect(r.body.code).toBe('TOKEN_INVALID');
     });
@@ -117,14 +117,14 @@ describe('Authentification et permissions (B2a)', () => {
     it('Consultation et Président ne peuvent pas administrer les comptes (403)', async () => {
       for (const email of ['fatou.diallo@horizon-inclusif.example', 'awa.kone@horizon-inclusif.example']) {
         const t = await tokenOf(email);
-        const r = await http().get('/api/v1/admin/users').set('Authorization', `Bearer ${t}`);
+        const r = await http().get('/api/v1/admin/utilisateurs').set('Authorization', `Bearer ${t}`);
         expect(r.status).toBe(403);
         expect(r.body.code).toBe('FORBIDDEN');
       }
     });
     it('l’administrateur peut lister les comptes (pagination)', async () => {
       const t = await tokenOf('admin@caphci.local');
-      const r = await http().get('/api/v1/admin/users?limit=2').set('Authorization', `Bearer ${t}`);
+      const r = await http().get('/api/v1/admin/utilisateurs?limit=2').set('Authorization', `Bearer ${t}`);
       expect(r.status).toBe(200);
       expect(r.body.data.length).toBeLessThanOrEqual(2);
       expect(r.body.meta.total).toBeGreaterThan(2);
@@ -132,7 +132,7 @@ describe('Authentification et permissions (B2a)', () => {
     });
     it('le rôle Consultation n’a pas de droit d’écriture sur l’organisation', async () => {
       const t = await tokenOf('fatou.diallo@horizon-inclusif.example');
-      const r = await http().get('/api/v1/users/me').set('Authorization', `Bearer ${t}`);
+      const r = await http().get('/api/v1/utilisateurs/moi').set('Authorization', `Bearer ${t}`);
       expect(r.body.organization.role.code).toBe('OPH_VIEWER');
       expect(r.body.permissions).not.toContain('organization.update');
       expect(r.body.permissions).not.toContain('report.create');
@@ -190,19 +190,19 @@ describe('Authentification et permissions (B2a)', () => {
       const email = `test-invite-${Date.now()}@test.example`;
       tempEmails.push(email);
       const body = { email, firstName: 'Nouvelle', lastName: 'Recrue', roleCodes: ['MEMBERSHIP_MANAGER'] };
-      const created = await http().post('/api/v1/admin/users').set('Authorization', `Bearer ${admin}`).send(body);
+      const created = await http().post('/api/v1/admin/utilisateurs').set('Authorization', `Bearer ${admin}`).send(body);
       expect(created.status).toBe(201);
       expect(created.body.status).toBe('INVITED');
       expect((await login(email)).status).toBe(401); // pas encore activé
       const token = lastToken(email);
       expect((await http().post('/api/v1/auth/accept-invitation').send({ token, newPassword: NEW_PW })).status).toBe(204);
       expect((await login(email, NEW_PW)).status).toBe(200);
-      const dup = await http().post('/api/v1/admin/users').set('Authorization', `Bearer ${admin}`).send(body);
+      const dup = await http().post('/api/v1/admin/utilisateurs').set('Authorization', `Bearer ${admin}`).send(body);
       expect(dup.status).toBe(409);
     });
     it('refuse un rôle inconnu ou un rôle d’OPH pour le personnel', async () => {
       const admin = await tokenOf('admin@caphci.local');
-      const r = await http().post('/api/v1/admin/users').set('Authorization', `Bearer ${admin}`)
+      const r = await http().post('/api/v1/admin/utilisateurs').set('Authorization', `Bearer ${admin}`)
         .send({ email: `x-${Date.now()}@test.example`, firstName: 'A', lastName: 'B', roleCodes: ['OPH_PRESIDENT'] });
       expect(r.status).toBe(400);
       expect(r.body.code).toBe('INVALID_ROLE');
@@ -213,35 +213,35 @@ describe('Authentification et permissions (B2a)', () => {
     it('désactiver un compte coupe IMMÉDIATEMENT son accès', async () => {
       const u = await tempUser('cut');
       const token = await tokenOf(u.email);
-      expect((await http().get('/api/v1/users/me').set('Authorization', `Bearer ${token}`)).status).toBe(200);
+      expect((await http().get('/api/v1/utilisateurs/moi').set('Authorization', `Bearer ${token}`)).status).toBe(200);
       const admin = await tokenOf('admin@caphci.local');
-      const r = await http().patch(`/api/v1/admin/users/${u.id}/status`).set('Authorization', `Bearer ${admin}`).send({ status: 'DISABLED' });
+      const r = await http().patch(`/api/v1/admin/utilisateurs/${u.id}/status`).set('Authorization', `Bearer ${admin}`).send({ status: 'DISABLED' });
       expect(r.status).toBe(200);
-      expect((await http().get('/api/v1/users/me').set('Authorization', `Bearer ${token}`)).status).toBe(401);
+      expect((await http().get('/api/v1/utilisateurs/moi').set('Authorization', `Bearer ${token}`)).status).toBe(401);
     });
     it('un admin ne peut pas désactiver son propre compte', async () => {
       const admin = await tokenOf('admin@caphci.local');
-      const me = await http().get('/api/v1/users/me').set('Authorization', `Bearer ${admin}`);
-      const r = await http().patch(`/api/v1/admin/users/${me.body.id}/status`).set('Authorization', `Bearer ${admin}`).send({ status: 'DISABLED' });
+      const me = await http().get('/api/v1/utilisateurs/moi').set('Authorization', `Bearer ${admin}`);
+      const r = await http().patch(`/api/v1/admin/utilisateurs/${me.body.id}/status`).set('Authorization', `Bearer ${admin}`).send({ status: 'DISABLED' });
       expect(r.status).toBe(400);
     });
     it('modifie son profil mais pas son e-mail ni ses rôles', async () => {
       const u = await tempUser('profile');
       const t = await tokenOf(u.email);
-      const ok = await http().patch('/api/v1/users/me').set('Authorization', `Bearer ${t}`).send({ phone: '+225 07 00 00 00 00', jobTitle: 'Trésorier' });
+      const ok = await http().patch('/api/v1/utilisateurs/moi').set('Authorization', `Bearer ${t}`).send({ phone: '+225 07 00 00 00 00', jobTitle: 'Trésorier' });
       expect(ok.status).toBe(200);
       expect(ok.body.jobTitle).toBe('Trésorier');
       for (const forbidden of [{ email: 'pirate@x.example' }, { status: 'ACTIVE' }, { roleCodes: ['ADMIN'] }]) {
-        expect((await http().patch('/api/v1/users/me').set('Authorization', `Bearer ${t}`).send(forbidden)).status).toBe(422);
+        expect((await http().patch('/api/v1/utilisateurs/moi').set('Authorization', `Bearer ${t}`).send(forbidden)).status).toBe(422);
       }
     });
     it('change le mot de passe : ancien refusé, mauvais actuel refusé', async () => {
       const u = await tempUser('chgpw');
       const t = await tokenOf(u.email);
-      const bad = await http().post('/api/v1/users/me/password').set('Authorization', `Bearer ${t}`).send({ currentPassword: 'Faux-Mdp#2026xx', newPassword: NEW_PW });
+      const bad = await http().post('/api/v1/utilisateurs/moi/password').set('Authorization', `Bearer ${t}`).send({ currentPassword: 'Faux-Mdp#2026xx', newPassword: NEW_PW });
       expect(bad.status).toBe(400);
       expect(bad.body.code).toBe('INVALID_CURRENT_PASSWORD');
-      const ok = await http().post('/api/v1/users/me/password').set('Authorization', `Bearer ${t}`).send({ currentPassword: DEMO, newPassword: NEW_PW });
+      const ok = await http().post('/api/v1/utilisateurs/moi/password').set('Authorization', `Bearer ${t}`).send({ currentPassword: DEMO, newPassword: NEW_PW });
       expect(ok.status).toBe(204);
       expect((await login(u.email, DEMO)).status).toBe(401);
       expect((await login(u.email, NEW_PW)).status).toBe(200);
