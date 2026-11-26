@@ -2,24 +2,27 @@
 
 @import 'tailwindcss';
 
+
 @theme {
-  --color-caph: #006B35;
-  --color-caph-dark: #004D29;
-  --color-caph-xdark: #00351D;
-  --color-caph-light: #F5F7F6;
-  --color-caph-mid: #008B3D;
+  --color-caph: #F56600;
+  --color-caph-dark: #D94F00;
+  --color-caph-xdark: #A63D00;
+  --color-caph-light: #FFF4E8;
+  --color-caph-mid: #FF8A33;
   --color-caph-orange: #F56600;
   --color-caph-yellow: #FFD600;
-  --color-blue-50: #EEF8F2;
-  --color-blue-100: #D8F0E2;
-  --color-blue-200: #B3DFC5;
-  --color-blue-300: #80C79E;
-  --color-blue-400: #35A969;
-  --color-blue-500: #008B3D;
-  --color-blue-600: #006B35;
-  --color-blue-700: #00572F;
-  --color-blue-800: #004D29;
-  --color-blue-900: #00351D;
+  --color-blue-50: #FFF4E8;
+  --color-blue-100: #FFE1C2;
+  --color-blue-200: #FFC68A;
+  --color-blue-300: #FFA65C;
+  --color-blue-400: #FF8A33;
+  --color-blue-500: #F56600;
+  --color-blue-600: #F56600;
+
+  --color-blue-700: #D94F00;
+
+  --color-blue-800: #F56600;
+  --color-blue-900: #7C2E00;
   --color-slate-50: #F5F7F6;
   --color-slate-100: #ECEFED;
   --color-slate-200: #DDE2DF;
@@ -40,6 +43,8 @@
   --font-display: 'Montserrat', Arial, sans-serif;
   --font-body: 'Atkinson Hyperlegible', Arial, sans-serif;
 }
+
+
 
 *, *::before, *::after {
   box-sizing: border-box;

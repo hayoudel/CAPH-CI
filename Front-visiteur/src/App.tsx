@@ -26,6 +26,8 @@ import MembersPage from './pages/MembersPage';
 import MemberDashboardPage from './pages/MemberDashboardPage';
 import InstitutionalTextPage from './pages/InstitutionalTextPage';
 import NotFoundPage from './pages/NotFoundPage';
+import CardReader from './components/CardReader';
+import useCardReader from './hooks/useCardReader';
 
 type FontSize = 'sm' | 'base' | 'lg' | 'xl';
 const fontSizeOrder: FontSize[] = ['sm', 'base', 'lg', 'xl'];
@@ -35,6 +37,14 @@ const fontSizeClass: Record<FontSize, string> = { sm: 'text-sm-mode', base: '', 
 function Layout() {
   const [fontSize, setFontSize] = useState<FontSize>('base');
   const [highContrast, setHighContrast] = useState(false);
+
+  // Gestion centralisée de la lecture vocale
+  const {
+    enabled,
+    toggleReading,
+    readCard,
+    stopReading,
+  } = useCardReader();
 
   const shift = (delta: 1 | -1) => {
     const idx = fontSizeOrder.indexOf(fontSize) + delta;
@@ -48,15 +58,22 @@ function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <ScrollToTop />
-      <Header
-        fontSize={fontSize}
-        onDecrease={() => shift(-1)}
-        onReset={() => setFontSize('base')}
-        onIncrease={() => shift(1)}
-        highContrast={highContrast}
-        onToggleContrast={() => setHighContrast(c => !c)}
-      />
+<Header
+  fontSize={fontSize}
+  onDecrease={() => shift(-1)}
+  onReset={() => setFontSize('base')}
+  onIncrease={() => shift(1)}
+  highContrast={highContrast}
+  onToggleContrast={() => setHighContrast(c => !c)}
+  readingEnabled={enabled}
+  onToggleReading={toggleReading}
+/>
       <main id="main-content" className="flex-1">
+         <CardReader
+          enabled={enabled}
+          readCard={readCard}
+          stopReading={stopReading}
+        />
         <Outlet />
       </main>
       <Footer />

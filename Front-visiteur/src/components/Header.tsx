@@ -12,6 +12,10 @@ export type HeaderProps = {
   onIncrease: () => void;
   highContrast: boolean;
   onToggleContrast: () => void;
+
+    // Lecture audio au survol
+  readingEnabled: boolean;
+  onToggleReading: () => void;
 };
 const NAV_ACTIVE = 'text-white bg-blue-600 font-semibold';
 const NAV_IDLE = 'text-slate-900 hover:text-blue-600 hover:bg-slate-50';
@@ -214,7 +218,16 @@ function OphDropdown({ isOpen, onOpen, onClose }: { isOpen: boolean; onOpen: () 
 
 // ─── Main Header ─────────────────────────────────────────────────────────────
 
-export default function Header({ fontSize, onDecrease, onReset, onIncrease, highContrast, onToggleContrast }: HeaderProps) {
+export default function Header({
+  fontSize,
+  onDecrease,
+  onReset,
+  onIncrease,
+  highContrast,
+  onToggleContrast,
+  readingEnabled,
+  onToggleReading,
+}: HeaderProps) {
   const { currentPage, navigate } = useNavigation();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [ophOpen, setOphOpen] = useState(false);
@@ -278,17 +291,43 @@ export default function Header({ fontSize, onDecrease, onReset, onIncrease, high
             <div className="w-px h-4 bg-slate-700 mx-1.5" aria-hidden="true" />
 
             {/* Lecture (text-to-speech) */}
-            <button
-              onClick={() => window.speechSynthesis?.cancel()}
-              className="px-2 py-0.5 rounded hover:bg-slate-700 text-slate-300 text-xs transition-colors flex items-center gap-1"
-              aria-label="Lecture audio de la page"
-              title="Lecture"
-            >
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.784L4.17 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.17l4.213-3.784a1 1 0 011 .076zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
-              </svg>
-              Lecture
-            </button>
+          
+<button
+  type="button"
+  onClick={onToggleReading}
+  aria-pressed={readingEnabled}
+  aria-label={
+    readingEnabled
+      ? 'Désactiver la lecture au survol'
+      : 'Activer la lecture au survol'
+  }
+  title={
+    readingEnabled
+      ? 'Désactiver la lecture'
+      : 'Activer la lecture'
+  }
+  className={`px-2 py-0.5 rounded text-xs transition-colors flex items-center gap-1 ${
+    readingEnabled
+      ? 'bg-blue-600 text-white'
+      : 'hover:bg-slate-700 text-slate-300'
+  }`}
+>
+  <svg
+    className="w-3 h-3"
+    fill="currentColor"
+    viewBox="0 0 20 20"
+    aria-hidden="true"
+  >
+    <path
+      fillRule="evenodd"
+      d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.784L4.17 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.17l4.213-3.784a1 1 0 011 .076zM14.657 2.929a9.972 9.972 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a5.983 5.983 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
+      clipRule="evenodd"
+    />
+  </svg>
+
+  {readingEnabled ? 'Lecture activée' : 'Lecture'}
+</button>
+
 
             <div className="w-px h-4 bg-slate-700 mx-1.5" aria-hidden="true" />
 

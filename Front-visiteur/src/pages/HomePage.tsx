@@ -213,14 +213,14 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
       {/* ══════════════════════════════════════════
           IMPACT STATS
       ══════════════════════════════════════════ */}
-      <section className="bg-[#006B35]" aria-label="Chiffres clés de la CAPH-CI">
+      <section className="bg-[#F56600]" aria-label="Chiffres clés de la CAPH-CI">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 lg:grid-cols-3 divide-x divide-white/15 divide-y">
             {impactStats.map((s, i) => (
               <div key={i} className="py-8 px-6 text-center">
                 <div className="text-3xl sm:text-4xl font-bold text-white font-display mb-1">{s.value}</div>
                 <div className="text-blue-100 text-sm font-semibold mb-0.5">{s.label}</div>
-                <div className="text-blue-300 text-xs">{s.sub}</div>
+                <div className="text-blue text-xs">{s.sub}</div>
               </div>
             ))}
           </div>
@@ -386,17 +386,14 @@ function HomePageContent({ domains, projects, newsItems, opportunities }: { doma
       </section>
 
       {/* ══════════════════════════════════════════
-          CABINET DE CONSEIL EN SOLUTIONS HANDICAP
+          CABINET DE CONSEIL EN SOLUTIONS HANDICAP D94F00 F56600 FFC68A
       ══════════════════════════════════════════ */}
       <section className="py-20 bg-white overflow-hidden" aria-label="Cabinet de conseil CAPH-CI">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="rounded-2xl bg-gradient-to-br from-[#1A1A1A] via-[#004D29] to-[#004D29] overflow-hidden">
+          <div className="rounded-2xl bg-gradient-to-br from-[#F56600] via-[#FFC68A] to-[#F56600] overflow-hidden">
             <div className="grid lg:grid-cols-2 gap-0">
               {/* Left content */}
               <div className="p-10 lg:p-14">
-                <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-1.5 mb-6">
-                  <span className="text-blue-300 text-xs font-semibold tracking-wide">B2B · RSE · ACCESSIBILITÉ</span>
-                </div>
                 <h2 className="text-3xl font-bold text-white font-display mb-4 leading-tight">
                   Cabinet CAPH-CI Conseil<br />
                   <span className="text-blue-300">en Solutions Handicap</span>
